@@ -1,0 +1,56 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Kendo.Mvc.UI;
+using DbUtils;
+using Newtonsoft.Json;
+using DbUtils.Models.Air;
+using System.ComponentModel.Design;
+using System.Web.Configuration;
+
+namespace RcsCargoWeb.Areas.Air.Controllers
+{
+    public class MawbController : Controller
+    {
+        DbUtils.Air air = new DbUtils.Air();
+
+        public ActionResult GridMawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
+            [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        {
+            var sortField = "FLIGHT_DATE";
+            var sortDir = "desc";
+
+            if (sortings != null)
+            {
+                sortField = sortings.First().Single(a => a.Key == "field").Value;
+                sortDir = sortings.First().Single(a => a.Key == "dir").Value;
+            }
+
+            var results = air.GetMawbs(dateFrom, dateTo, companyId, frtMode, searchValue);
+
+            if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
+            {
+                if (sortDir == "asc")
+                    results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+                else
+                    results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+            }
+
+            return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        public ActionResult GetMawb(string mawbNo, string companyId, string frtMode)
+        {
+            return Json(air.GetMawb(mawbNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult TestModel(Mawb model)
+        {
+            model.MODIFY_USER = "BARRY.LUK";
+            model.MODIFY_DATE = DateTime.Now;
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+    }
+}

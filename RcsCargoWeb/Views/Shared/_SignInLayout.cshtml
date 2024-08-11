@@ -1,0 +1,78 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<main class="k-d-flex-row k-align-items-center k-justify-content-center">
+    <div class="sign-in-layout k-d-flex ">
+        <div class="signin-container k-content k-d-flex-col k-align-items-center k-justify-content-center">
+            @RenderBody()
+        </div>
+        <div style="width:100%" class="k-d-flex-col k-align-items-center k-justify-content-end">
+            <div class="slogan-container k-d-flex-col k-align-items-center k-justify-content-center">
+                <div class="title">How Does Telerik UI Cut Development Time?</div>
+                <div class="subtitle">Telerik UI delivers everything you need to build modern, beautiful, responsive apps.</div>
+                <div class="kendoka"></div>
+            </div>
+        </div>
+        <div class="waves"></div>
+    </div>
+</main>
+
+<style>
+        .slogan-container {
+            width: 540px;
+            height: 100%;
+            position: absolute;
+            gap: 30px;
+        }
+
+        .sign-in-layout {
+            width: 100%;
+            background:url(@Url.Content("~/Images/signin/background.svg"));
+            background-repeat: no-repeat;
+            background-size: calc(100% + 7px);
+        }
+
+        .kendoka {
+            background: url( @Url.Content("~/Images/signin/kendoka.svg") );
+            width: 480px;
+            height: 480px;
+            transform: scale(-1,1);
+            z-index: 100;
+            background-repeat: no-repeat;
+            background-position-x: center;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 48px;
+            line-height: 67px;
+            color: #FFFFFF;
+            text-align: center
+        }
+
+        .subtitle {
+            font-weight: 400;
+            font-size: 19px;
+            color: #FFFFFF;
+            line-height: 25px;
+            text-align: center;
+        }
+
+        .signin-container {
+            width: 560px;
+            z-index: 1;
+        }
+
+        .waves {
+            background:url(@Url.Content("~/Images/signin/bgr-image.svg"));
+            width: 100%;
+            height: 390px;
+            align-self: flex-end;
+            position: absolute;
+            background-size: cover;
+            background-repeat: no-repeat
+        }
+</style>

@@ -1,0 +1,49 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>RCS Cargo System</title>
+    <link rel="icon" href="@Url.Content("~/Content/img/favicon.ico")" type="image/x-icon">
+    <link href="@Url.Content("~/Content/kendo.bootstrap-main.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/css.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/plugins/fontawesome-free/css/all.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/adminlte.min.css")">
+    <script src="@Url.Content("~/Scripts/jquery.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/angular.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jszip.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/kendo.all.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/adminlte.min.js")"></script>
+</head>
+<body class="hold-transition sidebar-mini">
+    <div class="wrapper">
+        @Html.Partial("_Navbar")
+
+        @Html.Partial("_MainSidebar")
+
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
+
+        @Html.Partial("_ControlSidebar")
+
+        <!-- Main Footer -->
+        <footer class="main-footer">
+            <!-- To the right -->
+            <div class="float-right d-none d-sm-inline">
+                RCS Cargo System version 2.0.0
+            </div>
+            <!-- Default to the left -->
+            <strong>Copyright &copy; @DateTime.Now.ToString("yyyy") <a href="https://www.rcslogistics.com/">RCS Logistics Ltd.</a></strong> All rights reserved.
+        </footer>
+    </div>
+
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+</body>
+</html>

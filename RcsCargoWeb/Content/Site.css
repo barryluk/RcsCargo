@@ -1,0 +1,208 @@
+﻿body {
+    font-size: 12px;
+}
+
+.hidden{
+    display: none;
+}
+
+div.k-list-optionlabel,
+li {
+    font-size: 12px;
+}
+
+.dropdown-menu li {
+    font-size: 12px;
+    font-weight: bolder;
+}
+
+.k-input-inner {
+    font-size: 12px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select, .k-dropdownlist {
+    max-width: 270px;
+}
+
+.k-input-value-text {
+    max-width: 220px;
+}
+
+.fixlength100 {
+    width: 100px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.fixlength150 {
+    width: 150px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.fixlength200 {
+    width: 200px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.handCursor {
+    cursor: pointer;
+}
+
+.grid tbody {
+    cursor: pointer;
+}
+
+/*.grid tbody tr:hover {
+    background: #52b1fd;
+}*/
+
+.k-button, .k-menu-link-text {
+    font-size: 12px;
+}
+
+    .k-button:hover {
+        text-decoration: none;
+        outline: 0
+    }
+
+.k-icon-button {
+    gap: 0
+}
+
+    .k-icon-button .k-icon {
+        display: -ms-inline-flexbox;
+        display: inline-flex
+    }
+
+.k-button-icon {
+    color: inherit;
+    -ms-flex-item-align: center;
+    align-self: center;
+    position: relative
+}
+
+.k-button-sm {
+    padding: .25rem .5rem;
+    /*font-size: .875rem;*/
+    line-height: 1.42857143
+}
+
+    .k-button-sm.k-icon-button {
+        padding: .25rem
+    }
+
+        .k-button-sm.k-icon-button > .k-button-icon {
+            min-width: 1.25rem;
+            min-height: 1.25rem
+        }
+
+li.k-list-item {
+    padding: 4px !important;
+}
+
+.k-grid {
+    font-size: 11px;
+    padding: 4px;
+}
+
+.k-grid td {
+    padding: 4px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 280px;
+}
+
+.card form {
+    font-size: 11px;
+}
+
+.form-control {
+    height: calc(1.8rem);
+    padding: 4px;
+    font-size: 11px;
+}
+
+.container {
+    max-width: 100%;
+}
+
+.content-wrapper, .content {
+    margin-top: 5px;
+}
+
+div .row.form-group {
+    padding: 0px;
+    margin: 0px;
+}
+
+form .form-control {
+    height: calc(1.8rem);
+    padding: 4px;
+    font-size: 11px;
+}
+
+form .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
+    width: 270px;
+    height: calc(1.8rem);
+}
+
+form .form-control-textArea {
+    width: 320px;
+    height: calc(6rem);
+    /*margin-top: 4px;*/
+    margin-bottom: 4px;
+}
+
+.k-input-md .k-input-inner, .k-picker-md .k-input-inner {
+    height: calc(1.6rem);
+    padding-top: 0px;
+    padding-right: 4px;
+    padding-bottom: 0px;
+    padding-left: 4px;
+}
+
+.k-dropdownlist {
+    height: calc(1.5rem);
+}
+
+.k-i-search {
+    cursor: pointer;
+}
+
+.formGroupTab {
+    padding: 0px;
+}
+
+.formGroupTab.k-tabstrip {
+    color: #000;
+    border-color: #dedede;
+    background-color: #efefef;
+}
+    .formGroupTab .k-link {
+        color: black;
+        font-weight: bold;
+    }
+
+    .formGroupTab .k-active .k-link {
+        background: #b3badb;
+        font-weight: bold;
+    }
+
+    .formGroupTab .k-tabstrip-item.k-item.k-disabled {
+        display: none;
+    }
+
+    div[data-role="buttongroup"] {
+        height: 28.79px;
+    }

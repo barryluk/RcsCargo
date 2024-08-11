@@ -1,0 +1,27 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    $.getScript("@Url.Content("~/Scripts/rcsCargo/data.js")");
+    $.ajax({
+        url: "@Url.Content("~/Scripts/rcsCargo/airMawb.js")",
+        dataType: "script",
+        success: function () {
+            $.getScript("@Url.Content("~/Scripts/rcsCargo/rcsCargoMain.js")");
+        }
+    });
+    @*$.getScript("@Url.Content("~/Scripts/rcsCargo/rcsCargoMain.js")");
+    $.getScript("@Url.Content("~/Scripts/rcsCargo/airMawb.js")");*@
+</script>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="tabStripMain"></div>
+            </div>
+        </div>
+    </div>
+</section>
