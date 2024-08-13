@@ -18,6 +18,7 @@ namespace DbUtils
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Port> Ports { get; set; }
         public DbSet<Charge> Charges { get; set; }
+        public DbSet<ChargeTemplate> ChargeTemplates { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CustomerName> CustomerNames { get; set; }
         public DbSet<CustomerContact> CustomersContacts { get; set; }

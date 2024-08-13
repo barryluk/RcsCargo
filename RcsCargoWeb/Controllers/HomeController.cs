@@ -115,5 +115,17 @@ namespace RcsCargoWeb.Controllers
             var masterRecords = new MasterRecords();
             return Json(masterRecords.GetCustomerViews(searchValue).Take(take), JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult GetChargeTemplates(string companyId = "RCSHKG")
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetChargeTemplates(companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetChargeTemplate(string templateName, string companyId = "RCSHKG")
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetChargeTemplate(templateName, companyId), JsonRequestBehavior.AllowGet);
+        }
     }
 }

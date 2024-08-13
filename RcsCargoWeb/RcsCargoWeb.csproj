@@ -166,6 +166,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\adminlte.css" />
     <Content Include="Content\adminlte.min.css" />
     <Content Include="Content\alt\adminlte.components.css" />
     <Content Include="Content\alt\adminlte.components.min.css" />
@@ -382,8 +383,8 @@
     <Content Include="Images\Team-members\WILMK.jpg" />
     <Content Include="Images\Team-members\WOLZA.jpg" />
     <Content Include="Kendo.Mvc.dll" />
-    <Content Include="Scripts\adminlte.js" />
-    <Content Include="Scripts\adminlte.min.js" />
+    <Content Include="Scripts\dist\js\adminlte.js" />
+    <Content Include="Scripts\dist\js\adminlte.min.js" />
     <Content Include="Scripts\angular.min.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -416,16 +417,19 @@
     <Content Include="Content\alt\adminlte.pages.min.css.map" />
     <Content Include="Content\alt\adminlte.plugins.css.map" />
     <Content Include="Content\alt\adminlte.plugins.min.css.map" />
-    <Content Include="Scripts\adminlte.min.js.map" />
+    <Content Include="Scripts\dist\js\adminlte.min.js.map" />
     <Content Include="Areas\Admin\Views\web.config" />
     <Content Include="Areas\Air\Views\web.config" />
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-v4compatibility.ttf" />
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-v4compatibility.woff2" />
+    <Content Include="Scripts\dist\js\.eslintrc.json" />
+    <Content Include="Content\adminlte.css.map" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.js" />
+    <Content Include="Scripts\dist\js\adminlte.js.map" />
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />

@@ -123,7 +123,7 @@ li.k-list-item {
     max-width: 280px;
 }
 
-.card form {
+.card form, .col-form-label {
     font-size: 11px;
 }
 
@@ -146,18 +146,13 @@ div .row.form-group {
     margin: 0px;
 }
 
-form .form-control {
+.form-control, .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
+    width: 270px;
     height: calc(1.8rem);
-    padding: 4px;
     font-size: 11px;
 }
 
-form .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
-    width: 270px;
-    height: calc(1.8rem);
-}
-
-form .form-control-textArea {
+.form-control-textArea {
     width: 320px;
     height: calc(6rem);
     /*margin-top: 4px;*/
@@ -203,6 +198,6 @@ form .form-control-textArea {
         display: none;
     }
 
-    div[data-role="buttongroup"] {
-        height: 28.79px;
-    }
+div[data-role="buttongroup"] {
+    height: 28.79px;
+}

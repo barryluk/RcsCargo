@@ -1,6 +1,61 @@
 ﻿//Global variables
 var take = 50;
 var indexGridPageSize = 25;
+var companyId = "RCSHKG";
+var dateFormat = "M/d/yyyy";
+var dateTimeFormat = "M/d/yyyy HH:mm";
+var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
+var chargeQtyUnit = ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"];
+var packageUnit = ["CTNS", "PLT", "PKG", "ROLLS", "PCS"];
+var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency", "chargeTemplate"];
+var currencies;
+//for testing only
+var testObj, testObj1, testObj2;
+
+
+var htmlElements = {
+    indexPage: function (title) {
+        return `
+            <div>
+                <h3>${title}</h3>
+                <div class="search-control row"></div>
+                <div name="gridIndex"></div>
+            </div>`;
+    },
+    editPage: function (title) {
+        return `
+            <div>
+                <h3>${title}</h3>
+                <div class="toolbar"></div>
+                <section class="content">
+                    <div class="container-fluid">
+                        <div class="row form_group">
+                        </div>
+                    </div>
+                </section>
+            </div>`;
+    },
+    card: function (title = "", htmlContent = "", colWidth = 6, colorName = "primary") {
+        return `
+            <div class="col-md-${colWidth}">
+                <div class="card card-${colorName} card-outline shadow">
+                    <div class="card-header">
+                        <h4 class="card-title">${title}</h4>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                        <div class="card-body">
+                            <div class="row">
+                                ${htmlContent}
+                            </div>
+                        </div>
+                </div>
+            </div>`;
+    },
+};
 
 var indexPages = [
     {
@@ -14,7 +69,7 @@ var indexPages = [
             { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "MAWB# / Airline / Flight#" },
         ],
         gridConfig: {
-            gridName: "gridMawb",
+            gridName: "gridIndex",
             dataSourceUrl: "/Air/Mawb/GridMawb_Read",
             linkIdPrefix: "AirMawb",
             linkTabTitle: "MAWB# ",
@@ -94,7 +149,7 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE"],
             readonlyFields: [
                 { name: "MAWB", readonly: "edit" },
                 { name: "JOB", readonly: "always" }],
@@ -148,9 +203,9 @@ var masterForms = [
                 title: "Contact Information",
                 colWidth: 6,
                 formControls: [
-                    { label: "Shipper", type: "customerAddr", name: "SHIPPER", float: "left" },
-                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE", float: "right" },
-                    { label: "Notify Party", type: "customerAddr", name: "NOTIFY", float: "left" },
+                    { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
+                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
+                    { label: "Notify Party", type: "customerAddr", name: "NOTIFY" },
                 ]
             },
             {
@@ -158,8 +213,8 @@ var masterForms = [
                 title: "Contact Information",
                 colWidth: 6,
                 formControls: [
-                    { label: "Agent", type: "customerAddr", name: "AGENT", float: "left" },
-                    { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE", float: "right" },
+                    { label: "Agent", type: "customerAddr", name: "AGENT" },
+                    { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE" },
                 ]
             },
             {
@@ -167,6 +222,8 @@ var masterForms = [
                 title: "Prepaid Charges",
                 colWidth: 12,
                 formControls: [
+                    { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
                     {
                         label: "Prepaid Charges", type: "grid", name: "MawbChargesPrepaid",
                         columns: [
@@ -205,7 +262,7 @@ var masterForms = [
                             AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
                         },
                         formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}*-1" },
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
                             { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
                         ],
                     },

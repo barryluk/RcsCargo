@@ -1,15 +1,7 @@
-﻿//Global variables
-var companyId = "RCSHKG";
-var dateFormat = "M/d/yyyy";
-var dateTimeFormat = "M/d/yyyy HH:mm";
-var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
-var chargeQtyUnit = ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"];
-var packageUnit = ["CTNS", "PLT", "PKG", "ROLLS", "PCS"];
-var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit"];
-//for testing only
-var testObj, testObj1, testObj2;
-
+﻿
 $(document).ready(function () {
+    prefetchGlobalVariables();
+
     //Sidebar Menu init
     $(".nav.nav-treeview a.nav-link").each(function () {
         var link = $(this);
@@ -120,7 +112,7 @@ function remove_tabStripMain(id) {
 
 //Render search controls
 function renderSearchControls(pageSetting) {
-    var html = `<div class="col-md-4">`;
+    var html = `<div class="col-md-6">`;
 
     pageSetting.searchControls.forEach(function (control) {
         var formControlType = "input";
@@ -131,9 +123,9 @@ function renderSearchControls(pageSetting) {
         if (control.type == "searchInput") {
             html += `
                 <div class="form-group row">
-                    <label class="col-form-label">${control.label}</label>
-                    <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md" style="margin-left: 12px; padding: 0px; width: 340px">
-                        <input class="k-input-inner" name="${control.name}" placeholder="${control.searchLabel}" style="max-width: 320px" />
+                    <label class="col-form-label col-md-2">${control.label}</label>
+                    <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md col-md-10" style="max-width: 340px; margin: 7px; padding: 0px">
+                        <input class="k-input-inner" name="${control.name}" placeholder="${control.searchLabel}" style="max-width: 100%" />
                         <span class="k-input-separator k-input-separator-vertical"></span>
                         <span class="k-input-suffix k-input-suffix-horizontal">
                             <span class="k-icon k-i-search" aria-hidden="true"></span>
@@ -143,14 +135,14 @@ function renderSearchControls(pageSetting) {
         } else if (control.type == "buttonGroup") {
             html += `
             <div class="form-group row">
-                <label class="col-form-label">${control.label}</label>
-                <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
+                <label class="col-form-label col-md-2" >${control.label}</label>
+                <${formControlType} class="col-md-10" type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
             </div>`;
         } else {
             html += `
             <div class="form-group row">
-                <label class="col-form-label">${control.label}</label>
-                <${formControlType} type="${control.type}" name="${control.name}" />
+                <label class="col-form-label col-md-2">${control.label}</label>
+                <${formControlType} class="col-md-10" type="${control.type}" name="${control.name}" />
             </div>`;
         }
     });
@@ -266,15 +258,7 @@ function renderFormControls(masterForm) {
 
             tab.formGroups.forEach(function (formGroupName) {
                 formGroup = masterForm.formGroups.filter(a => a.name == formGroupName)[0];
-                html = `
-                    <div class="col-md-${formGroup.colWidth}">
-                        <div class="card card-primary">
-                            <div class="card-header">
-                                <h3 class="card-title">${formGroup.title}</h3>
-                            </div>
-                            <form class="form-horizontal">
-                                <div class="card-body">
-                                    <div class="row">`;
+                html = "";
                                     
                 for (var j in formGroup.formControls) {
                     var control = formGroup.formControls[j];
@@ -297,7 +281,7 @@ function renderFormControls(masterForm) {
                     if (control.type == "label") {
                         html += `
                             <div class="form-group row">
-                                <label class="col-sm-12 col-form-label"><h4>${control.label}</h4></label>
+                                <label class="col-sm-12 col-form-label"><h5>${control.label}</h5></label>
                             </div>`;
                     } else if (control.type == "buttonGroup") {
                         html += `
@@ -333,9 +317,35 @@ function renderFormControls(masterForm) {
                                     </div>
                                 </div>`;
                         }
-                    } else {
+                    } else if (control.type == "currency") {
+                        if (control.exRateName != null) {
+                            var colWidth = control.colWidth != null ? control.colWidth : "3";
+                            html += `
+                                <div class="form-group row col-sm-${colWidth}">
+                                    <label class="col-sm-3 col-form-label">${control.label}</label>
+                                    <div class="row col-sm-9">
+                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="width: 95px; height: 28.89px" />
+                                        &nbsp;
+                                        <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly />
+                                    </div>
+                                </div>`;
+                        }
+                    } else if (control.type == "chargeTemplate") {
+                        var colWidth = control.colWidth != null ? control.colWidth : "3";
                         html += `
-                            <div class="form-group row">
+                            <div class="form-group row col-sm-${colWidth}">
+                                <label class="col-sm-4 col-form-label">${control.label}</label>
+                                <div class="row col-sm-8">
+                                    <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
+                                </div>
+                            </div>`;
+                    } else {
+                        var colWidth = "";
+                        if (control.colWidth != null)
+                            colWidth = `col-sm-${control.colWidth}`;
+
+                        html += `
+                            <div class="form-group row ${colWidth}">
                                 <label class="col-sm-3 col-form-label">${control.label}</label>
                                 <div class="col-sm-9">
                                     <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
@@ -343,13 +353,9 @@ function renderFormControls(masterForm) {
                             </div>`;
                         }
                     }
-
-                html += `       </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>`;
-                $(`#${masterForm.id} .formGroupTab [name=${tab.name}]`).append(html);
+                    
+                $(`#${masterForm.id} .formGroupTab [name=${tab.name}]`).append(htmlElements.card(formGroup.title, html, formGroup.colWidth));
+                //$(`#${masterForm.id} .formGroupTab [name=${tab.name}]`).append(html);
             });
         });
         formGroupTab.activateTab($(`#${masterForm.id} .formGroupTab li`).eq(0));
@@ -626,6 +632,75 @@ function renderFormControl_kendoUI(masterForm) {
         });
     })
 
+    //kendoDropDownList for currency
+    $(`#${masterForm.id} input[type=currency]`).each(function () {
+        $(this).kendoDropDownList({
+            dataTextField: "CURR_CODE",
+            dataValueField: "CURR_CODE",
+            optionLabel: " ",
+            dataSource: currencies,
+            cascade: function (e) {
+                //e.sender._cascadedValue => selected value
+                if (e.userTriggered == true) {
+                    var exRate = e.sender.dataSource._data.filter(a => a.CURR_CODE == e.sender._cascadedValue)[0]["EX_RATE"];
+                    if (e.sender.element.parent().next("[name*=EX_RATE]").length == 1) {
+                        e.sender.element.parent().next("[name*=EX_RATE]").val(exRate);
+                    }
+                }
+            },
+        });
+    });
+
+    //kendoDropDownList for charge template
+    $(`#${masterForm.id} input[type=chargeTemplate]`).each(function () {
+        $(this).kendoDropDownList({
+            optionLabel: "Select for charge template...",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetChargeTemplates",
+                        data: { companyId: companyId },
+                        dataType: "json"
+                    }
+                }
+            },
+            cascade: function (e) {
+                //e.sender._cascadedValue => selected value
+                if (e.userTriggered == true) {
+                    var templateName = e.sender._cascadedValue;
+                    var currencies;
+                    var grid = $(`#${masterForm.id} [name=${e.sender.element.attr("targetControl")}]`).data("kendoGrid");
+                    var cwts = getFormValue("CWTS", e.sender.element);
+                    testObj = grid;
+
+                    $.ajax({
+                        url: "/Home/GetChargeTemplate",
+                        data: { companyId: companyId, templateName: templateName },
+                        dataType: "json",
+                        success: function (templateItems) {
+                            templateItems.forEach(function (item) {
+                                item.EX_RATE = getExRate(item.CURR_CODE);
+                                item.QTY = item.UNIT == "KGS" ? cwts : 1;
+                                item.QTY_UNIT = item.UNIT;
+                                item.MIN_CHARGE = item.MIN_AMOUNT;
+                                item.AMOUNT = item.QTY * item.PRICE;
+                                item.AMOUNT = item.MIN_AMOUNT > item.AMOUNT ? item.MIN_AMOUNT : item.AMOUNT;
+                                item.AMOUNT_HOME = roundUp(item.AMOUNT * item.EX_RATE, 0);
+
+                                //dirty visual effects
+                                grid.dataSource.data().push(item);
+                                var dsItem = grid.dataSource.data()[grid.dataSource.data().length - 1];
+                                dsItem.dirty = true;
+                                dsItem.dirtyFields = { CHARGE_CODE: true, CURR_CODE: true, EX_RATE: true, QTY: true, QTY_UNIT: true, PRICE: true, MIN_CHARGE: true, AMOUNT: true, AMOUNT_HOME: true };
+                            });
+                            grid.dataSource.trigger("change");
+                        }
+                    });
+                }
+            },
+        });
+    });
+
     //kendoDropDownList for PACKAGE_UNIT
     $(`#${masterForm.id} input[type=pkgUnit]`).each(function () {
         $(this).kendoDropDownList({
@@ -671,9 +746,14 @@ function gridFormula(container, fieldName, formula) {
             formula = formula.replace(`{${field}}`, gridGetCellValue(container, field));
         }
     });
-    //console.log(formula);
 
-    gridSetCellValue(container, fieldName, eval(formula));
+    //console.log(formula);
+    if (formula.indexOf("*") != -1 || formula.indexOf("/") != -1)
+        gridSetCellValue(container, fieldName, roundUp(eval(formula), 2));
+    else
+        gridSetCellValue(container, fieldName, eval(formula));
+
+
 }
 
 function gridGetCellValue(container, fieldName) {
@@ -753,14 +833,7 @@ function renderGridEditorCurrency(container, options) {
     ddl.kendoDropDownList({
         dataTextField: "CURR_CODE",
         dataValueField: "CURR_CODE",
-        dataSource: {
-            transport: {
-                read: {
-                    url: "/Home/GetCurrencies",
-                    dataType: "json"
-                }
-            }
-        },
+        dataSource: currencies,
         cascade: function (e) {
             //e.sender._cascadedValue => selected value
             if (e.userTriggered == true) {
@@ -837,11 +910,11 @@ function setValuesToFormControls(masterForm, model) {
             } else if (control.type == "number" || control.type == "numberInt") {
                 $(`#${masterForm.id} [name=${control.name}]`).data("kendoNumericTextBox").value(model[`${control.name}`]);
             } else if (control.type == "buttonGroup") {
-                var buttonGroup = $(`#${masterForm.id} [name=${control.name}]`).data("kendoButtonGroup");
+                var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup");
                 if (control.dataType == "jobType") {
                     if (!isEmptyString(model[`${control.name}`])) {
                         var jobType = model[`${control.name}`] == "C" ? "Consol" : "Direct";
-                        buttonGroup.select($(`[name=JOB_TYPE] span:contains('${jobType}')`).parent());
+                        buttonGroup.select($(`div[type=buttonGroup][name=JOB_TYPE] span:contains('${jobType}')`).parent());
                     }
                 }
             } else {
@@ -861,7 +934,7 @@ function getValuesFromFormControls(masterForm) {
     masterForm.formGroups.forEach(function (formGroup) {
         formGroup.formControls.forEach(function (control) {
             if (control.type != "label") {
-                try {
+                if ($(`#${masterForm.id} [name=${control.name}]`).length == 1 || $(`#${masterForm.id} [name=grid_${control.name}]`).length == 1) {
                     if (control.type == "customer") {
                         var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                         var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
@@ -889,19 +962,17 @@ function getValuesFromFormControls(masterForm) {
                                 var rowData = {};
                                 rowData["LINE_NO"] = lineNo;
                                 for (var field in control.fields) {
-                                    rowData[field] = item[field]; 
+                                    rowData[field] = item[field];
                                 }
                                 gridData.push(rowData);
                                 lineNo++;
                             });
-                            
+
                             model[control.name] = gridData;
                         }
                     } else {
                         model[control.name] = $(`#${masterForm.id} [name=${control.name}]`).val();
                     }
-                } catch (err) {
-                    console.log(err);
                 }
             }
         });
@@ -985,6 +1056,56 @@ function getCanvasFont(el = document.body) {
     return `${fontWeight} ${fontSize} ${fontFamily}`;
 }
 
+function getFormValue(fieldName, container = ".formGroupTab", dataType = "string") {
+    var el = $(container).parentsUntil("div.container-fluid").find(`[name=${fieldName}]`);
+    var value;
+    if (el.length > 0) {
+        value = el.eq(0).val();
+
+        if (value == null) {
+            if (dataType == "string")
+                value =  "";
+            else if (dataType == "number")
+                value = 0;
+        }
+    } else {
+        //special case for CWTS
+        if (fieldName == "CWTS") {
+            var elGwts = $(container).parentsUntil("div.container-fluid").find(`[name=GWTS]`);
+            var elVwts = $(container).parentsUntil("div.container-fluid").find(`[name=VWTS]`);
+            if (elGwts.length > 0 && elVwts.length > 0) {
+                var gwts = isEmptyString(elGwts.eq(0).val()) ? 0 : elGwts.eq(0).val();
+                var vwts = isEmptyString(elVwts.eq(0).val()) ? 0 : elVwts.eq(0).val();
+                if (gwts > vwts)
+                    value = gwts;
+                else
+                    value = vwts;
+            }
+        }
+    }
+    return value;
+}
+
+function getExRate(currCode) {
+    var exRate;
+    currencies.forEach(function (currency) {
+        if (currency.CURR_CODE == currCode) {
+            exRate = currency.EX_RATE;
+        }
+    });
+    return exRate;
+}
+
+function prefetchGlobalVariables() {
+    $.ajax({
+        url: "/Home/GetCurrencies",
+        data: { companyId: companyId },
+        dataType: "json",
+        success: function (result) {
+            currencies = result;
+        }
+    });
+}
 
 //Common JS functions
 function isEmptyString(str) {

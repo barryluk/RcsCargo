@@ -61,6 +61,17 @@ namespace DbUtils
                 return charge;
         }
 
+        public List<string> GetChargeTemplates(string companyId)
+        {
+            return db.ChargeTemplates.Where(a => a.COMPANY_ID.Equals(companyId))
+                    .Select(a => a.TEMPLATE_NAME).Distinct().ToList();
+        }
+
+        public List<ChargeTemplate> GetChargeTemplate(string templateName, string companyId)
+        {
+            return db.ChargeTemplates.Where(a => a.COMPANY_ID.Equals(companyId) && a.TEMPLATE_NAME == templateName).ToList();
+        }
+
         public List<Currency> GetCurrencies(string companyId)
         {
             return db.Currencies.Where(a => a.COMPANY_ID == companyId).ToList();
