@@ -26,27 +26,19 @@
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
-        @Html.Partial("_Navbar")
-
-        @Html.Partial("_MainSidebar")
-
+        @*@Html.Partial("_Navbar")*@
+        @*@Html.Partial("_MainSidebar")*@
         <div class="content-wrapper">
             @RenderBody()
         </div>
-
-        @Html.Partial("_ControlSidebar")
-
-        <!-- Main Footer -->
+        @*@Html.Partial("_ControlSidebar")*@
         <footer class="main-footer">
-            <!-- To the right -->
             <div class="float-right d-none d-sm-inline">
                 RCS Cargo System version 2.0.0
             </div>
-            <!-- Default to the left -->
             <strong>Copyright &copy; @DateTime.Now.ToString("yyyy") <a href="https://www.rcslogistics.com/">RCS Logistics Ltd.</a></strong> All rights reserved.
         </footer>
     </div>
-
     <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" />
 </body>
 </html>

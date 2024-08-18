@@ -113,12 +113,39 @@ namespace DbUtils.Models.Air
         public List<MawbCharge> MawbChargesPrepaid { get; set; }
         [NotMapped]
         public List<MawbCharge> MawbChargesCollect { get; set; }
+        [NotMapped]
+        public List<MawbDim> MawbDims { get; set; }
 
         public Mawb()
         {
             MawbChargesPrepaid = new List<MawbCharge>();
             MawbChargesCollect = new List<MawbCharge>();
+            MawbDims = new List<MawbDim>();
         }
+    }
+
+    [Table("A_MAWB_DIM")]
+    public class MawbDim
+    {
+        [Key]
+        [Column(Order = 1)]
+        public string MAWB_NO { get; set; }
+        [Key]
+        [Column(Order = 2)]
+        public string COMPANY_ID { get; set; }
+        [Key]
+        [Column(Order = 3)]
+        public string FRT_MODE { get; set; }
+        [Key]
+        [Column(Order = 4)]
+        public decimal LINE_NO { get; set; }
+        public decimal CTNS { get; set; }
+        public string PACKAGE_TYPE { get; set; }
+        public decimal LENGTH { get; set; }
+        public decimal WIDTH { get; set; }
+        public decimal HEIGHT { get; set; }
+        public decimal VWTS { get; set; }
+        public string DIMENSION { get; set; }
     }
 
     [Table("A_MAWB_CHG")]

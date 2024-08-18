@@ -7,7 +7,7 @@
 
     $(function () {
         var html = data.htmlElements.card("Flight Schedules", "<div id='flightSchedule'></div>", 8);
-        html += data.htmlElements.card("Shipment volume by origin", "<div id='shipmentChart'></div>", 8);
+        html += data.htmlElements.card("Export Shipments volume by origin", "<div id='shipmentChart'></div>", 8);
         $("#dashboardMain").append(html);
 
         setTimeout(function () { createFlightSchedule(); }, 1000);
@@ -96,6 +96,8 @@
     }
 
     function createShipmentChart() {
+        var endDate = new Date();
+        var startDate = kendo.date.addDays(endDate, -365);
         $.ajax({
             url: "../Home/GetReportData",
             data: { reportName: "ShipmentVolumeReportByOrigin" },
@@ -157,7 +159,7 @@
 
                 $("#shipmentChart").kendoChart({
                     theme: "black",
-                    title: { text: "Shipment volume by origin" },
+                    title: { text: `Flight Date: ${kendo.toString(startDate, "MMM-d-yyyy")} - ${kendo.toString(endDate, "MMM-d-yyyy") }` },
                     legend: { position: "bottom" },
                     seriesDefaults: {
                         type: "area",

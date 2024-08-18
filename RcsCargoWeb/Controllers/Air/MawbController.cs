@@ -10,12 +10,15 @@ using DbUtils.Models.Air;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
 
-namespace RcsCargoWeb.Areas.Air.Controllers
+namespace RcsCargoWeb.Air.Controllers
 {
+
+    [RoutePrefix("Air/Mawb")]
     public class MawbController : Controller
     {
         DbUtils.Air air = new DbUtils.Air();
 
+        [Route("GridMawb_Read")]
         public ActionResult GridMawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
             [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
@@ -41,21 +44,25 @@ namespace RcsCargoWeb.Areas.Air.Controllers
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
+        [Route("GetMawb")]
         public ActionResult GetMawb(string mawbNo, string companyId, string frtMode)
         {
             return Json(air.GetMawb(mawbNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetFlightNos")]
         public ActionResult GetFlightNos(string companyId, DateTime startDate, DateTime endDate)
         {
             return Json(air.GetFlightNos(startDate.ToMinTime(), endDate.ToMaxTime(), companyId), JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetMawbInfoByFlightNo")]
         public ActionResult GetMawbInfoByFlightNo(string flightNo, string companyId, DateTime flightDate)
         {
             return Json(air.GetMawbInfoByFlightNo(flightNo, flightDate, companyId), JsonRequestBehavior.AllowGet);
         }
 
+        [Route("TestModel")]
         public ActionResult TestModel(Mawb model)
         {
             model.MODIFY_USER = "BARRY.LUK";

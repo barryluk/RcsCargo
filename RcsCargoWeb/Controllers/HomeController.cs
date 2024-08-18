@@ -17,6 +17,8 @@ namespace RcsCargoWeb.Controllers
 {
     public class HomeController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public ActionResult Test()
         {
             DbUtils.RcsFreightDBContext db = new RcsFreightDBContext();
@@ -33,30 +35,35 @@ namespace RcsCargoWeb.Controllers
         [HttpGet]
         public ActionResult GetPdf() 
         {
+            if (Request.Url.GetString().Contains("favicon"))
+                return null;
+
             string info = string.Empty;
             string url = "http://gemini.rcs-asia.com:9010/FileDownload?id=8BCDC04165C3FC5800DA28027C7A13B2EE32D9391FCAD5AEC550568E393390402AF2CE03C2A33ADEFF42DD069D5BFC96A89B8A73B8BD6972B1EB456932DB948C9203AF22DB43650EAA03226FAB29519012D99664C465F64F46D4A9714AA9604152353053FA000038E7D6123CAA1D6115";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
-            request.ContentType = "application/pdf";
-            request.Accept = "application/pdf";
+            //request.ContentType = "application/pdf";
+            //request.Accept = "application/pdf";
 
             try
             {
                 WebResponse response = request.GetResponse();
                 var fileBytes = new byte[response.ContentLength];
                 var respStream = response.GetResponseStream();
-                //System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(1000);
                 respStream.Read(fileBytes, 0, fileBytes.Length);
-                //System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(1000);
                 respStream.Close();
-                //System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(1000);
                 respStream.Flush();
+                log.Info(fileBytes.Length);
 
                 return File(fileBytes, "application/pdf");
             }
             catch (Exception ex)
             {
                 info = ex.Message;
+                log.Debug(info);
             }
 
             return null;

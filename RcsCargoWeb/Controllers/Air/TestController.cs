@@ -6,14 +6,14 @@ using System.Web.Mvc;
 
 namespace RcsCargoWeb.Controllers.Air
 {
-    [RoutePrefix("AirFreight/Test")]
+    [RoutePrefix("Air/Test")]
     public class TestController : Controller
     {
-        //[Route]: AirFreight/Test
-        //[Route("Index")]: AirFreight/Test/Index
-        //[Route("{id?}")]: AirFreight/Test/2
-        //[Route("products/{id:int}")]: AirFreight/Test/products/{int id}
-        //[Route("products/{id:alpha}")]: AirFreight/Test/products/{string id}
+        //[Route]: Air/Test
+        //[Route("Index")]: Air/Test/Index
+        //[Route("{id?}")]: Air/Test/2
+        //[Route("products/{id:int}")]: Air/Test/products/{int id}
+        //[Route("products/{id:alpha}")]: Air/Test/products/{string id}
 
         [Route]
         public ActionResult Index()

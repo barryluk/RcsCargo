@@ -6,6 +6,10 @@
     display: none;
 }
 
+.open > .dropdown-menu {
+    display: block;
+}
+
 div.k-list-optionlabel,
 li {
     font-size: 12px;

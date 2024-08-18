@@ -18,9 +18,6 @@ $(document).ready(function () {
         utils = new ((await import('../../Scripts/rcsCargo/utils.js')).default);
         controls = new ((await import('../../Scripts/rcsCargo/controls.js')).default);
         controllers.airMawb = new ((await import('../../Scripts/rcsCargo/airMawb.js')).default);
-
-        controls.initSideBarMenu();
-        controls.initTabstripMain();
     }
 
     loadScripts();

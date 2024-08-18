@@ -1,9 +1,29 @@
 ﻿export default class {
     constructor() {
+        $.ajax({
+            url: "../Home/GetSysModules",
+            success: function (menuItems) {
+                controls.initNavbar();
+                controls.initControlSidebar();
+                controls.initSidebar(menuItems);
+                controls.initTabstripMain();
+
+                $(".nav-item.dropdown").bind("click", function () {
+                    $(this).toggleClass("open");
+                });
+            }
+        });
     }
 
-    //Sidebar Menu
-    initSideBarMenu = function () {
+    //Navbar
+    initNavbar = function () {
+        $("div.wrapper").prepend(data.frameworkHtmlElements.navbar());
+    }
+
+    //Sidebar
+    initSidebar = function (menuItems) {
+        var html = data.frameworkHtmlElements.sidebar(menuItems);
+        $("div.wrapper").prepend(html);
         $(".nav.nav-treeview a.nav-link").each(function () {
             var link = $(this);
             if (link.attr("data-controller") != null) {
@@ -16,6 +36,14 @@
                 });
             }
         });
+
+        //Very important to init the treeview to ensure expand / collapse working
+        $('[data-widget="treeview"]').Treeview('init');
+    }
+
+    //ControlSidebar
+    initControlSidebar = function () {
+        $("div.wrapper").prepend(data.frameworkHtmlElements.controlSidebar());
     }
 
     //tabStripMain related functions
@@ -840,15 +868,22 @@
         formula.split("{").forEach(function (field) {
             if (field.length > 0) {
                 var field = field.substring(0, field.indexOf("}"));
-                formula = formula.replace(`{${field}}`, gridGetCellValue(container, field));
+                formula = formula.replace(`{${field}}`, controls.gridGetCellValue(container, field));
             }
         });
 
         //console.log(formula);
         if (formula.indexOf("*") != -1 || formula.indexOf("/") != -1)
-            gridSetCellValue(container, fieldName, roundUp(eval(formula), 2));
+            controls.gridSetCellValue(container, fieldName, utils.roundUp(eval(formula), 2));
         else
-            gridSetCellValue(container, fieldName, eval(formula));
+        {
+            try {
+                controls.gridSetCellValue(container, fieldName, eval(formula));
+            }
+            catch {
+                controls.gridSetCellValue(container, fieldName, formula);
+            }
+        }
     }
 
     gridGetCellValue = function (container, fieldName) {

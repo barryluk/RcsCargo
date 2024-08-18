@@ -47,6 +47,7 @@ namespace DbUtils
             var mawb = db.Mawbs.FirstOrDefault(a => a.MAWB == mawbNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode);
             mawb.MawbChargesPrepaid = db.MawbCharges.Where(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode && a.PAYMENT_TYPE == "P").ToList();
             mawb.MawbChargesCollect = db.MawbCharges.Where(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode && a.PAYMENT_TYPE == "C").ToList();
+            mawb.MawbDims = db.MawbDims.Where(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
 
             if (mawb == null)
                 return new Mawb();

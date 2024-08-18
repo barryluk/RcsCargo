@@ -30,18 +30,18 @@
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
-            console.log(e);
+            var reportName = "";
+            var filename = `MAWB# ${utils.formatMawbNo(mawbNo)}`;
             if (e.id == "printMawb") {
-                controls.openReportViewer("AirMawb", [
-                    { name: "CompanyId", value: data.companyId },
-                    { name: "FrtMode", value: "AE" },
-                    { name: "MawbNo", value: mawbNo },]);
+                reportName = "AirMawb";
             } else if (e.id == "previewMawb") {
-                controls.openReportViewer("AirMawbPreview", [
-                    { name: "CompanyId", value: data.companyId },
-                    { name: "FrtMode", value: utils.getFrtMode() },
-                    { name: "MawbNo", value: mawbNo },]);
+                reportName = "AirMawbPreview";
             }
+            controls.openReportViewer(reportName, [
+                { name: "CompanyId", value: data.companyId },
+                { name: "FrtMode", value: utils.getFrtMode() },
+                { name: "MawbNo", value: mawbNo },
+                { name: "filename", value: filename },]);
         });
 
         var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=JOB_TYPE]`).data("kendoButtonGroup");
