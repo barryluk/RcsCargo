@@ -17,6 +17,7 @@ namespace DbUtils
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static string defaultKey = "0x9_@RCS";
         private static int defaultMaxQueryRows = 1000;
+        public const string dbSchema = "RCS_FREIGHT";
 
         public static int DefaultMaxQueryRows { get { return defaultMaxQueryRows; } }
 
@@ -67,6 +68,16 @@ namespace DbUtils
             TextWriter writer = new StreamWriter($"{(fileName == "" ? "output" : fileName)}.xml");
             serializer.Serialize(writer, obj);
             writer.Close();
+        }
+
+        public static DateTime ToMinTime(this DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0);
+        }
+
+        public static DateTime ToMaxTime(this DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, dt.Day, 23, 59, 59);
         }
 
         //Special format for AEO (e.g. 69.1 -> 6910)
@@ -238,6 +249,11 @@ namespace DbUtils
         public static string EmailAlert
         {
             get { return ConfigurationManager.AppSettings["EmailAlert"]; }
+        }
+
+        public static string DbDefaultSchema
+        {
+            get { return ConfigurationManager.AppSettings["DbDefaultSchema"]; }
         }
 
         #endregion

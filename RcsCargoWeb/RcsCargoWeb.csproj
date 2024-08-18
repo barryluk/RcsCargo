@@ -59,6 +59,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Common\DLL\Kendo.Mvc.dll</HintPath>
     </Reference>
+    <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Common\DLL\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -66,8 +70,8 @@
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Oracle.ManagedDataAccess, Version=4.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
       <HintPath>..\packages\Oracle.ManagedDataAccess.23.4.0\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
@@ -159,6 +163,7 @@
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Air\AirAreaRegistration.cs" />
     <Compile Include="Areas\Air\Controllers\MawbController.cs" />
+    <Compile Include="Controllers\Air\TestController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -166,6 +171,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\reports_schedule.xml" />
     <Content Include="Content\adminlte.css" />
     <Content Include="Content\adminlte.min.css" />
     <Content Include="Content\alt\adminlte.components.css" />
@@ -234,6 +240,7 @@
     <Content Include="Content\img\user7-128x128.jpg" />
     <Content Include="Content\img\user8-128x128.jpg" />
     <Content Include="Content\kendo.bootstrap-main.min.css" />
+    <Content Include="Content\main.css" />
     <Content Include="Content\plugins\fontawesome-free\css\all.css" />
     <Content Include="Content\plugins\fontawesome-free\css\all.min.css" />
     <Content Include="Content\plugins\fontawesome-free\css\brands.css" />
@@ -256,6 +263,7 @@
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-regular-400.svg" />
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-solid-900.svg" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\viewer.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\accent.png" />
@@ -425,6 +433,7 @@
     <Content Include="Scripts\dist\js\.eslintrc.json" />
     <Content Include="Content\adminlte.css.map" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
+    <Content Include="Scripts\index.global.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
@@ -434,9 +443,16 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\pdf.js" />
+    <Content Include="Scripts\pdf.worker.js" />
+    <Content Include="Scripts\rcsCargo\message.js" />
     <Content Include="Scripts\rcsCargo\airMawb.js" />
+    <Content Include="Scripts\rcsCargo\controls.js" />
+    <Content Include="Scripts\rcsCargo\dashboard.js" />
     <Content Include="Scripts\rcsCargo\data.js" />
     <Content Include="Scripts\rcsCargo\rcsCargoMain.js" />
+    <Content Include="Scripts\rcsCargo\utils.js" />
+    <Content Include="Scripts\viewer.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -448,7 +464,6 @@
     <Content Include="Scripts\jquery-3.3.1.min.map" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.map" />
     <Content Include="Views\Home\About.cshtml" />
-    <Content Include="Views\Home\Dashboard.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Performance.cshtml" />
     <Content Include="Views\Home\Products.cshtml" />
@@ -461,15 +476,17 @@
     <Content Include="Views\Shared\_Navbar.cshtml" />
     <Content Include="Views\Shared\_MainSidebar.cshtml" />
     <Content Include="Views\Shared\_ControlSidebar.cshtml" />
+    <Content Include="Views\Home\Dashboard.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Areas\Admin\Controllers\" />
     <Folder Include="Areas\Admin\Data\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
     <Folder Include="Areas\Air\Data\" />
     <Folder Include="Areas\Air\Views\Mawb\" />
     <Folder Include="Areas\Air\Views\Shared\" />
+    <Folder Include="Scripts\rcsCargo\NewFolder1\" />
+    <Folder Include="Views\Test\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

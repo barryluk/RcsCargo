@@ -1,21 +1,69 @@
 ﻿
 using DbUtils;
 using DbUtils.Models.MasterRecords;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Services.Description;
+using System.Xml.Linq;
 
 namespace RcsCargoWeb.Controllers
 {
     public class HomeController : Controller
     {
+        public ActionResult Test()
+        {
+            DbUtils.RcsFreightDBContext db = new RcsFreightDBContext();
+            //return Json(db.SysModules.ToList(), JsonRequestBehavior.AllowGet);
+            //db.Database.Exists();
+            var result = db.Database.SqlQuery<string>("select display_name from sys_module").ToList();
+            var items = "";
+
+            foreach (var item in result)
+                items += item + ",";
+            return Content(items);
+        }
+
+        [HttpGet]
+        public ActionResult GetPdf() 
+        {
+            string info = string.Empty;
+            string url = "http://gemini.rcs-asia.com:9010/FileDownload?id=8BCDC04165C3FC5800DA28027C7A13B2EE32D9391FCAD5AEC550568E393390402AF2CE03C2A33ADEFF42DD069D5BFC96A89B8A73B8BD6972B1EB456932DB948C9203AF22DB43650EAA03226FAB29519012D99664C465F64F46D4A9714AA9604152353053FA000038E7D6123CAA1D6115";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "POST";
+            request.ContentType = "application/pdf";
+            request.Accept = "application/pdf";
+
+            try
+            {
+                WebResponse response = request.GetResponse();
+                var fileBytes = new byte[response.ContentLength];
+                var respStream = response.GetResponseStream();
+                //System.Threading.Thread.Sleep(1000);
+                respStream.Read(fileBytes, 0, fileBytes.Length);
+                //System.Threading.Thread.Sleep(1000);
+                respStream.Close();
+                //System.Threading.Thread.Sleep(1000);
+                respStream.Flush();
+
+                return File(fileBytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                info = ex.Message;
+            }
+
+            return null;
+        }
+
         public ActionResult Index()
         {
-            ViewBag.Message = "Welcome to ASP.NET MVC!";
-
             return View();
         }
 
@@ -34,7 +82,12 @@ namespace RcsCargoWeb.Controllers
         }
 
         public ActionResult Dashboard()
-        { 
+        {
+            return PartialView();
+        }
+
+        public ActionResult PdfViewer()
+        {
             return PartialView();
         }
 
@@ -126,6 +179,17 @@ namespace RcsCargoWeb.Controllers
         {
             var masterRecords = new MasterRecords();
             return Json(masterRecords.GetChargeTemplate(templateName, companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetReportData(string reportName)
+        {
+            var admin = new Admin();
+            return Content(admin.GetReportData(reportName).DATA, "JSON");
+        }
+
+        public ActionResult EncryptString(string value)
+        {
+            return Content(DbUtils.Utils.DESEncrypt(value), "text/plain");
         }
     }
 }
