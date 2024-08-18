@@ -46,6 +46,16 @@ namespace RcsCargoWeb.Areas.Air.Controllers
             return Json(air.GetMawb(mawbNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetFlightNos(string companyId, DateTime startDate, DateTime endDate)
+        {
+            return Json(air.GetFlightNos(startDate.ToMinTime(), endDate.ToMaxTime(), companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetMawbInfoByFlightNo(string flightNo, string companyId, DateTime flightDate)
+        {
+            return Json(air.GetMawbInfoByFlightNo(flightNo, flightDate, companyId), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult TestModel(Mawb model)
         {
             model.MODIFY_USER = "BARRY.LUK";

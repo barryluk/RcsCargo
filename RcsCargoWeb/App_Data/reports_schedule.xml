@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Table">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="reportName" type="xs:string" minOccurs="0" />
+                <xs:element name="refreshTimeMinutes" type="xs:integer" minOccurs="0" />
+                <xs:element name="sqlCmd" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+
+  <Table>
+    <reportName>ShipmentVolumeReportByOrigin</reportName>
+    <refreshTimeMinutes>60</refreshTimeMinutes>
+    <sqlCmd>
+      select c.country_desc as country, a.flight_date, sum(a.cwts) as cwts
+      from (select distinct p.country_code, trunc(m.flight_date, 'mm') as flight_date,
+      sum(nvl(case when m.gwts > m.vwts then m.gwts else m.vwts end, 0)) as cwts
+      from a_mawb m inner join port p on m.origin_code = p.port_code
+      where m.company_id not in ('RCSHKG_OFF')
+      and m.job is not null
+      and m.job_type = 'D'
+      and m.frt_mode = 'AE'
+      and m.flight_date >= sysdate - 365 and m.flight_date &lt;= sysdate
+      group by trunc(m.flight_date, 'mm'), p.country_code
+      union
+      select distinct p.country_code, trunc(m.flight_date, 'mm') as flight_date,
+      sum(nvl(case when h.gwts > h.vwts then h.gwts else h.vwts end, 0)) as cwts
+      from a_mawb m left outer join a_hawb h on m.mawb = h.mawb_no and m.company_id = h.company_id and m.frt_mode = h.frt_mode
+      inner join port p on m.origin_code = p.port_code
+      where m.company_id not in ('RCSHKG_OFF')
+      and m.job is not null
+      and m.job_type = 'C'
+      and m.frt_mode = 'AE'
+      and m.flight_date >= sysdate - 365 and m.flight_date &lt;= sysdate
+      group by trunc(m.flight_date, 'mm'), p.country_code) a
+      inner join country c on a.country_code = c.country_code
+      group by a.flight_date, c.country_desc
+      order by c.country_desc, a.flight_date
+    </sqlCmd>
+  </Table>
+</NewDataSet>

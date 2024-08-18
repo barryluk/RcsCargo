@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,5 +53,30 @@ namespace DbUtils
             else
                 return mawb;
         }
+
+        public List<MawbView> GetFlightNos(DateTime startDate, DateTime endDate, string companyId)
+        {
+            return db.Mawbs.Where(a => a.COMPANY_ID == companyId && a.FLIGHT_DATE >= startDate && a.FLIGHT_DATE <= endDate)
+                .Select(a => new MawbView 
+                { 
+                    FLIGHT_DATE = a.FLIGHT_DATE,
+                    FLIGHT_NO = a.FLIGHT_NO,
+                    ORIGIN_CODE = a.ORIGIN_CODE,
+                    DEST_CODE = a.DEST_CODE,
+                }).Distinct().ToList();
+        }
+
+        public List<MawbView> GetMawbInfoByFlightNo(string flightNo, DateTime flightDate, string companyId) 
+        {
+            return db.Mawbs.Where(a => a.COMPANY_ID == companyId && a.FLIGHT_DATE == flightDate && a.FLIGHT_NO == flightNo)
+                .Select(a => new MawbView
+                {
+                    MAWB = a.MAWB,
+                    JOB = a.JOB,
+                    ORIGIN_CODE = a.ORIGIN_CODE,
+                    DEST_CODE = a.DEST_CODE,
+                }).ToList();
+        }
+
     }
 }

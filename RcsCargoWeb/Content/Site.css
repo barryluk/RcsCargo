@@ -201,3 +201,16 @@ div .row.form-group {
 div[data-role="buttongroup"] {
     height: 28.79px;
 }
+
+#flightSchedule a {
+    color: black !important;
+
+    @include hover() {
+        color: black !important;
+    }
+}
+
+#flightSchedule .fc-event,
+.k-tooltip-content span {
+    cursor: pointer;
+}

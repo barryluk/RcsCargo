@@ -9,51 +9,49 @@ var chargeQtyUnit = ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET"
 var packageUnit = ["CTNS", "PLT", "PKG", "ROLLS", "PCS"];
 var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency", "chargeTemplate"];
 var currencies;
-//for testing only
-var testObj, testObj1, testObj2;
 
 
 var htmlElements = {
     indexPage: function (title) {
         return `
-            <div>
-                <h3>${title}</h3>
-                <div class="search-control row"></div>
-                <div name="gridIndex"></div>
-            </div>`;
+                <div>
+                    <h3>${title}</h3>
+                    <div class="search-control row"></div>
+                    <div name="gridIndex"></div>
+                </div>`;
     },
     editPage: function (title) {
         return `
-            <div>
-                <h3>${title}</h3>
-                <div class="toolbar"></div>
-                <section class="content">
-                    <div class="container-fluid">
-                        <div class="row form_group">
+                <div>
+                    <h3>${title}</h3>
+                    <div class="toolbar"></div>
+                    <section class="content">
+                        <div class="container-fluid">
+                            <div class="row form_group">
+                            </div>
                         </div>
-                    </div>
-                </section>
-            </div>`;
+                    </section>
+                </div>`;
     },
     card: function (title = "", htmlContent = "", colWidth = 6, colorName = "primary") {
         return `
-            <div class="col-md-${colWidth}">
-                <div class="card card-${colorName} card-outline shadow">
-                    <div class="card-header">
-                        <h4 class="card-title">${title}</h4>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                        </div>
-                    </div>
-                        <div class="card-body">
-                            <div class="row">
-                                ${htmlContent}
+                <div class="col-md-${colWidth}">
+                    <div class="card card-${colorName} card-outline shadow">
+                        <div class="card-header">
+                            <h4 class="card-title">${title}</h4>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
                             </div>
                         </div>
-                </div>
-            </div>`;
+                            <div class="card-body">
+                                <div class="row">
+                                    ${htmlContent}
+                                </div>
+                            </div>
+                    </div>
+                </div>`;
     },
 };
 
@@ -70,7 +68,7 @@ var indexPages = [
         ],
         gridConfig: {
             gridName: "gridIndex",
-            dataSourceUrl: "/Air/Mawb/GridMawb_Read",
+            dataSourceUrl: "../Air/Mawb/GridMawb_Read",
             linkIdPrefix: "AirMawb",
             linkTabTitle: "MAWB# ",
             toolbar: [
@@ -81,9 +79,10 @@ var indexPages = [
             columns: [
                 { field: "MAWB", title: "MAWB#", attributes: { style: "cursor: pointer" } },
                 { field: "JOB", title: "Job#" },
-                { field: "JOB_TYPE", title: "Type",
+                {
+                    field: "JOB_TYPE", title: "Type",
                     template: function (dataItem) {
-                        if (!isEmptyString(dataItem.JOB_TYPE)) {
+                        if (!utils. isEmptyString(dataItem.JOB_TYPE)) {
                             return dataItem.JOB_TYPE == "C" ? "Consol" : "Direct";
                         } else {
                             return "";
@@ -126,8 +125,8 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { text: "Print MAWB", icon: "file-txt" },
-                    { text: "Preview MAWB", icon: "file-report" }
+                    { id: "printMawb", text: "Print MAWB", icon: "file-txt" },
+                    { id: "previewMawb", text: "Preview MAWB", icon: "file-report" }
                 ]
             },
         ],
@@ -273,6 +272,8 @@ var masterForms = [
                 title: "Collect Charges",
                 colWidth: 12,
                 formControls: [
+                    { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
                     {
                         label: "Prepaid Charges", type: "grid", name: "MawbChargesCollect",
                         columns: [
@@ -323,7 +324,7 @@ var masterForms = [
         formName: "airBooking",
         mode: "edit",   //create / edit
         id: "",
-        targetForm: $(`#${this.id}`).find(".container-fluid .row.form_group"),
+        targetForm: {},
         formGroups: [
             {
                 title: "General Information",
@@ -380,4 +381,51 @@ var masterForms = [
             }
         ]
     },
-]; 
+];
+
+export default class {
+    constructor() {
+        this.prefetchGlobalVariables();
+    }
+
+    //getters
+    get take() { return take; }
+    get indexGridPageSize() { return indexGridPageSize; }
+    get companyId() { return companyId; }
+    get dateFormat() { return dateFormat; }
+    get dateTimeFormat() { return dateTimeFormat; }
+    get dateTimeLongFormat() { return dateTimeLongFormat; }
+    get chargeQtyUnit() { return chargeQtyUnit; }
+    get packageUnit() { return packageUnit; }
+    get dropdownlistControls() { return dropdownlistControls; }
+    get currencies() { return currencies; }
+    get htmlElements() { return htmlElements; }
+    get indexPages() { return indexPages; }
+    get masterForms() { return masterForms; }
+
+    //setters
+    set take(val) { take = val; }
+    set indexGridPageSize(val) { indexGridPageSize = val; }
+    set companyId(val) { companyId = val; }
+    set dateFormat(val) { dateFormat = val; }
+    set dateTimeFormat(val) { dateTimeFormat = val; }
+    set dateTimeLongFormat(val) { dateTimeLongFormat = val; }
+    set chargeQtyUnit(val) { chargeQtyUnit = val; }
+    set packageUnit(val) { packageUnit = val; }
+    set dropdownlistControls(val) { dropdownlistControls = val; }
+    set currencies(val) { currencies = val; }
+    set htmlElements(val) { htmlElements = val; }
+    set indexPages(val) { indexPages = val; }
+    set masterForms(val) { masterForms = val; }
+
+    prefetchGlobalVariables = function() {
+        $.ajax({
+            url: "../Home/GetCurrencies",
+            data: { companyId: companyId },
+            dataType: "json",
+            success: function (result) {
+                currencies = result;
+            }
+        });
+    }
+}

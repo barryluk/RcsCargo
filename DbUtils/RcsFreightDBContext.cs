@@ -28,13 +28,14 @@ namespace DbUtils
         public DbSet<Hawb> Hawbs { get; set; }
         public DbSet<HawbPo> HawbPos { get; set; }
         public DbSet<HawbStatus> HawbStatuses { get; set; }
-
+        
+        public DbSet<ReportData> ReportDatas { get; set; }
         public DbSet<SysModule> SysModules { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.HasDefaultSchema("RCS_FREIGHT_DEV");
+            modelBuilder.HasDefaultSchema("RCS_FREIGHT");
         }
     }
 }
