@@ -142,15 +142,15 @@
             var searchData = {};
             searchData = {
                 searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
-                dateFrom: $(`#${pageSetting.id} div.search-control [name=flightDateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
-                dateTo: $(`#${pageSetting.id} div.search-control [name=flightDateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                 companyId: data.companyId,
                 frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
                 take: data.indexGridPageSize
             };
 
-            $(`#${pageSetting.id} [name=gridIndex]`).data("kendoGrid").dataSource.transport.options.read.data = searchData;
-            $(`#${pageSetting.id} [name=gridIndex]`).data("kendoGrid").dataSource.read();
+            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource.transport.options.read.data = searchData;
+            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource.read();
         });
 
         this.renderFormControl_kendoUI(pageSetting);
@@ -166,8 +166,8 @@
                         url: pageSetting.gridConfig.dataSourceUrl,
                         data: {
                             searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
-                            dateFrom: $(`#${pageSetting.id} div.search-control [name=flightDateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
-                            dateTo: $(`#${pageSetting.id} div.search-control [name=flightDateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                            dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                            dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                             companyId: data.companyId,
                             frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
                             take: data.indexGridPageSize
@@ -270,13 +270,13 @@
                         if (control.type == "label") {
                             html += `
                             <div class="form-group row">
-                                <label class="col-sm-12 col-form-label"><h5>${control.label}</h5></label>
+                                <label class="col-lg-12 col-form-label"><h5>${control.label}</h5></label>
                             </div>`;
                         } else if (control.type == "buttonGroup") {
                             html += `
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">${control.label}</label>
-                                <div class="col-sm-9">
+                                <label class="col-lg-3 col-form-label">${control.label}</label>
+                                <div class="col-lg-9">
                                     <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
                                 </div>
                             </div>`;
@@ -292,9 +292,9 @@
                                     readonlyAttr = "readonly";
                                 }
                                 html += `
-                                <div class="col-md-6">
-                                    <label class="col-sm-3 col-form-label">${control.label}</label>
-                                    <div class="col-sm-9">
+                                <div class="row col-xl-6 col-lg-12">
+                                    <label class="col-lg-3 col-form-label">${control.label}</label>
+                                    <div class="col-lg-9">
                                         <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
                                         <input type="hidden" name="${control.name}_CODE" />
                                         <input type="hidden" name="${control.name}_BRANCH" />
@@ -310,7 +310,7 @@
                             if (control.exRateName != null) {
                                 var colWidth = control.colWidth != null ? control.colWidth : "3";
                                 html += `
-                                <div class="form-group row col-sm-${colWidth}">
+                                <div class="form-group row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
                                     <label class="col-sm-3 col-form-label">${control.label}</label>
                                     <div class="row col-sm-9">
                                         <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="width: 95px; height: 28.89px" />
@@ -322,7 +322,7 @@
                         } else if (control.type == "chargeTemplate") {
                             var colWidth = control.colWidth != null ? control.colWidth : "3";
                             html += `
-                            <div class="form-group row col-sm-${colWidth}">
+                            <div class="form-group row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
                                 <label class="col-sm-4 col-form-label">${control.label}</label>
                                 <div class="row col-sm-8">
                                     <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
@@ -331,10 +331,10 @@
                         } else {
                             var colWidth = "";
                             if (control.colWidth != null)
-                                colWidth = `col-sm-${control.colWidth}`;
+                                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
 
                             html += `
-                            <div class="form-group row ${colWidth}">
+                            <div class="row ${colWidth}">
                                 <label class="col-sm-3 col-form-label">${control.label}</label>
                                 <div class="col-sm-9">
                                     <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
@@ -711,10 +711,17 @@
                 })
             })
 
+            //Calculate the grid width
+            var gridWidth = 0;
+            columns.forEach(function (col) {
+                gridWidth += col.width == null ? 70 : col.width;
+            });
             $(this).kendoGrid({
                 toolbar: ["create", "cancel"],
                 columns: columns,
                 editable: { mode: "incell", confirmation: false },
+                resizable: true,
+                width: gridWidth,
                 dataBound: function (e) {
                     $(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).removeAttr("style");
                     $(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).attr("style", "width: 26px; height: 18px");
@@ -739,8 +746,10 @@
                 var control = masterForm.formGroups[i].formControls[j];
 
                 if (control.type == "dateTime") {
-                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoDateTimePicker").value(kendo.parseDate(model[`${control.name}`]));
-                    $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
+                    if ($(`#${masterForm.id} [name=${control.name}]`).length == 1) {
+                        $(`#${masterForm.id} [name=${control.name}]`).data("kendoDateTimePicker").value(kendo.parseDate(model[`${control.name}`]));
+                        $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
+                    }
                 } else if (control.type == "airline" || control.type == "port" || control.type == "customer") {
                     if (model[`${control.name}`] != null) {
                         var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");

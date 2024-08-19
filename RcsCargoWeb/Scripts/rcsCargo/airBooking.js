@@ -2,24 +2,24 @@
     constructor() {
     }
 
-    initAirMawbIndex = function (id) {
-        var pageSetting = data.indexPages.filter(a => a.pageName == "airMawb")[0];
+    initAirBookingIndex = function (id) {
+        var pageSetting = data.indexPages.filter(a => a.pageName == "airBooking")[0];
         pageSetting.id = id;
-        $(`#${id}`).html(data.htmlElements.indexPage("MAWB", pageSetting.gridConfig.gridName));
+        $(`#${id}`).html(data.htmlElements.indexPage("Booking", pageSetting.gridConfig.gridName));
 
         controls.renderSearchControls(pageSetting);
         controls.renderIndexGrid(pageSetting);
     }
 
-    initAirMawb = function (id, mode = "edit", jobType = "") {
-        //id format: AirMawb_{mawbNo}_{companyId}_{frtMode}
-        var mawbNo = id.split("_")[1];
+    initAirBooking = function (id, mode = "edit", jobType = "") {
+        //id format: AirBooking_{bookingNo}_{companyId}_{frtMode}
+        var bookingNo = id.split("_")[1];
         var companyId = id.split("_")[2];
         var frtMode = id.split("_")[3];
 
-        $(`#${id}`).html(data.htmlElements.editPage(`MAWB# ${utils.formatMawbNo(mawbNo)}`));
+        $(`#${id}`).html(data.htmlElements.editPage(`Booking# ${bookingNo}`));
 
-        var masterForm = data.masterForms.filter(a => a.formName == "airMawb")[0];
+        var masterForm = data.masterForms.filter(a => a.formName == "airBooking")[0];
         masterForm.id = id;
         masterForm.mode = mode;
         masterForm.targetForm = $(`#${id} .container-fluid .row.form_group`);
@@ -51,43 +51,19 @@
                 { name: "filename", value: filename },]);
         });
 
-        var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=JOB_TYPE]`).data("kendoButtonGroup");
-        buttonGroup.bind("select", function (e) {
-            //0: Consol, 1: Direct
-            //Handle change Job Type
-            var selectedJobType = e.sender.selectedIndices[0] == 0 ? "C" : "D";
-            if (selectedJobType != $(`#${masterForm.id} input[name=JOB_TYPE]`).val()) {
-                controllers.airMawb.initAirMawb(masterForm.id, "edit", selectedJobType);
-                return;
-            }
-
-            var tabStrip = $(`#${masterForm.id} .formGroupTab`).data("kendoTabStrip");
-            var tabConsol = $(`#${masterForm.id} span:contains("Load Plan")`).parent();
-            var tabDirect = $(`#${masterForm.id} span:contains("Direct Job")`).parent();
-            if (e.sender.selectedIndices[0] == 0) {
-                tabStrip.remove(tabDirect);
-            } else {
-                tabStrip.remove(tabConsol);
-            }
-        });
-
         //Get model data
         if (mode == "edit") {
             $.ajax({
-                url: "../Air/Mawb/GetMawb",
+                url: "../Air/Booking/GetBooking",
                 type: "post",
                 dataType: "json",
                 data: {
-                    mawbNo: mawbNo,
+                    bookingNo: bookingNo,
                     companyId: companyId,
                     frtMode: frtMode
                 },
                 success: function (result) {
-                    if (jobType != "") {
-                        result.JOB_TYPE = jobType;
-                    }
                     controls.setValuesToFormControls(masterForm, result);
-                    buttonGroup.trigger("select");
                 }
             });
         }

@@ -47,7 +47,9 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetMawb")]
         public ActionResult GetMawb(string mawbNo, string companyId, string frtMode)
         {
-            return Json(air.GetMawb(mawbNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
+            var mawb = air.GetMawb(mawbNo, companyId, frtMode);
+            mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
+            return Json(mawb, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetFlightNos")]
@@ -60,6 +62,12 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GetMawbInfoByFlightNo(string flightNo, string companyId, DateTime flightDate)
         {
             return Json(air.GetMawbInfoByFlightNo(flightNo, flightDate, companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetLoadplanBookingList")]
+        public ActionResult GetLoadplanBookingList(string jobNo, string companyId)
+        {
+            return Json(air.GetLoadplanBookingListView(jobNo, companyId), JsonRequestBehavior.AllowGet);
         }
 
         [Route("TestModel")]

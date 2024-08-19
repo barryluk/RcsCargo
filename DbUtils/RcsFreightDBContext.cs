@@ -26,6 +26,10 @@ namespace DbUtils
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }
         public DbSet<MawbDim> MawbDims { get; set; }
+        public DbSet<LoadplanBookingList> LoadplanBookingLists { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<BookingPo> BookingPos { get; set; }
+        public DbSet<WarehouseHistory> WarehouseHistories { get; set; }
         public DbSet<Hawb> Hawbs { get; set; }
         public DbSet<HawbPo> HawbPos { get; set; }
         public DbSet<HawbStatus> HawbStatuses { get; set; }

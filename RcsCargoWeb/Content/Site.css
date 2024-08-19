@@ -151,13 +151,13 @@ div .row.form-group {
 }
 
 .form-control, .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
-    width: 270px;
+    max-width: 270px;
     height: calc(1.8rem);
     font-size: 11px;
 }
 
 .form-control-textArea {
-    width: 320px;
+    max-width: 320px;
     height: calc(6rem);
     /*margin-top: 4px;*/
     margin-bottom: 4px;
@@ -217,4 +217,14 @@ div[data-role="buttongroup"] {
 #flightSchedule .fc-event,
 .k-tooltip-content span {
     cursor: pointer;
+}
+
+.nav-item .fa-circle.nav-icon {
+    font-size: 0.7rem !important;
+    color: coral;
+    margin-left: 1.5em;
+}
+
+.nav-item p {
+    font-size: 0.95rem;
 }

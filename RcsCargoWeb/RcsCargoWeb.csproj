@@ -160,6 +160,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
     <Compile Include="Controllers\Air\TestController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -439,6 +440,7 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\airBooking.js" />
     <Content Include="Scripts\rcsCargo\message.js" />
     <Content Include="Scripts\rcsCargo\airMawb.js" />
     <Content Include="Scripts\rcsCargo\controls.js" />

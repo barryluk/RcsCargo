@@ -68,6 +68,8 @@
     <Compile Include="Air.cs" />
     <Compile Include="Admin.cs" />
     <Compile Include="Models\Admin\ReportData.cs" />
+    <Compile Include="Models\Air\Loadplan.cs" />
+    <Compile Include="Models\Air\Booking.cs" />
     <Compile Include="Models\Air\Hawb.cs" />
     <Compile Include="Models\Air\Mawb.cs" />
     <Compile Include="Models\MasterRecords\Airline.cs" />

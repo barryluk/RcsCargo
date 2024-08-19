@@ -229,12 +229,12 @@ var frameworkHtmlElements = {
 };
 
 var htmlElements = {
-    indexPage: function (title) {
+    indexPage: function (title, gridName) {
         return `
                 <div>
                     <h3>${title}</h3>
                     <div class="search-control row"></div>
-                    <div name="gridIndex"></div>
+                    <div name="${gridName}"></div>
                 </div>`;
     },
     editPage: function (title) {
@@ -284,7 +284,7 @@ var indexPages = [
             { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "MAWB# / Airline / Flight#" },
         ],
         gridConfig: {
-            gridName: "gridIndex",
+            gridName: "gridAirMawbIndex",
             dataSourceUrl: "../Air/Mawb/GridMawb_Read",
             linkIdPrefix: "AirMawb",
             linkTabTitle: "MAWB# ",
@@ -320,7 +320,41 @@ var indexPages = [
         },
     },
     {
-        pageName: "airBooking"
+        pageName: "airBooking",
+        id: "",
+        title: "Booking",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Create Date", type: "dateRange", name: "createDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Booking# / Shipper / Consignee" },
+        ],
+        gridConfig: {
+            gridName: "gridAirBookingIndex",
+            dataSourceUrl: "../Air/Booking/GridBooking_Read",
+            linkIdPrefix: "AirBooking",
+            linkTabTitle: "Booking# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "BOOKING_NO", title: "Booking#", attributes: { style: "cursor: pointer" } },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "AGENT_DESC", title: "Consignee" },
+                { field: "ORIGIN_CODE", title: "Origin" },
+                { field: "DEST_CODE", title: "Destination" },
+                { field: "PACKAGE", title: "Packages" },
+                { field: "GWTS", title: "G/Wts" },
+                { field: "VWTS", title: "V/Wts" },
+                { field: "CBM", title: "CBM" },
+                { field: "CARGO_READY_DATE", title: "Cargo Ready Date" },
+                { field: "CARGO_REC_DATE", title: "Cargo Rcvd Date" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date" },
+            ],
+        },
     },
     {
         pageName: "airHawb"
@@ -343,7 +377,9 @@ var masterForms = [
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "printMawb", text: "Print MAWB", icon: "file-txt" },
-                    { id: "previewMawb", text: "Preview MAWB", icon: "file-report" }
+                    { id: "previewMawb", text: "Preview MAWB", icon: "file-report" },
+                    { id: "loadplan", text: "Load Plan", icon: "file-txt" },
+                    { id: "manifest", text: "Cargo Manifest", icon: "file-txt" },
                 ]
             },
         ],
@@ -356,7 +392,7 @@ var masterForms = [
             {
                 title: "Load Plan",
                 name: "loadPlan",
-                formGroups: ["contactMain", "contactOthers"]
+                formGroups: ["contactMain", "contactOthers", "loadplanBookingList"]
             },
             {
                 title: "Direct Job",
@@ -446,18 +482,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 250,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -497,18 +533,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 250,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -546,7 +582,7 @@ var masterForms = [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
                             },
                             { title: "Length", field: "LENGTH", width: 90 },
                             { title: "Width", field: "WIDTH", width: 90 },
@@ -570,6 +606,39 @@ var masterForms = [
                     },
                 ]
             },
+            {
+                name: "loadplanBookingList",
+                title: "Booking List",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Booking List", type: "grid", name: "LoadplanBookingListViews",
+                        columns: [
+                            { title: "Booking #", field: "BOOKING_NO", width: 90 },
+                            { title: "Shipper", field: "SHIPPER_DESC", width: 200 },
+                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 200 },
+                            { title: "Packages", field: "PACKAGE", width: 80 },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                            { title: "Doc Rcvd?", field: "IS_DOC_REC", width: 80 },
+                            { title: "Approved?", field: "IS_BOOKING_APP", width: 80 },
+                            { title: "Received?", field: "IS_RECEIVED", width: 80 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }]},
+                        ],
+                        fields: {
+                            BOOKING_NO: { editable: false },
+                            SHIPPER_DESC: { editable: false },
+                            CONSIGNEE_DESC: { editable: false },
+                            PACKAGE: { editable: false },
+                            GWTS: { editable: false },
+                            VWTS: { editable: false },
+                            IS_DOC_REC: { editable: false },
+                            IS_BOOKING_APP: { editable: false },
+                            IS_RECEIVED: { editable: false },
+                        },
+                    },
+                ]
+            },
         ]
     },
     {
@@ -577,28 +646,66 @@ var masterForms = [
         mode: "edit",   //create / edit
         id: "",
         targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "printBooking", text: "Print MAWB", icon: "file-report" },
+                    { id: "printBookingHawb", text: "Preview MAWB", icon: "file-report" },
+                ]
+            },
+        ],
+        formTabs: [
+            {
+                title: "Booking Information",
+                name: "bookingInfo",
+                formGroups: ["mainInfo"]
+            },
+            {
+                title: "PO Information",
+                name: "bookingPo",
+                formGroups: ["contactMain", "contactOthers", "loadplanBookingList"]
+            },
+            {
+                title: "Warehouse",
+                name: "warehouse",
+                formGroups: ["contactMain", "prepaidCharges", "collectCharges", "dims"]
+            },
+        ],
+        schema: {
+            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            readonlyFields: [
+                { name: "BOOKING_NO", readonly: "always" }],
+        },
         formGroups: [
             {
-                title: "General Information",
-                colWidth: 5,
+                name: "mainInfo",
+                title: "Booking Information",
+                colWidth: 8,
                 formControls: [
-                    { label: "First Flight", type: "label" },
-                    { label: "MAWB", type: "text", name: "MAWB" },
-                    { label: "Job", type: "text", name: "JOB" },
-                    { label: "Airline", type: "airline", name: "AIRLINE_CODE" },
-                    { label: "Flight #", type: "text", name: "FLIGHT_NO" },
-                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE" },
-                    { label: "Origin", type: "port", name: "ORIGIN_CODE" },
-                    { label: "Destination", type: "port", name: "DEST_CODE" },
-                    { label: "Arrival Date / Time", type: "label" },
-                    { label: "Estimate Arrival Date", type: "dateTime", name: "ETA" },
-                    { label: "Execution Date", type: "dateTime", name: "EX_DATE" },
-                    { label: "Issue Date", type: "dateTime", name: "ISSUE_DATE" },
-                    { label: "Co-Loader", type: "customer", name: "COLOADER_CODE" },
+                    { label: "MAWB #", type: "text", name: "BOOKING_NO", colWidth: 6 },
+                    { label: "Booking Type", type: "bookingType", name: "BOOKING_TYPE", colWidth: 6 },
+                    { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
+                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
+                    { label: "Origin", type: "port", name: "ORIGIN_CODE", colWidth: 6 },
+                    { label: "Destination", type: "port", name: "DEST_CODE", colWidth: 6 },
+                    { label: "Execution Date", type: "dateTime", name: "EX_DATE", colWidth: 6 },
+                    { label: "Issue Date", type: "dateTime", name: "ISSUE_DATE", colWidth: 6 },
+                    { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 6 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 6 },
+                    { label: "Package", type: "numberInt", name: "SEC_PACKAGE", colWidth: 6 },
+                    { label: "Package Unit", type: "pkgUnit", name: "SEC_PACKAGE_UNIT", colWidth: 6 },
+                    { label: "G/wts", type: "number", name: "GWTS", colWidth: 6 },
+                    { label: "V/wts", type: "number", name: "VWTS", colWidth: 6 },
                     { label: "Remarks", type: "textArea", name: "REMARKS" },
+                    { label: "Notify Party 1", type: "customerAddr", name: "NOTIFY1" },
+                    { label: "Notify Party 2", type: "customerAddr", name: "NOTIFY2" },
                 ]
             },
             {
+                name: "2nd3rdFlights",
                 title: "Second / Third Flights",
                 colWidth: 5,
                 formControls: [
@@ -615,8 +722,9 @@ var masterForms = [
                 ]
             },
             {
+                name: "contactMain",
                 title: "Contact Information",
-                colWidth: 5,
+                colWidth: 6,
                 formControls: [
                     { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
                     { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
@@ -624,13 +732,184 @@ var masterForms = [
                 ]
             },
             {
+                name: "contactOthers",
                 title: "Contact Information",
-                colWidth: 5,
+                colWidth: 6,
                 formControls: [
                     { label: "Agent", type: "customerAddr", name: "AGENT" },
                     { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE" },
                 ]
-            }
+            },
+            {
+                name: "prepaidCharges",
+                title: "Prepaid Charges",
+                colWidth: 12,
+                formControls: [
+                    { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
+                    {
+                        label: "Prepaid Charges", type: "grid", name: "MawbChargesPrepaid",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 250,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            PAYMENT_TYPE: { defaultValue: "P" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "collectCharges",
+                title: "Collect Charges",
+                colWidth: 12,
+                formControls: [
+                    { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
+                    {
+                        label: "Prepaid Charges", type: "grid", name: "MawbChargesCollect",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 250,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            PAYMENT_TYPE: { defaultValue: "C" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "dims",
+                title: "Dimension",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Dimension", type: "grid", name: "MawbDims",
+                        columns: [
+                            { title: "Ctns", field: "CTNS", width: 90 },
+                            {
+                                title: "Type", field: "PACKAGE_TYPE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                            },
+                            { title: "Length", field: "LENGTH", width: 90 },
+                            { title: "Width", field: "WIDTH", width: 90 },
+                            { title: "Height", field: "HEIGHT", width: 90 },
+                            { title: "V/Wts", field: "VWTS", width: 90 },
+                            { title: "Dimension", field: "DIMENSION", width: 160 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CTNS: { type: "number", validation: { required: true } },
+                            PACKAGE_TYPE: { validation: { required: true } },
+                            LENGTH: { type: "number", validation: { required: true } },
+                            WIDTH: { type: "number", validation: { required: true } },
+                            HEIGHT: { type: "number", validation: { required: true } },
+                            VWTS: { type: "number", validation: { required: true } },
+                            DIMENSION: { editable: false },
+                        },
+                        formulas: [
+                            { fieldName: "DIMENSION", formula: `{LENGTH}x{WIDTH}x{HEIGHT}C\\{CTNS}` },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "loadplanBookingList",
+                title: "Booking List",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Booking List", type: "grid", name: "LoadplanBookingListViews",
+                        columns: [
+                            { title: "Booking #", field: "BOOKING_NO", width: 90 },
+                            { title: "Shipper", field: "SHIPPER_DESC", width: 200 },
+                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 200 },
+                            { title: "Packages", field: "PACKAGE", width: 80 },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                            { title: "Doc Rcvd?", field: "IS_DOC_REC", width: 80 },
+                            { title: "Approved?", field: "IS_BOOKING_APP", width: 80 },
+                            { title: "Received?", field: "IS_RECEIVED", width: 80 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            BOOKING_NO: { editable: false },
+                            SHIPPER_DESC: { editable: false },
+                            CONSIGNEE_DESC: { editable: false },
+                            PACKAGE: { editable: false },
+                            GWTS: { editable: false },
+                            VWTS: { editable: false },
+                            IS_DOC_REC: { editable: false },
+                            IS_BOOKING_APP: { editable: false },
+                            IS_RECEIVED: { editable: false },
+                        },
+                    },
+                ]
+            },
         ]
     },
 ];
