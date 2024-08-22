@@ -45,9 +45,9 @@ namespace RcsCargoWeb.Air.Controllers
         }
 
         [Route("GetBooking")]
-        public ActionResult GetBooking(string bookingNo, string companyId, string frtMode)
+        public ActionResult GetBooking(string id, string companyId, string frtMode)
         {
-            var booking = air.GetBooking(bookingNo, companyId, frtMode);
+            var booking = air.GetBooking(id, companyId, frtMode);
             return Json(booking, JsonRequestBehavior.AllowGet);
         }
     }

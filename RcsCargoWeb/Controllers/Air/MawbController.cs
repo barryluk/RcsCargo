@@ -45,10 +45,15 @@ namespace RcsCargoWeb.Air.Controllers
         }
 
         [Route("GetMawb")]
-        public ActionResult GetMawb(string mawbNo, string companyId, string frtMode)
+        public ActionResult GetMawb(string id, string companyId, string frtMode, string changedJobType = "")
         {
-            var mawb = air.GetMawb(mawbNo, companyId, frtMode);
+            var mawb = air.GetMawb(id, companyId, frtMode);
             mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
+
+            //Handling events for changing job type
+            if (!string.IsNullOrEmpty(changedJobType))
+                mawb.JOB_TYPE = changedJobType;
+
             return Json(mawb, JsonRequestBehavior.AllowGet);
         }
 

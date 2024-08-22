@@ -1,0 +1,189 @@
+﻿export default class {
+    constructor() {
+    }
+
+    initEditPage = function (id, mode = "edit", para) {
+        //linkIdPrefix: airMawb / airBooking
+        //id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
+        var formName = id.split("_")[0];
+        this.keyValue = id.split("_")[1];
+        this.companyId = id.split("_")[2];
+        this.frtMode = id.split("_")[3];
+        
+        var masterForm = data.masterForms.filter(a => a.formName == formName)[0];
+        masterForm.id = id;
+        masterForm.mode = mode;
+        masterForm.targetForm = `#${id} .container-fluid .row.form_group`;
+        $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : this.keyValue}`));
+        this.renderFormControls(masterForm);
+        this.getModelData(masterForm, para);
+    }
+
+    //Get model data
+    getModelData = function (masterForm, para) {
+        var requestParas = {
+            id: this.keyValue,
+            companyId: this.companyId,
+            frtMode: this.frtMode
+        };
+        if (para != null)
+            $.extend(requestParas, para);
+
+        if (masterForm.mode == "edit") {
+            $.ajax({
+                url: masterForm.readUrl,
+                data: requestParas,
+                success: function (result) {
+                    masterForm.modelData = result;
+                    controls.setValuesToFormControls(masterForm, result);
+                    if (masterForm.additionalScript != null)
+                        eval(`controllers.${masterForm.formName}.${masterForm.additionalScript}(masterForm);`);
+
+                    kendo.ui.progress($(".container-fluid"), false);
+                }
+            });
+        }
+    }
+
+    //Render form controls
+    renderFormControls = function (masterForm) {
+        var html = "";
+
+        //Hidden fields
+        masterForm.schema.hiddenFields.forEach(function (item) {
+            html += ` <input type="hidden" name="${item}" />`;
+        });
+        $(masterForm.targetForm).append(html);
+
+        //Form tabStrip
+        if (masterForm.formTabs != null) {
+            $(`#${masterForm.id} .row.form_group`).append(`<div class="formGroupTab"></div>`);
+            var formGroupTab = $(`#${masterForm.id} .row.form_group .formGroupTab`).kendoTabStrip({ animation: false }).data("kendoTabStrip");
+
+            masterForm.formTabs.forEach(function (tab) {
+                formGroupTab.append({ text: tab.title, content: `<div name="${tab.name}" class="row"></div>` });
+
+                tab.formGroups.forEach(function (formGroupName) {
+                    var formGroup = masterForm.formGroups.filter(a => a.name == formGroupName)[0];
+                    html = "";
+
+                    for (var j in formGroup.formControls) {
+                        var control = formGroup.formControls[j];
+                        var formControlClass = "form-control";
+                        var formControlType = "input";
+
+                        if (control.type == "date" || control.type == "dateTime") {
+                            formControlClass = "form-control-dateTime";
+                        } else if (control.type.startsWith("number")) {
+                            formControlClass = "form-control-number";
+                        } else if (data.dropdownlistControls.includes(control.type)) {
+                            formControlClass = "form-control-dropdownlist";
+                        } else if (control.type == "textArea") {
+                            formControlClass = "form-control-textArea";
+                            formControlType = "textarea";
+                        } else if (control.type == "dateRange" || control.type == "buttonGroup" || control.type == "emptyBlock") {
+                            formControlType = "div";
+                        } else if (control.type == "switch") {
+                            formControlClass = "";
+                        }
+
+                        if (control.type == "label") {
+                            html += `
+                            <div class="row">
+                                <label class="col-lg-12 col-form-label"><h5>${control.label}</h5></label>
+                            </div>`;
+                        } else if (control.type == "buttonGroup") {
+                            var colWidth = "";
+                            if (control.colWidth != null)
+                                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+                            html += `
+                            <div class="row ${colWidth}">
+                                <label class="col-sm-3 col-form-label">${control.label}</label>
+                                <div class="col-sm-9">
+                                    <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
+                                </div>
+                            </div>`;
+                        } else if (control.type == "grid") {
+                            html += `
+                            <div class="row">
+                                <div name="grid_${control.name}" type="${control.type}" />
+                            </div>`;
+                        } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
+                            var readonlyAttr = "";
+                            if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
+                                if (control.type == "customerAddr") {
+                                    readonlyAttr = "readonly";
+                                }
+                                html += `
+                                <div class="row col-xl-6 col-lg-12">
+                                    <label class="col-sm-3 col-form-label">${control.label}</label>
+                                    <div class="col-sm-9">
+                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
+                                        <input type="hidden" name="${control.name}_CODE" />
+                                        <input type="hidden" name="${control.name}_BRANCH" />
+                                        <input type="hidden" name="${control.name}_SHORT_DESC" />
+                                        <input type="text" class="form-control" name="${control.name}_ADDR1" ${readonlyAttr} />
+                                        <input type="text" class="form-control" name="${control.name}_ADDR2" ${readonlyAttr} />
+                                        <input type="text" class="form-control" name="${control.name}_ADDR3" ${readonlyAttr} />
+                                        <input type="text" class="form-control" name="${control.name}_ADDR4" ${readonlyAttr} style="margin-bottom: 4px" />
+                                    </div>
+                                </div>`;
+                            }
+                        } else if (control.type == "currency") {
+                            if (control.exRateName != null) {
+                                var colWidth = control.colWidth != null ? control.colWidth : "3";
+                                html += `
+                                <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
+                                    <label class="col-sm-3 col-form-label">${control.label}</label>
+                                    <div class="row col-sm-9">
+                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="width: 95px; height: 28.89px" />
+                                        &nbsp;
+                                        <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly />
+                                    </div>
+                                </div>`;
+                            }
+                        } else if (control.type == "chargeTemplate") {
+                            var colWidth = control.colWidth != null ? control.colWidth : "3";
+                            html += `
+                            <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
+                                <label class="col-sm-4 col-form-label">${control.label}</label>
+                                <div class="row col-sm-8">
+                                    <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
+                                </div>
+                            </div>`;
+                        } else {
+                            var colWidth = "";
+                            var controlHtml = "";
+                            if (control.type != "emptyBlock")
+                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />`;
+                            if (control.colWidth != null)
+                                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+
+                            html += `
+                            <div class="row ${colWidth}">
+                                <label class="col-sm-3 col-form-label">${control.label}</label>
+                                <div class="col-sm-9">
+                                    ${controlHtml}
+                                </div>
+                            </div>`;
+                        }
+                    }
+
+                    $(`#${masterForm.id} .formGroupTab [name=${tab.name}]`).append(data.htmlElements.card(formGroup.title, html, formGroup.colWidth));
+                    //$(`#${masterForm.id} .formGroupTab [name=${tab.name}]`).append(html);
+                });
+            });
+            formGroupTab.activateTab($(`#${masterForm.id} .formGroupTab li`).eq(0));
+        }
+        controls.kendo.renderFormControl_kendoUI(masterForm);
+
+        //readonly fields
+        masterForm.schema.readonlyFields.forEach(function (item) {
+            if (item.readonly == "always") {
+                $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
+            } else if (item.readonly == "edit" && masterForm.mode == "edit") {
+                $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
+            }
+        });
+    }
+}

@@ -115,7 +115,7 @@ li.k-list-item {
 }
 
 .k-grid {
-    font-size: 11px;
+    font-size: 12px;
     padding: 4px;
 }
 
@@ -128,13 +128,13 @@ li.k-list-item {
 }
 
 .card form, .col-form-label {
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .form-control {
     height: calc(1.8rem);
-    padding: 4px;
-    font-size: 11px;
+    padding: 2px;
+    font-size: 12px;
 }
 
 .container {
@@ -153,14 +153,14 @@ div .row.form-group {
 .form-control, .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
     max-width: 270px;
     height: calc(1.8rem);
-    font-size: 11px;
+    font-size: 12px;
+    margin: 2px;
 }
 
 .form-control-textArea {
     max-width: 320px;
     height: calc(6rem);
-    /*margin-top: 4px;*/
-    margin-bottom: 4px;
+    margin: 2px;
 }
 
 .k-input-md .k-input-inner, .k-picker-md .k-input-inner {
@@ -169,6 +169,10 @@ div .row.form-group {
     padding-right: 4px;
     padding-bottom: 0px;
     padding-left: 4px;
+}
+
+.k-header >.k-cell-inner > .k-link {
+    padding: 8px 8px;
 }
 
 .k-dropdownlist {
@@ -227,4 +231,17 @@ div[data-role="buttongroup"] {
 
 .nav-item p {
     font-size: 0.95rem;
+}
+
+.sysCompany .dropdown-item, .currentSystemCompany {
+    font-size: 0.8rem;
+}
+
+.sysCompany .dropdown-item i {
+    margin-right: 5px;
+}
+
+.sysCompany .dropdown-divider {
+    margin-top: 0px;
+    margin-bottom: 0px;
 }

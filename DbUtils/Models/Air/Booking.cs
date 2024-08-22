@@ -108,6 +108,10 @@ namespace DbUtils.Models.Air
         public string GOOD_DESC { get; set; }
         [NotMapped]
         public List<BookingPo> BookingPos { get; set; }
+        public Booking()
+        {
+            BookingPos = new List<BookingPo>();
+        }
     }
 
     [Table("A_BOOKING_PO")]

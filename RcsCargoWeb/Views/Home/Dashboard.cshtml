@@ -10,8 +10,10 @@
         html += data.htmlElements.card("Export Shipments volume by origin", "<div id='shipmentChart'></div>", 8);
         $("#dashboardMain").append(html);
 
-        setTimeout(function () { createFlightSchedule(); }, 1000);
-        setTimeout(function () { createShipmentChart(); }, 1500);
+        //add loading effects to all cards
+        kendo.ui.progress($("#dashboardMain .card"), true);
+        setTimeout(function () { createFlightSchedule(); }, 500);
+        setTimeout(function () { createShipmentChart(); }, 500);
     });
 
     function createFlightSchedule() {
@@ -33,6 +35,8 @@
             },
             eventClick: function (info) {
                 let mawbList = `${info.event.title} `;
+
+                kendo.ui.progress($("#dashboardMain .card").eq(0), true);
                 $.ajax({
                     url: "../Air/Mawb/GetMawbInfoByFlightNo",
                     type: "post",
@@ -58,12 +62,14 @@
                         //indexPages.pageName="airMawb"  {linkIdPrefix}{linkTabTitle}
                         $(".calenderTooltip").each(function () {
                             let mawbNo = $(this).attr("data-id");
-                            let id = `AirMawb_${mawbNo}_${data.companyId}_AE`;
+                            let id = `airMawb_${mawbNo}_${data.companyId}_AE`;
                             $(this).bind("click", function () {
                                 controls.append_tabStripMain(`MAWB# ${utils.formatMawbNo(mawbNo)}`, id, "airMawb");
                                 toolTip.hide();
                             });
                         });
+
+                        kendo.ui.progress($("#dashboardMain .card").eq(0), false);
                     }
                 });
             }
@@ -72,7 +78,9 @@
     }
 
     function getFlightNos(calendar, startDate, endDate) {
-        testObj = calendar;
+        //testObj = calendar;
+        //add loading overlay effect
+        kendo.ui.progress($("#dashboardMain .card").eq(0), true);
         $.ajax({
             url: "../Air/Mawb/GetFlightNos",
             type: "post",
@@ -91,6 +99,7 @@
                 });
                 calendar.removeAllEvents();
                 calendar.addEventSource(events);
+                kendo.ui.progress($("#dashboardMain .card").eq(0), false);
             }
         });
     }
@@ -98,6 +107,8 @@
     function createShipmentChart() {
         var endDate = new Date();
         var startDate = kendo.date.addDays(endDate, -365);
+
+        kendo.ui.progress($("#dashboardMain .card").eq(1), true);
         $.ajax({
             url: "../Home/GetReportData",
             data: { reportName: "ShipmentVolumeReportByOrigin" },
@@ -200,6 +211,8 @@
                         font: "12px sans-serif"
                     }
                 });
+
+                kendo.ui.progress($("#dashboardMain .card").eq(1), false);
             }
         });
     }

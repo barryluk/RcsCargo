@@ -160,6 +160,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\Admin\AccountController.cs" />
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
     <Compile Include="Controllers\Air\TestController.cs" />
@@ -239,6 +240,7 @@
     <Content Include="Content\img\user7-128x128.jpg" />
     <Content Include="Content\img\user8-128x128.jpg" />
     <Content Include="Content\kendo.bootstrap-main.min.css" />
+    <Content Include="Content\kendo.default-ocean-blue.min.css" />
     <Content Include="Content\main.css" />
     <Content Include="Content\plugins\fontawesome-free\css\all.css" />
     <Content Include="Content\plugins\fontawesome-free\css\all.min.css" />
@@ -261,6 +263,8 @@
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-brands-400.svg" />
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-regular-400.svg" />
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-solid-900.svg" />
+    <Content Include="Content\plugins\icheck-bootstrap\icheck-bootstrap.css" />
+    <Content Include="Content\plugins\icheck-bootstrap\icheck-bootstrap.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\viewer.css" />
     <Content Include="favicon.ico" />
@@ -429,6 +433,7 @@
     <Content Include="Content\plugins\fontawesome-free\webfonts\fa-v4compatibility.woff2" />
     <Content Include="Scripts\dist\js\.eslintrc.json" />
     <Content Include="Content\adminlte.css.map" />
+    <Content Include="Content\plugins\icheck-bootstrap\LICENSE" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\index.global.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
@@ -441,6 +446,9 @@
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
+    <Content Include="Scripts\rcsCargo\controls.kendo.js" />
+    <Content Include="Scripts\rcsCargo\controls.edit.js" />
+    <Content Include="Scripts\rcsCargo\controls.index.js" />
     <Content Include="Scripts\rcsCargo\message.js" />
     <Content Include="Scripts\rcsCargo\airMawb.js" />
     <Content Include="Scripts\rcsCargo\controls.js" />
@@ -448,6 +456,9 @@
     <Content Include="Scripts\rcsCargo\data.js" />
     <Content Include="Scripts\rcsCargo\rcsCargoMain.js" />
     <Content Include="Scripts\rcsCargo\utils.js" />
+    <None Include="Views\Home\forgot-password.cshtml" />
+    <None Include="Views\Home\lockscreen.cshtml" />
+    <None Include="Views\Home\Login.cshtml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -458,13 +469,7 @@
     <Content Include="Views\Web.config" />
     <Content Include="Scripts\jquery-3.3.1.min.map" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.map" />
-    <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Home\Performance.cshtml" />
-    <Content Include="Views\Home\Products.cshtml" />
-    <Content Include="Views\Home\Settings.cshtml" />
-    <Content Include="Views\Home\Signin.cshtml" />
-    <Content Include="Views\Home\Signup.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_SignInLayout.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -474,7 +479,7 @@
     <Content Include="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controllers\Admin\" />
+    <Folder Include="Scripts\plugins\" />
     <Folder Include="Views\Test\" />
   </ItemGroup>
   <ItemGroup>

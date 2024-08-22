@@ -58,6 +58,13 @@
         return value;
     }
 
+    getFormId = function () {
+        if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length == 1)
+            return $(`.k-tabstrip-content.k-content.k-active div[id]`).attr("id");
+        else
+            return null;
+    }
+
     getFrtMode = function () {
         if ($(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
             return $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)

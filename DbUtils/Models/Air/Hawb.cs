@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -94,6 +95,15 @@ namespace DbUtils.Models.Air
         public string IS_PICKUP { get; set; }
         public string SHOW_LB { get; set; }
         public string SHOW_OZ { get; set; }
+        [NotMapped]
+        public List<HawbPo> HawbPos { get; set; }
+        [NotMapped]
+        public List<HawbStatus> HawbStatuses { get; set; }
+        public Hawb()
+        {
+            HawbPos = new List<HawbPo>();
+            HawbStatuses = new List<HawbStatus>();
+        }
     }
 
     [Table("A_HAWB_PO")]

@@ -1,0 +1,141 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RCS Cargo System | Log in</title>
+
+    <link rel="icon" href="@Url.Content("~/Content/img/favicon.ico")" type="image/x-icon">
+    <link href="@Url.Content("~/Content/css.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/plugins/fontawesome-free/css/all.min.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/plugins/icheck-bootstrap/icheck-bootstrap.min.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/adminlte.min.css")" rel="stylesheet">
+</head>
+<body class="hold-transition login-page">
+    <div class="modal fade" id="modal-default">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-exclamation-triangle fa-beat-fade" style="padding: 10px; color: red; --fa-beat-fade-scale: 1.5;"></i>
+                    <h4 class="modal-title">Sign in failed!</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p></p>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="#"><b>RCS Cargo </b> System</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body login-card-body">
+                <p class="login-box-msg">Sign in to start your session</p>
+
+                <form>
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Email / User ID" required>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-envelope"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="password" class="form-control" placeholder="Password" required>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-lock"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="icheck-primary">
+                                <input type="checkbox" id="remember">
+                                <label for="remember">
+                                    Remember Me
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <button action="signIn" class="btn btn-primary btn-block">Sign In</button>
+                        </div>
+
+                    </div>
+                </form>
+
+                <div class="text-center mb-3">
+                    <p><br /><br /></p>
+                </div>
+
+                <p class="mb-1">
+                    <a href="forgot-password.cshtml">I forgot my password</a>
+                </p>
+                <p class="mb-0">
+                    <a href="register.cshtml" class="text-center">Register a new membership</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="../Scripts/jquery.min.js"></script>
+    <script src="../Scripts/bootstrap.bundle.min.js"></script>
+    <script src="../Scripts/dist/js/adminlte.min.js"></script>
+    <script src="../Scripts/kendo.all.min.js"></script>
+    <script>
+        $(function () {
+            $(`[action="signIn"]`).bind("click", function (e) {
+                if (!$("form")[0].checkValidity()) {
+                    return;
+                }
+
+                e.preventDefault();
+                var userId = $(`input[type="email"]`).val().trim();
+                var password = $(`input[type="password"]`).val().trim();
+
+                $.ajax({
+                    url: "/Admin/Account/VerifyLogin",
+                    type: "post",
+                    dataType: "json",
+                    data: { userId: userId, password: password },
+                    success: function (result) {
+                        //console.log(result);
+                        if (result.result == "success") {
+                            localStorage.sessionId = result.sessionId;
+                            localStorage.user = JSON.stringify(result.user);
+                            window.open("../", "_self");
+                        } else if (result.result == "user_not_found") {
+                            //kendo.alert("User ID / Email incorrect!");
+                            $("#modal-default .modal-body p").html("User ID / Email incorrect!");
+                            $("#modal-default").modal("show"); 
+                        } else if (result.result == "password_incorrect") {
+                            //kendo.alert("Password incorrect!");
+                            $("#modal-default .modal-body p").html("Password incorrect!");
+                            $("#modal-default").modal("show"); 
+                        }
+                    }
+                });
+            });
+
+            $("button[data-dismiss='modal']").bind("click", function () {
+                $("#modal-default").modal("hide"); 
+            });
+        });
+    </script>
+</body>
+</html>

@@ -34,6 +34,11 @@ namespace DbUtils
         public DbSet<HawbPo> HawbPos { get; set; }
         public DbSet<HawbStatus> HawbStatuses { get; set; }
         
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserCompany> UserCompanies { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<UserLog> UsersLogs { get; set; }
+        public DbSet<SysCompany> SysCompanies { get; set; }
         public DbSet<ReportData> ReportDatas { get; set; }
         public DbSet<SysModule> SysModules { get; set; }
 

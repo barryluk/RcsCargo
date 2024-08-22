@@ -29,7 +29,11 @@ namespace RcsCargoWeb.Controllers
 
             foreach (var item in result)
                 items += item + ",";
-            return Content(items);
+            //return Content(items);
+
+            string ipList = Request.UserHostAddress;
+            var userAgent = HttpContext.Request.UserAgent;
+            return Content(userAgent + " ; " + ipList);
         }
 
         [HttpGet]
@@ -74,59 +78,30 @@ namespace RcsCargoWeb.Controllers
             return View();
         }
 
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your app description page.";
-
-            return PartialView();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
-
         public ActionResult Dashboard()
         {
             return PartialView();
         }
 
-        public ActionResult PdfViewer()
+        public ActionResult Login()
         {
-            return PartialView();
+            return View();
         }
 
-        public ActionResult Performance()
+        public ActionResult lockscreen()
         {
-            return PartialView();
+            return View();
         }
 
-
-        public ActionResult Products()
+        public ActionResult GetSysCompanies()
         {
-            return PartialView();
-        }
-
-        public ActionResult Settings()
-        {
-            return PartialView();
-        }
-
-        public ActionResult Signin()
-        {
-            return PartialView();
-        }
-
-        public ActionResult Signup()
-        {
-            return PartialView();
+            var admin = new DbUtils.Admin();
+            return Json(admin.GetSysCompanies(), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetSysModules()
         {
-            var admin = new Admin();
+            var admin = new DbUtils.Admin();
             return Json(admin.GetSysModules(), JsonRequestBehavior.AllowGet);
         }
 
@@ -190,7 +165,7 @@ namespace RcsCargoWeb.Controllers
 
         public ActionResult GetReportData(string reportName)
         {
-            var admin = new Admin();
+            var admin = new DbUtils.Admin();
             return Content(admin.GetReportData(reportName).DATA, "JSON");
         }
 

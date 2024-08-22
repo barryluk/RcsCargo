@@ -3,6 +3,7 @@ using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,16 @@ namespace DbUtils
         public Admin() 
         {
             db = new RcsFreightDBContext();
+        }
+
+        public List<SysCompanyView> GetSysCompanies()
+        {
+            return db.SysCompanies.Select(a => new SysCompanyView {
+                COMPANY_ID = a.COMPANY_ID,
+                COMPANY_NAME = a.COMPANY_NAME,
+                COUNTRY_CODE = a.COUNTRY_CODE,
+                PORT_CODE = a.PORT_CODE,
+            }).ToList();
         }
 
         public List<SysModule> GetSysModules()
@@ -94,5 +105,98 @@ namespace DbUtils
                 return null;
         }
 
+        public User GetUser(string userId)
+        {
+            var user = db.Users.Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
+                a.EMAIL.Equals(userId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+            if (user != null)
+            {
+                user.UserCompanies = db.UserCompanies.Where(a => a.USER_ID.Equals(user.USER_ID)).ToList();
+                user.UserGroups = db.UserGroups.Where(a => a.USER_ID.Equals(user.USER_ID)).ToList();
+            }
+            return user;
+        }
+
+        public string IsValidLogin(string userId, string password)
+        {
+            string status = string.Empty;
+            var user = db.Users.Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) || 
+                a.EMAIL.Equals(userId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+            if (user != null)
+            {
+                if (user.PASSWORD.Equals(password))
+                    status = "success";
+                else
+                    status = "password_incorrect";
+            }
+            else
+                status = "user_not_found";
+
+            return status;
+        }
+
+        public void AddUserLog(UserLog userLog)
+        {
+            var oldUserLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userLog.USER_ID)).FirstOrDefault();
+            if (oldUserLog != null)
+                db.UsersLogs.Remove(oldUserLog);
+
+            db.UsersLogs.Add(userLog);
+            db.SaveChanges();
+        }
+
+        public bool UpdateLastRequestTime(string userId, string sessionId)
+        {
+            bool status = true;
+            var userLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userId)).FirstOrDefault();
+            if (userLog != null)
+            {
+                if (userLog.SESSION_ID.Equals(sessionId))
+                {
+                    userLog.LAST_REQUEST = DateTime.Now;
+                    db.Entry(userLog).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+                else
+                {
+                    var newUserLog = userLog;
+                    db.UsersLogs.Remove(userLog);
+
+                    newUserLog.SESSION_ID = sessionId;
+                    newUserLog.LAST_REQUEST = DateTime.Now;
+                    db.UsersLogs.Add(newUserLog);
+                    db.SaveChanges();
+                }
+            }
+            else
+                status = false;
+
+            return status;
+        }
+
+        public UserLog GetUserLog(string userId)
+        {
+            return db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId));
+        }
+
+        public bool DeleteUserLog(string userId)
+        {
+            var userLog = db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId));
+            if (userLog != null)
+            {
+                db.UsersLogs.Remove(userLog);
+                db.SaveChanges();
+                return true;
+            }
+            else
+                return false;
+        }
+
+        public bool IsUserLogExist(string userId)
+        {
+            return db.UsersLogs.Count(a => a.USER_ID.Equals(userId)) == 1 ? true : false;
+        }
     }
 }

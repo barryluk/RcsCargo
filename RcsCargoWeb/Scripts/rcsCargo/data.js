@@ -1,4 +1,7 @@
 ﻿//Global variables
+var user;
+var sessionId;
+var intervalId;
 var take = 50;
 var indexGridPageSize = 25;
 var companyId = "RCSHKG";
@@ -7,8 +10,14 @@ var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
 var chargeQtyUnit = ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"];
 var packageUnit = ["CTNS", "PLT", "PKG", "ROLLS", "PCS"];
-var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency", "chargeTemplate"];
-var currencies;
+var bookingType = [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }];
+var vwtsFactor = [6000, 6500, 7000, 9000];
+var incoterm = ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"];
+var paymentTerms = [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }];
+var invoiceType = [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }];
+var invoiceCategory = [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }];
+var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency", "chargeTemplate", "vwtsFactor", "incoterm"];
+var currencies, sysCompanies, airlines, charges, chargeTemplates, ports, customers;
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -91,7 +100,18 @@ var frameworkHtmlElements = {
 
         return html;
     },
-    navbar: function () {
+    navbar: function (sysCompanies) {
+        var htmlsysCompanies = "";
+        sysCompanies.forEach(function (sysCompany) {
+            if (sysCompanies.indexOf(sysCompany) != 0)
+                htmlsysCompanies += `<div class="dropdown-divider"></div>`;
+
+            htmlsysCompanies += `
+                <a href="#" class="dropdown-item">
+                    <i class="fa-solid fa-building-circle-arrow-right"></i> ${sysCompany.COMPANY_ID}
+                </a>`;
+        });
+
         var html =
             `<nav class="main-header navbar navbar-expand navbar-white navbar-light">
                 <ul class="navbar-nav">
@@ -99,7 +119,7 @@ var frameworkHtmlElements = {
                         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                     </li>
                     <li class="nav-item d-none d-sm-inline-block">
-                        <a href="#" class="nav-link"><span style="font-weight:800; font-style: italic; font-size: 14pt">RCS Cargo System</span></a>
+                        <a href="#" class="nav-link"><span style="font-size: 1.6rem; left: -1rem; top: -0.5rem; position: relative">RCS Cargo System</span></a>
                     </li>
                 </ul>
 
@@ -122,6 +142,16 @@ var frameworkHtmlElements = {
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown sysCompany">
+                        <a class="nav-link" data-toggle="dropdown" href="#">
+                            <i class="fa fa-house-user"></i>
+                            <span class="currentSystemCompany">${companyId}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-left">
+                            ${htmlsysCompanies}
                         </div>
                     </li>
 
@@ -212,6 +242,16 @@ var frameworkHtmlElements = {
                             <i class="fas fa-th-large"></i>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="control-lockscreen" href="#" role="button" data-toggle="tooltip" title="Lock Screen">
+                            <i class="fa-solid fa-lock"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="control-logout" href="#" role="button" data-toggle="tooltip" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </a>
+                    </li>
                 </ul>
             </nav>`;
 
@@ -286,7 +326,7 @@ var indexPages = [
         gridConfig: {
             gridName: "gridAirMawbIndex",
             dataSourceUrl: "../Air/Mawb/GridMawb_Read",
-            linkIdPrefix: "AirMawb",
+            linkIdPrefix: "airMawb",
             linkTabTitle: "MAWB# ",
             toolbar: [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
@@ -299,7 +339,7 @@ var indexPages = [
                 {
                     field: "JOB_TYPE", title: "Type",
                     template: function (dataItem) {
-                        if (!utils. isEmptyString(dataItem.JOB_TYPE)) {
+                        if (!utils.isEmptyString(dataItem.JOB_TYPE)) {
                             return dataItem.JOB_TYPE == "C" ? "Consol" : "Direct";
                         } else {
                             return "";
@@ -332,7 +372,7 @@ var indexPages = [
         gridConfig: {
             gridName: "gridAirBookingIndex",
             dataSourceUrl: "../Air/Booking/GridBooking_Read",
-            linkIdPrefix: "AirBooking",
+            linkIdPrefix: "airBooking",
             linkTabTitle: "Booking# ",
             toolbar: [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
@@ -368,6 +408,10 @@ var masterForms = [
     {
         formName: "airMawb",
         mode: "edit",   //create / edit
+        title: "MAWB#",
+        readUrl: "../Air/Mawb/GetMawb",
+        updateUrl: "../Air/Mawb/UpdateMawb",
+        additionalScript: "initAirMawb",
         id: "",
         targetForm: {},
         toolbar: [
@@ -644,6 +688,10 @@ var masterForms = [
     {
         formName: "airBooking",
         mode: "edit",   //create / edit
+        title: "Booking#",
+        readUrl: "../Air/Booking/GetBooking",
+        updateUrl: "../Air/Booking/UpdateBooking",
+        additionalScript: "initAirBooking",
         id: "",
         targetForm: {},
         toolbar: [
@@ -666,12 +714,12 @@ var masterForms = [
             {
                 title: "PO Information",
                 name: "bookingPo",
-                formGroups: ["contactMain", "contactOthers", "loadplanBookingList"]
+                formGroups: ["dims"]
             },
             {
                 title: "Warehouse",
                 name: "warehouse",
-                formGroups: ["contactMain", "prepaidCharges", "collectCharges", "dims"]
+                formGroups: []
             },
         ],
         schema: {
@@ -686,160 +734,38 @@ var masterForms = [
                 colWidth: 8,
                 formControls: [
                     { label: "MAWB #", type: "text", name: "BOOKING_NO", colWidth: 6 },
-                    { label: "Booking Type", type: "bookingType", name: "BOOKING_TYPE", colWidth: 6 },
+                    { label: "Booking Type", type: "buttonGroup", dataType: "bookingType", name: "BOOKING_TYPE", colWidth: 6 },
                     { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
                     { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
+                    { label: "Document Received", type: "switch", name: "IS_DOC_REC", colWidth: 6 },
+                    { label: "Booking Approved", type: "switch", name: "IS_BOOKING_APP", colWidth: 6 },
+                    { label: "Approval #", type: "text", name: "APPROVAL_NO", colWidth: 6 },
+                    { label: "Plan Flight Date", type: "date", name: "PLAN_FLIGHT_DATE", colWidth: 6 },
                     { label: "Origin", type: "port", name: "ORIGIN_CODE", colWidth: 6 },
                     { label: "Destination", type: "port", name: "DEST_CODE", colWidth: 6 },
-                    { label: "Execution Date", type: "dateTime", name: "EX_DATE", colWidth: 6 },
-                    { label: "Issue Date", type: "dateTime", name: "ISSUE_DATE", colWidth: 6 },
+                    { label: "Booking Rcvd Date", type: "date", name: "BOOKING_REC_DATE", colWidth: 6 },
+                    { label: "Document Rcvd Date", type: "dateTime", name: "DOC_REC_DATE", colWidth: 6 },
+                    { label: "Cargo Ready Date", type: "date", name: "CARGO_READY_DATE", colWidth: 6 },
+                    { label: "Cargo Rcvd Date", type: "dateTime", name: "CARGO_REC_DATE", colWidth: 6 },
                     { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 6 },
                     { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 6 },
-                    { label: "Package", type: "numberInt", name: "SEC_PACKAGE", colWidth: 6 },
+                    { label: "Second Package", type: "numberInt", name: "SEC_PACKAGE", colWidth: 6 },
                     { label: "Package Unit", type: "pkgUnit", name: "SEC_PACKAGE_UNIT", colWidth: 6 },
-                    { label: "G/wts", type: "number", name: "GWTS", colWidth: 6 },
-                    { label: "V/wts", type: "number", name: "VWTS", colWidth: 6 },
-                    { label: "Remarks", type: "textArea", name: "REMARKS" },
+                    { label: "V/Wts Factor", type: "vwtsFactor", name: "VWTS_FACTOR", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "G/Wts", type: "number", name: "GWTS", colWidth: 6 },
+                    { label: "V/Wts", type: "number", name: "VWTS", colWidth: 6 },
+                    { label: "CBM", type: "number", name: "CBM", colWidth: 6 },
+                    { label: "Cubic Feet", type: "number", name: "CUFT", colWidth: 6 },
+                    { label: "Incoterm", type: "incoterm", name: "INCOTERM_2012", colWidth: 6 },
+                    { label: "Port", type: "port", name: "INCOTERM_2012_PORT", colWidth: 6 },
+                    /*{ label: "", type: "emptyBlock", colWidth: 6 },*/
                     { label: "Notify Party 1", type: "customerAddr", name: "NOTIFY1" },
                     { label: "Notify Party 2", type: "customerAddr", name: "NOTIFY2" },
-                ]
-            },
-            {
-                name: "2nd3rdFlights",
-                title: "Second / Third Flights",
-                colWidth: 5,
-                formControls: [
-                    { label: "Second Flight", type: "label" },
-                    { label: "Airline", type: "airline", name: "AIRLINE_CODE2" },
-                    { label: "Flight #", type: "text", name: "FLIGHT_NO2" },
-                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE2" },
-                    { label: "Destination", type: "port", name: "DEST_CODE2" },
-                    { label: "Third Flight", type: "label" },
-                    { label: "Airline", type: "airline", name: "AIRLINE_CODE3" },
-                    { label: "Flight #", type: "text", name: "FLIGHT_NO3" },
-                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE3" },
-                    { label: "Destination", type: "port", name: "DEST_CODE3" },
-                ]
-            },
-            {
-                name: "contactMain",
-                title: "Contact Information",
-                colWidth: 6,
-                formControls: [
-                    { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
-                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
-                    { label: "Notify Party", type: "customerAddr", name: "NOTIFY" },
-                ]
-            },
-            {
-                name: "contactOthers",
-                title: "Contact Information",
-                colWidth: 6,
-                formControls: [
-                    { label: "Agent", type: "customerAddr", name: "AGENT" },
-                    { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE" },
-                ]
-            },
-            {
-                name: "prepaidCharges",
-                title: "Prepaid Charges",
-                colWidth: 12,
-                formControls: [
-                    { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
-                    {
-                        label: "Prepaid Charges", type: "grid", name: "MawbChargesPrepaid",
-                        columns: [
-                            {
-                                title: "Charge", field: "CHARGE_CODE", width: 250,
-                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
-                            },
-                            {
-                                title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
-                            },
-                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
-                            { title: "Price", field: "PRICE", width: 90 },
-                            { title: "Qty", field: "QTY", width: 90 },
-                            {
-                                title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
-                            },
-                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
-                            { title: "Amount", field: "AMOUNT", width: 90 },
-                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
-                        ],
-                        fields: {
-                            CHARGE_CODE: { validation: { required: true } },
-                            CHARGE_DESC: { defaultValue: "" },
-                            PAYMENT_TYPE: { defaultValue: "P" },
-                            CURR_CODE: { validation: { required: true } },
-                            PRICE: { type: "number", validation: { required: true } },
-                            QTY: { type: "number", validation: { required: true } },
-                            QTY_UNIT: { validation: { required: true } },
-                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
-                            EX_RATE: { type: "number", editable: false },
-                            AMOUNT: { type: "number", editable: false },
-                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
-                        },
-                        formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
-                        ],
-                    },
-                ]
-            },
-            {
-                name: "collectCharges",
-                title: "Collect Charges",
-                colWidth: 12,
-                formControls: [
-                    { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
-                    {
-                        label: "Prepaid Charges", type: "grid", name: "MawbChargesCollect",
-                        columns: [
-                            {
-                                title: "Charge", field: "CHARGE_CODE", width: 250,
-                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
-                            },
-                            {
-                                title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
-                            },
-                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
-                            { title: "Price", field: "PRICE", width: 90 },
-                            { title: "Qty", field: "QTY", width: 90 },
-                            {
-                                title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
-                            },
-                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
-                            { title: "Amount", field: "AMOUNT", width: 90 },
-                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
-                        ],
-                        fields: {
-                            CHARGE_CODE: { validation: { required: true } },
-                            CHARGE_DESC: { defaultValue: "" },
-                            PAYMENT_TYPE: { defaultValue: "C" },
-                            CURR_CODE: { validation: { required: true } },
-                            PRICE: { type: "number", validation: { required: true } },
-                            QTY: { type: "number", validation: { required: true } },
-                            QTY_UNIT: { validation: { required: true } },
-                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
-                            EX_RATE: { type: "number", editable: false },
-                            AMOUNT: { type: "number", editable: false },
-                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
-                        },
-                        formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
-                        ],
-                    },
+                    { label: "Handle Information", type: "textArea", name: "HANDLE_INFO", colWidth: 6 },
+                    { label: "Marks & Numbers", type: "textArea", name: "MARKS_NO", colWidth: 6 },
+                    { label: "Goods Description", type: "textArea", name: "GOOD_DESC", colWidth: 6 },
+                    { label: "Remarks", type: "textArea", name: "REMARKS", colWidth: 6 },
                 ]
             },
             {
@@ -877,49 +803,44 @@ var masterForms = [
                     },
                 ]
             },
-            {
-                name: "loadplanBookingList",
-                title: "Booking List",
-                colWidth: 12,
-                formControls: [
-                    {
-                        label: "Booking List", type: "grid", name: "LoadplanBookingListViews",
-                        columns: [
-                            { title: "Booking #", field: "BOOKING_NO", width: 90 },
-                            { title: "Shipper", field: "SHIPPER_DESC", width: 200 },
-                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 200 },
-                            { title: "Packages", field: "PACKAGE", width: 80 },
-                            { title: "G/Wts", field: "GWTS", width: 80 },
-                            { title: "V/Wts", field: "VWTS", width: 80 },
-                            { title: "Doc Rcvd?", field: "IS_DOC_REC", width: 80 },
-                            { title: "Approved?", field: "IS_BOOKING_APP", width: 80 },
-                            { title: "Received?", field: "IS_RECEIVED", width: 80 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
-                        ],
-                        fields: {
-                            BOOKING_NO: { editable: false },
-                            SHIPPER_DESC: { editable: false },
-                            CONSIGNEE_DESC: { editable: false },
-                            PACKAGE: { editable: false },
-                            GWTS: { editable: false },
-                            VWTS: { editable: false },
-                            IS_DOC_REC: { editable: false },
-                            IS_BOOKING_APP: { editable: false },
-                            IS_RECEIVED: { editable: false },
-                        },
-                    },
-                ]
-            },
         ]
     },
 ];
 
 export default class {
     constructor() {
+        if (localStorage.user == null)
+            window.open("../Home/Login", "_self");
+        else {
+            user = JSON.parse(localStorage.user);
+            sessionId = localStorage.sessionId;
+            $.ajax({
+                url: "/Admin/Account/GetSessionStatus",
+                type: "post",
+                dataType: "json",
+                data: { userId: user.USER_ID },
+                success: function (result) {
+                    if (result.result == "success") {
+                        //get the latest sessionId from server
+                        localStorage.sessionId = result.sessionId;
+                        data.sessionId = result.sessionId;
+                    } else if (result.result == "error") {
+                        //if userlog has removed this session, clear localStorage and redirect to login
+                        localStorage.removeItem("user");
+                        localStorage.removeItem("sessionId");
+                        window.open("../Home/Login", "_self");
+                    }
+                }
+            });
+        }
+
         this.prefetchGlobalVariables();
     }
 
     //getters
+    get user() { return user; }
+    get sessionId() { return sessionId; }
+    get intervalId() { return intervalId; }
     get take() { return take; }
     get indexGridPageSize() { return indexGridPageSize; }
     get companyId() { return companyId; }
@@ -928,14 +849,21 @@ export default class {
     get dateTimeLongFormat() { return dateTimeLongFormat; }
     get chargeQtyUnit() { return chargeQtyUnit; }
     get packageUnit() { return packageUnit; }
+    get bookingType() { return bookingType; }
+    get vwtsFactor() { return vwtsFactor; }
+    get incoterm() { return incoterm; }
     get dropdownlistControls() { return dropdownlistControls; }
     get currencies() { return currencies; }
+    get sysCompanies() { return sysCompanies; }
     get frameworkHtmlElements() { return frameworkHtmlElements; }
     get htmlElements() { return htmlElements; }
     get indexPages() { return indexPages; }
     get masterForms() { return masterForms; }
 
     //setters
+    set user(val) { user = val; }
+    set sessionId(val) { sessionId = val; }
+    set intervalId(val) { intervalId = val; }
     set take(val) { take = val; }
     set indexGridPageSize(val) { indexGridPageSize = val; }
     set companyId(val) { companyId = val; }
@@ -946,6 +874,7 @@ export default class {
     set packageUnit(val) { packageUnit = val; }
     set dropdownlistControls(val) { dropdownlistControls = val; }
     set currencies(val) { currencies = val; }
+    set sysCompanies(val) { sysCompanies = val; }
     set frameworkHtmlElements(val) { frameworkHtmlElements = val; }
     set htmlElements(val) { htmlElements = val; }
     set indexPages(val) { indexPages = val; }
@@ -955,9 +884,15 @@ export default class {
         $.ajax({
             url: "../Home/GetCurrencies",
             data: { companyId: companyId },
-            dataType: "json",
             success: function (result) {
                 currencies = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetSysCompanies",
+            success: function (result) {
+                sysCompanies = result;
             }
         });
     }
