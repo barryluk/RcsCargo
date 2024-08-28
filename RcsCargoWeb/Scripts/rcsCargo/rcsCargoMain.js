@@ -12,23 +12,29 @@ $(document).ready(function () {
     });
 
     async function loadScripts() {
+        //Disable cache for script files
+        let version = Math.random();
         //let msg = new ((await import('message.js')).default)("Barry");    Example for passing values to the constructor
-        data = new ((await import('../../Scripts/rcsCargo/data.js')).default);
-        utils = new ((await import('../../Scripts/rcsCargo/utils.js')).default);
-        controls = new ((await import('../../Scripts/rcsCargo/controls.js')).default);
-        controls.index = new ((await import('../../Scripts/rcsCargo/controls.index.js')).default);
-        controls.edit = new ((await import('../../Scripts/rcsCargo/controls.edit.js')).default);
-        controls.kendo = new ((await import('../../Scripts/rcsCargo/controls.kendo.js')).default);
+        data = new ((await import(`../../Scripts/rcsCargo/data.js?v=${version}`)).default);
+        utils = new ((await import(`../../Scripts/rcsCargo/utils.js?v=${version}`)).default);
+        controls = new ((await import(`../../Scripts/rcsCargo/controls.js?v=${version}`)).default);
+        controls.index = new ((await import(`../../Scripts/rcsCargo/controls.index.js?v=${version}`)).default);
+        controls.edit = new ((await import(`../../Scripts/rcsCargo/controls.edit.js?v=${version}`)).default);
+        controls.kendo = new ((await import(`../../Scripts/rcsCargo/controls.kendo.js?v=${version}`)).default);
 
-        controllers.airMawb = new ((await import('../../Scripts/rcsCargo/airMawb.js')).default);
-        controllers.airBooking = new ((await import('../../Scripts/rcsCargo/airBooking.js')).default);
+        controllers.airMawb = new ((await import(`../../Scripts/rcsCargo/airMawb.js?v=${version}`)).default);
+        controllers.airBooking = new ((await import(`../../Scripts/rcsCargo/airBooking.js?v=${version}`)).default);
+        controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js?v=${version}`)).default);
 
         //For development only
         setTimeout(function () {
-            controls.append_tabStripMain("MAWB Allocation", `airMawbIndex_${data.companyId}`, "airMawb");
-            controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking");
-            //controls.append_tabStripMain("MAWB# 272-7409 4506", "airMawb_27274094506_RCSHKG_AE", "airMawb");
-            //controls.append_tabStripMain("Booking# WFF74094495", "airBooking_WFF74094495_RCSHKG_AE", "airBooking");
+            //controls.append_tabStripMain("MAWB Allocation", `airMawbIndex_${data.companyId}`, "airMawb");
+            //controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking");
+            //setTimeout(function () { controls.append_tabStripMain("Hawb", `airHawbIndex_${data.companyId}`, "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("MAWB# 27274093235", "airMawb_27274093235_RCSHKG_AE", "airMawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("MAWB# 17286649382", "airMawb_17286649382_RCSHKG_AE", "airMawb"); }, 1500);
+            //setTimeout(function () { controls.append_tabStripMain("Booking# WFF74277243", "airBooking_WFF74277243_RCSHKG_AE", "airBooking"); }, 500);
+            setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124773", "airHawb_HKG18124773_RCSHKG_AE", "airHawb"); }, 500);
         }, 1000);
 
         //send request to server to keep session alive and also get the status

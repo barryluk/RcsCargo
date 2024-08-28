@@ -32,8 +32,16 @@ namespace DbUtils
         public DbSet<WarehouseHistory> WarehouseHistories { get; set; }
         public DbSet<Hawb> Hawbs { get; set; }
         public DbSet<HawbPo> HawbPos { get; set; }
+        public DbSet<HawbCharge> HawbCharges { get; set; }
+        public DbSet<HawbDim> HawbDims { get; set; }
+        public DbSet<HawbLic> HawbLics { get; set; }
+        public DbSet<HawbEquip> HawbEquips { get; set; }
         public DbSet<HawbStatus> HawbStatuses { get; set; }
-        
+        public DbSet<HawbDoc> HawbDocs { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<InvoiceHawb> InvoiceHawbs { get; set; }
+        public DbSet<InvoiceItem> InvoiceItems { get; set; }
+
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }

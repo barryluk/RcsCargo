@@ -1,13 +1,17 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
+using System.Data.OracleClient;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace DbUtils
@@ -158,6 +162,51 @@ namespace DbUtils
                 log.Error(ex.ToString());
                 return false;
             }
+        }
+
+        public static List<T> GetSqlQueryResult<T>(string tableName, string fields, List<DbParameter> parameters)
+        {
+            return RunSqlQuery<T>(tableName, fields, parameters);
+        }
+
+        public static List<T> GetSqlQueryResult<T>(string tableName, string keyName, string keyValue, string companyId = "", string frtMode = "")
+        {
+            var dbParas = new List<DbParameter>();
+            dbParas.Add(new DbParameter { FieldName = keyName, ParaName = keyName, ParaCompareType = DbParameter.CompareType.equals, Value = keyValue });
+            if (!string.IsNullOrEmpty(companyId))
+                dbParas.Add(new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId });
+            if (!string.IsNullOrEmpty(frtMode))
+                dbParas.Add(new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode });
+
+            return RunSqlQuery<T>(tableName, "*", dbParas);
+        }
+
+        public static List<T> GetSqlQueryResult<T>(string tableName, string fields, string keyName, string keyValue, string companyId = "", string frtMode = "")
+        {
+            var dbParas = new List<DbParameter>();
+            dbParas.Add(new DbParameter { FieldName = keyName, ParaName = keyName, ParaCompareType = DbParameter.CompareType.equals, Value = keyValue });
+            if (!string.IsNullOrEmpty(companyId))
+                dbParas.Add(new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId });
+            if (!string.IsNullOrEmpty(frtMode))
+                dbParas.Add(new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode });
+
+            return RunSqlQuery<T>(tableName, fields, dbParas);
+        }
+
+        private static List<T> RunSqlQuery<T>(string tableName, string fields, List<DbParameter> parameters)
+        {
+            RcsFreightDBContext db = new RcsFreightDBContext();
+            var sqlCmd = $"select {fields} from {tableName} where";
+            var dbParas = new List<Oracle.ManagedDataAccess.Client.OracleParameter>();
+
+            foreach (var para in parameters)
+            {
+                var str = sqlCmd.EndsWith("where") ? "" : "and";
+                sqlCmd += $" {str} {para.FieldName} {para.GetParaCompareOperator()} :{para.ParaName}";
+                dbParas.Add(new Oracle.ManagedDataAccess.Client.OracleParameter(para.ParaName, para.Value));
+            }
+
+            return db.Database.SqlQuery<T>(sqlCmd, dbParas.ToArray()).ToList();
         }
 
         #region Decrypt / Encrypt
@@ -339,5 +388,27 @@ namespace DbUtils
 
         #endregion Convert Object to Primitive Data Type
 
+    }
+
+    public class DbParameter
+    {
+        public enum CompareType { equals, greater, less, greaterEquals, lessEquals, like };
+        public string FieldName { get; set; }
+        public CompareType ParaCompareType { get; set; }
+        public string ParaName { get; set; }
+        public object Value { get; set; }
+        public string GetParaCompareOperator()
+        {
+            switch (this.ParaCompareType) 
+            {
+                case CompareType.equals: return "=";
+                case CompareType.greater: return ">";
+                case CompareType.less: return "<";
+                case CompareType.greaterEquals: return ">=";
+                case CompareType.lessEquals: return "<=";
+                case CompareType.like: return "like";
+                default: return null;
+            }
+        }
     }
 }

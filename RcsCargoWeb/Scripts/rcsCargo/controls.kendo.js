@@ -12,17 +12,18 @@
         });
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
         $(`#${masterForm.id} .k-i-save`).parent().click(function () {
+            masterForm.id = utils.getFormId($(this));
             var model = controls.getValuesFromFormControls(masterForm);
-            console.log(model);
+            console.log(masterForm, model);
 
-            $.ajax({
-                url: "../Air/Mawb/TestModel",
-                type: "post",
-                data: model,
-                success: function (result) {
-                    console.log(result);
-                }
-            });
+            //$.ajax({
+            //    url: "../Air/Mawb/TestModel",
+            //    type: "post",
+            //    data: model,
+            //    success: function (result) {
+            //        console.log(result);
+            //    }
+            //});
         });
 
         //kendoDatePicker
@@ -66,7 +67,7 @@
         //kendoButtonGroup for bookingType
         $(`#${masterForm.id} div[type=buttonGroup][dataType=bookingType]`).each(function () {
             $(this).kendoButtonGroup({
-                items: data.bookingType,
+                items: data.masterRecords.bookingType,
                 index: 0
             });
         });
@@ -89,6 +90,7 @@
                     checked: "yes",
                     unchecked: "no"
                 },
+                size: "small",
                 checked: true
             });
         });
@@ -136,19 +138,23 @@
                                     filterValue = options.data.filter.filters[0].value;
                                 } catch { }
                             }
-                            $.ajax({
-                                url: "../Home/GetCustomers",
-                                data: { searchValue: filterValue, take: data.take },
-                                dataType: "json",
-                                type: "post",
-                                success: function (result) {
-                                    for (var i in result) {
-                                        result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
-                                        result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Home/GetCustomers",
+                                    data: { searchValue: filterValue, take: data.take },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        for (var i in result) {
+                                            result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
+                                            result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                                        }
+                                        options.success(result);
                                     }
-                                    options.success(result);
-                                }
-                            });
+                                });
+                            }
                         },
                     }
                 },
@@ -177,23 +183,28 @@
                                     filterValue = options.data.filter.filters[0].value;
                                 } catch { }
                             }
-                            $.ajax({
-                                url: "../Home/GetCustomers",
-                                data: { searchValue: filterValue, take: data.take },
-                                dataType: "json",
-                                type: "post",
-                                success: function (result) {
-                                    for (var i in result) {
-                                        result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
-                                        result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Home/GetCustomers",
+                                    data: { searchValue: filterValue, take: data.take },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        for (var i in result) {
+                                            result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
+                                            result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                                        }
+                                        options.success(result);
                                     }
-                                    options.success(result);
-                                }
-                            });
+                                });
+                            }
                         },
                     }
                 },
                 select: function (e) {
+                    masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
                     if (item == null) {
                         item = e.sender.dataSource.data()[0];
@@ -217,85 +228,30 @@
 
         //kendoDropDownList for PORT
         $(`#${masterForm.id} input[type=port]`).each(function () {
-            var filterValue = "";
             $(this).kendoDropDownList({
                 filter: "startswith",
-                dataTextField: "PORT_DESC",
+                dataTextField: "PORT_DESC_DISPLAY",
                 dataValueField: "PORT_CODE",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
-                dataSource: {
-                    type: "json",
-                    serverFiltering: true,
-                    transport: {
-                        read: function (options) {
-                            if (options.data.filter != null) {
-                                try {
-                                    filterValue = options.data.filter.filters[0].value;
-                                } catch { }
-                            }
-                            $.ajax({
-                                url: "../Home/GetPorts",
-                                data: { searchValue: filterValue, take: data.take },
-                                dataType: "json",
-                                type: "post",
-                                success: function (result) {
-                                    for (var i in result) {
-                                        result[i].PORT_DESC = result[i].PORT_CODE + " - " + result[i].PORT_DESC;
-                                    }
-                                    options.success(result);
-                                }
-                            });
-                        },
-                    }
-                },
-                open: function (e) {
-                    $(e.sender.filterInput).val(filterValue);
-                }
+                dataSource: { data: data.masterRecords.ports },
             });
         });
 
         //kendoDropDownList for AIRLINE
         $(`#${masterForm.id} input[type=airline]`).each(function () {
-            var filterValue = "";
             $(this).kendoDropDownList({
                 filter: "startswith",
-                dataTextField: "AIRLINE_DESC",
+                dataTextField: "AIRLINE_DESC_DISPLAY",
                 dataValueField: "AIRLINE_CODE",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
-                dataSource: {
-                    type: "json",
-                    serverFiltering: true,
-                    transport: {
-                        read: function (options) {
-                            try {
-                                filterValue = options.data.filter.filters[0].value;
-                            } catch { }
-
-                            $.ajax({
-                                url: "../Home/GetAirlines",
-                                data: { searchValue: filterValue, take: data.take },
-                                dataType: "json",
-                                type: "post",
-                                success: function (result) {
-                                    for (var i in result) {
-                                        result[i].AIRLINE_DESC = result[i].AIRLINE_CODE + " - " + result[i].AIRLINE_DESC;
-                                    }
-                                    options.success(result);
-                                }
-                            });
-                        },
-                    }
-                },
-                open: function (e) {
-                    $(e.sender.filterInput).val(filterValue);
-                }
+                dataSource: { data: data.masterRecords.airlines },
             });
         })
 
         //kendoDropDownList for vwts factor
         $(`#${masterForm.id} input[type=vwtsFactor]`).each(function () {
             $(this).kendoDropDownList({
-                dataSource: data.vwtsFactor
+                dataSource: data.masterRecords.vwtsFactor
             });
         });
 
@@ -303,8 +259,58 @@
         $(`#${masterForm.id} input[type=incoterm]`).each(function () {
             $(this).kendoDropDownList({
                 optionLabel: " ",
-                dataSource: data.incoterm
+                dataSource: data.masterRecords.incoterm
             });
+        });
+
+        //kendoDropDownList for payment terms
+        $(`#${masterForm.id} input[type=paymentTerms]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "text",
+                dataValueField: "value",
+                dataSource: data.masterRecords.paymentTerms
+            });
+        });
+
+        //kendoDropDownList for show charges
+        $(`#${masterForm.id} input[type=showCharges]`).each(function () {
+            $(this).kendoDropDownList({
+                optionLabel: " ",
+                dataTextField: "text",
+                dataValueField: "value",
+                dataSource: data.masterRecords.showCharges
+            });
+        });
+
+        //kendoDropDownList for flight service type
+        $(`#${masterForm.id} input[type=fltServiceType]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "text",
+                dataValueField: "value",
+                dataSource: data.masterRecords.fltServiceType
+            });
+        });
+
+        //kendoDropDownList for invoice type
+        $(`#${masterForm.id} input[type=invoiceType]`).each(function () {
+            $(this).kendoDropDownList({
+                dataSource: data.masterRecords.invoiceType
+            });
+        });
+
+        //kendoDropDownList for invoice category
+        $(`#${masterForm.id} input[type=invoiceCategory]`).each(function () {
+            $(this).kendoDropDownList({
+                dataSource: data.masterRecords.invoiceCategory
+            });
+        });
+
+
+        //kendoButton
+        $(`#${masterForm.id} button[type=button].customButton`).each(function () {
+            var icon = $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1).length == 1 ?
+                $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1)[0].replace("button-icon-", "") : "";
+            $(this).kendoButton({ icon: icon });
         });
 
         //kendoDropDownList for currency
@@ -313,7 +319,7 @@
                 dataTextField: "CURR_CODE",
                 dataValueField: "CURR_CODE",
                 optionLabel: " ",
-                dataSource: data.currencies,
+                dataSource: data.masterRecords.currencies,
                 cascade: function (e) {
                     //e.sender._cascadedValue => selected value
                     if (e.userTriggered == true) {
@@ -330,20 +336,11 @@
         $(`#${masterForm.id} input[type=chargeTemplate]`).each(function () {
             $(this).kendoDropDownList({
                 optionLabel: "Select for charge template...",
-                dataSource: {
-                    transport: {
-                        read: {
-                            url: "../Home/GetChargeTemplates",
-                            data: { companyId: data.companyId },
-                            dataType: "json"
-                        }
-                    }
-                },
+                dataSource: { data: data.masterRecords.chargeTemplates },
                 cascade: function (e) {
                     //e.sender._cascadedValue => selected value
                     if (e.userTriggered == true) {
                         var templateName = e.sender._cascadedValue;
-                        //var currencies;
                         var grid = $(`#${masterForm.id} [name=${e.sender.element.attr("targetControl")}]`).data("kendoGrid");
                         var cwts = utils.getFormValue("CWTS", e.sender.element);
                         testObj = grid;
@@ -379,7 +376,7 @@
         //kendoDropDownList for PACKAGE_UNIT
         $(`#${masterForm.id} input[type=pkgUnit]`).each(function () {
             $(this).kendoDropDownList({
-                dataSource: data.packageUnit
+                dataSource: data.masterRecords.packageUnit
             });
         });
 
@@ -387,35 +384,63 @@
         $(`#${masterForm.id} div[type=grid]`).each(function () {
             var columns;
             var formulas;
+            var toolbar;
+            var editable = { mode: "incell", confirmation: false };
             var controlName = $(this).attr("name");
             masterForm.formGroups.forEach(function (formGroup) {
                 formGroup.formControls.forEach(function (control) {
                     if (control.type == "grid" && control.name == controlName.replace("grid_", "")) {
                         columns = control.columns;
                         formulas = control.formulas;
+                        toolbar = control.toolbar;
+                        if (control.editable == false)
+                            editable = false;
                     }
                 })
             })
 
-            //Calculate the grid width
-            var gridWidth = 0;
+            if (toolbar == null)
+                toolbar = ["create", "cancel"];     //default buttons
+            else if (toolbar.length == 0)
+                toolbar = null;                     //disable the toolbar if don't want to show (toolbar: [] in the setting js)
+
+            //Calculate the grid width, 
+            var gridWidth = 25;     //initial width
             columns.forEach(function (col) {
                 gridWidth += col.width == null ? 70 : col.width;
             });
             $(this).kendoGrid({
-                toolbar: ["create", "cancel"],
+                toolbar: toolbar,
                 columns: columns,
-                editable: { mode: "incell", confirmation: false },
+                editable: editable,
                 resizable: true,
                 width: gridWidth,
                 dataBound: function (e) {
-                    $(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).removeAttr("style");
-                    $(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).attr("style", "width: 26px; height: 18px");
+                    //$(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).removeAttr("style");
+                    //$(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).attr("style", "width: 26px; height: 18px");
+
+                    //Toolbar custom button events
+                    if (toolbar != null) {
+                        toolbar.forEach(function (button) {
+                            if (button != "create" && button != "cancel") {
+                                if (button.callbackFunction != null) {
+                                    var formId = utils.getFormId($(e.sender.element));
+                                    //remove all bindings for the control, to prevent duplicated events
+                                    $(`#${masterForm.id} [name="${controlName}"] button.k-grid-${button.name}`).unbind();
+                                    $(`#${masterForm.id} [name="${controlName}"] button.k-grid-${button.name}`).bind("click", function (e) {
+                                        eval(`${button.callbackFunction}(e.target)`);
+                                    });
+                                }
+                            }
+                        })
+                    }
                 },
                 cellClose: function (e) {
-                    formulas.forEach(function (formula) {
-                        controls.gridFormula(e.container, formula.fieldName, formula.formula);
-                    });
+                    if (formulas != null) {
+                        formulas.forEach(function (formula) {
+                            controls.kendo.gridFormula(e.container, formula.fieldName, formula.formula);
+                        });
+                    }
                 }
             });
         });
@@ -426,19 +451,19 @@
         formula.split("{").forEach(function (field) {
             if (field.length > 0) {
                 var field = field.substring(0, field.indexOf("}"));
-                formula = formula.replace(`{${field}}`, controls.gridGetCellValue(container, field));
+                formula = formula.replace(`{${field}}`, controls.kendo.gridGetCellValue(container, field));
             }
         });
 
         //console.log(formula);
         if (formula.indexOf("*") != -1 || formula.indexOf("/") != -1)
-            controls.gridSetCellValue(container, fieldName, utils.roundUp(eval(formula), 2));
+            controls.kendo.gridSetCellValue(container, fieldName, utils.roundUp(eval(formula), 2));
         else {
             try {
-                controls.gridSetCellValue(container, fieldName, eval(formula));
+                controls.kendo.gridSetCellValue(container, fieldName, eval(formula));
             }
             catch {
-                controls.gridSetCellValue(container, fieldName, formula);
+                controls.kendo.gridSetCellValue(container, fieldName, formula);
             }
         }
     }
@@ -468,44 +493,50 @@
     //kendoGrid kendoDropDownList for Charges
     renderGridEditorCharges = function (container, options) {
         var filterValue = options.model.CHARGE_CODE;
-        var ddl = $(`<input name="${options.field}" />`);
+        var ddl = $(`<input name="${options.field}" style="width: 80px; margin-right: 5px;" />`);
+        var txt = $(`<input name="CHARGE_DESC" style="width: 170px" />`);
         ddl.appendTo(container);
+        txt.appendTo(container);
+        txt.kendoTextBox();
 
         ddl.kendoDropDownList({
+            autoWidth: true,
             filter: "startswith",
             dataTextField: "CHARGE_DESC_DISPLAY",
             dataValueField: "CHARGE_CODE",
             optionLabel: `Select charges ...`,
             dataSource: {
                 type: "json",
-                serverFiltering: true,
-                transport: {
-                    read: function (options) {
-                        if (options.data.filter != null) {
-                            try {
-                                filterValue = options.data.filter.filters[0].value;
-                            } catch { }
-                        }
-                        $.ajax({
-                            url: "../Home/GetCharges",
-                            data: { searchValue: filterValue, take: data.take },
-                            dataType: "json",
-                            type: "post",
-                            success: function (result) {
-                                for (var i in result) {
-                                    result[i].CHARGE_DESC_DISPLAY = result[i].CHARGE_CODE + " - " + result[i].CHARGE_DESC;
-                                }
-                                options.success(result);
-                            }
-                        });
-                    },
-                }
+                data: data.masterRecords.charges,
+                //serverFiltering: true,
+                //transport: {
+                //    read: function (options) {
+                //        if (options.data.filter != null) {
+                //            try {
+                //                filterValue = options.data.filter.filters[0].value;
+                //            } catch { }
+                //        }
+                //        $.ajax({
+                //            url: "../Home/GetCharges",
+                //            data: { searchValue: filterValue, take: data.take },
+                //            dataType: "json",
+                //            type: "post",
+                //            success: function (result) {
+                //                for (var i in result) {
+                //                    result[i].CHARGE_DESC_DISPLAY = result[i].CHARGE_CODE + " - " + result[i].CHARGE_DESC;
+                //                }
+                //                options.success(result);
+                //            }
+                //        });
+                //    },
+                //}
             },
             open: function (e) {
                 $(e.sender.filterInput).val(filterValue);
             },
             select: function (e) {
-                controls.gridSetCellValue(container, "CHARGE_DESC", e.dataItem.CHARGE_DESC);
+                $(txt).data("kendoTextBox").value(e.dataItem.CHARGE_DESC);
+                controls.kendo.gridSetCellValue(container, "CHARGE_DESC", e.dataItem.CHARGE_DESC);
             }
         });
     }
@@ -520,24 +551,67 @@
         ddl.kendoDropDownList({
             dataTextField: "CURR_CODE",
             dataValueField: "CURR_CODE",
-            dataSource: data.currencies,
+            dataSource: data.masterRecords.currencies,
             cascade: function (e) {
                 //e.sender._cascadedValue => selected value
                 if (e.userTriggered == true) {
                     var exRate = e.sender.dataSource._data.filter(a => a.CURR_CODE == e.sender._cascadedValue)[0]["EX_RATE"];
-                    controls.gridSetCellValue(container, "EX_RATE", exRate);
+                    controls.kendo.gridSetCellValue(container, "EX_RATE", exRate);
                 }
             },
         });
     }
 
-    //kendoGrid kendoDropDownList for Qty Unit
-    renderGridEditorQtyUnit = function (container, options) {
+    //kendoGrid kendoCheckBox
+    renderGridEditorCheckBox = function (container, options) {
+        var ckb = $(`<input name="${options.field}" />`);
+        ckb.appendTo(container);
+        ckb.kendoCheckBox({
+            checked: options.model[options.field] == "Y" ? true : false,
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Package Qty Unit
+    renderGridEditorPackageQtyUnit = function (container, options) {
         var ddl = $(`<input name="${options.field}" />`);
         ddl.appendTo(container);
-
         ddl.kendoDropDownList({
-            dataSource: data.chargeQtyUnit
+            dataSource: data.masterRecords.packageUnit
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Charge Qty Unit
+    renderGridEditorChargeQtyUnit = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataSource: data.masterRecords.chargeQtyUnit
+        });
+    }
+
+    //kendoGrid special controls from Loadplan Equipments
+    renderGridEditorLoadplanEquipHawbNos = function (container, options) {
+        var formId = utils.getFormId($(container));
+        var gridHawbList = $(`#${formId} [name="grid_LoadplanHawbListViews"]`).data("kendoGrid");
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataTextField: "HAWB_NO",
+            dataValueField: "HAWB_NO",
+            dataSource: gridHawbList.dataSource.data(),
+        });
+    }
+    renderGridEditorLoadplanEquips = function (container, options) {
+        var cbb = $(`<input name="${options.field}" style="width: 80px; height: 25.6px; margin-right: 5px;" />`);
+        var txt = $(`<input name="EQUIP_DESC" style="width: 150px" />`);
+        cbb.appendTo(container);
+        txt.appendTo(container);
+
+        txt.kendoTextBox();
+        cbb.kendoComboBox({
+            autoWidth: true,
+            size: "small",
+            dataSource: data.masterRecords.equipCodes
         });
     }
 

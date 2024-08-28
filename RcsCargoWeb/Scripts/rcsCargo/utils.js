@@ -58,11 +58,16 @@
         return value;
     }
 
-    getFormId = function () {
-        if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length == 1)
-            return $(`.k-tabstrip-content.k-content.k-active div[id]`).attr("id");
-        else
-            return null;
+    getFormId = function (selector) {
+        if (selector != null) {
+            var els = $(selector).parentsUntil("#tabStripMain");
+            return els.eq(els.length - 2).attr("id");
+        } else {
+            if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length == 1)
+                return $(`.k-tabstrip-content.k-content.k-active div[id]`).attr("id");
+            else
+                return null;
+        }
     }
 
     getFrtMode = function () {
@@ -77,12 +82,18 @@
 
     getExRate = function (currCode) {
         var exRate;
-        data.currencies.forEach(function (currency) {
+        data.masterRecords.currencies.forEach(function (currency) {
             if (currency.CURR_CODE == currCode) {
                 exRate = currency.EX_RATE;
             }
         });
         return exRate;
+    }
+
+    calcVwts = function (length, width, height, ctns) {
+        var vwtsFactor = utils.getFormValue("VWTS_FACTOR") == null ? 6000 : utils.getFormValue("VWTS_FACTOR");
+        var vwts = utils.roundUp(((length * width * height * ctns) / vwtsFactor), 3);
+        return vwts;
     }
 
     //Common JS functions
@@ -117,7 +128,7 @@
     }
 
     formatText = function (value) {
-        return value.trim();
+        return value.toUpperCase().trim();
     }
 
     formatDateTime = function (value, dateFormat) {
@@ -131,5 +142,46 @@
         var result = new Date(date);
         result.setDate(result.getDate() + days);
         return result;
+    }
+
+    //type: "info", "warning", "error", size: "small", "medium", "large"
+    alertMessage(msg, title, type = "info", size = "small") {
+        var html = `<div class='kendo-window-alertMessage'>
+                <div name="kendo-window-alertMessage-content">${msg}</div>
+            </div>`;
+        var width = "25%";
+        var height = "25%";
+        var icon = "<i class='k-icon k-i-info-circle' style='margin-left: 5px; margin-right: 5px; margin-top: 2px;'></i>";
+
+        if (type == "warning")
+            icon = "<i class='k-icon k-i-warning fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
+        else if (type == "error")
+            icon = "<i class='k-icon k-i-x-outline fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
+
+        if (utils.isEmptyString(title))
+            title = "RCS Cargo System";
+
+        title = `${icon} <b>${title}</b>`;
+
+        if (size == "medium") {
+            width = "45%";
+            height = "45%";
+        } else if (size == "large") {
+            width = "65%";
+            height = "65%";
+        }
+
+        $(".content-wrapper").append(html);
+        var alertWin = $(".kendo-window-alertMessage").kendoWindow({
+            title: { text: title, encoded: false },
+            modal: true,
+            width: width,
+            height: height,
+            close: function (e) {
+                alertWin.destroy();
+            },
+        }).data("kendoWindow");
+
+        alertWin.center().open();
     }
 }

@@ -22,4 +22,10 @@ namespace DbUtils.Models.MasterRecords
         public string SHORT_DESC { get; set; }
 
     }
+
+    public class AirlineView
+    {
+        public string AIRLINE_CODE { get; set; }
+        public string AIRLINE_DESC { get; set; }
+    }
 }

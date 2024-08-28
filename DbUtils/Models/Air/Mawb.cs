@@ -117,12 +117,18 @@ namespace DbUtils.Models.Air
         public List<MawbDim> MawbDims { get; set; }
         [NotMapped]
         public List<LoadplanBookingListView> LoadplanBookingListViews { get; set; }
+        [NotMapped]
+        public List<HawbView> LoadplanHawbListViews { get; set; }
+        [NotMapped]
+        public List<HawbEquip> LoadplanHawbEquips { get; set; }
         public Mawb()
         {
             MawbChargesPrepaid = new List<MawbCharge>();
             MawbChargesCollect = new List<MawbCharge>();
             MawbDims = new List<MawbDim>();
             LoadplanBookingListViews = new List<LoadplanBookingListView>();
+            LoadplanHawbListViews = new List<HawbView>();
+            LoadplanHawbEquips = new List<HawbEquip>();
         }
     }
 
@@ -196,5 +202,40 @@ namespace DbUtils.Models.Air
         public DateTime? ETA { get; set; }
         public string CREATE_USER { get; set; }
         public DateTime CREATE_DATE { get; set; }
+    }
+
+    [Table("A_LOADPLAN_BOOKING_LIST")]
+    public class LoadplanBookingList
+    {
+        [Key]
+        [Column(Order = 1)]
+        public string JOB_NO { get; set; }
+        [Key]
+        [Column(Order = 2)]
+        public string COMPANY_ID { get; set; }
+        [Key]
+        [Column(Order = 3)]
+        public string FRT_MODE { get; set; }
+        [Key]
+        [Column(Order = 4)]
+        public string BOOKING_NO { get; set; }
+    }
+
+    public class LoadplanBookingListView
+    {
+        public string JOB_NO { get; set; }
+        public string COMPANY_ID { get; set; }
+        public string FRT_MODE { get; set; }
+        public string BOOKING_NO { get; set; }
+        public string SHIPPER_DESC { get; set; }
+        public string CONSIGNEE_DESC { get; set; }
+        public string ORIGIN_CODE { get; set; }
+        public string DEST_CODE { get; set; }
+        public decimal? PACKAGE { get; set; }
+        public decimal? GWTS { get; set; }
+        public decimal? VWTS { get; set; }
+        public string IS_DOC_REC { get; set; }
+        public string IS_BOOKING_APP { get; set; }
+        public string IS_RECEIVED { get; set; }
     }
 }

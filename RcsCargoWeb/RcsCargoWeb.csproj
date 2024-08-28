@@ -161,9 +161,9 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
+    <Compile Include="Controllers\Air\HawbController.cs" />
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
-    <Compile Include="Controllers\Air\TestController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -446,6 +446,7 @@
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
+    <Content Include="Scripts\rcsCargo\airHawb.js" />
     <Content Include="Scripts\rcsCargo\controls.kendo.js" />
     <Content Include="Scripts\rcsCargo\controls.edit.js" />
     <Content Include="Scripts\rcsCargo\controls.index.js" />

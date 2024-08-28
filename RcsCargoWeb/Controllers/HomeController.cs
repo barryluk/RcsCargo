@@ -1,9 +1,11 @@
 ﻿
 using DbUtils;
+using DbUtils.Models.Air;
 using DbUtils.Models.MasterRecords;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
@@ -24,16 +26,29 @@ namespace RcsCargoWeb.Controllers
             DbUtils.RcsFreightDBContext db = new RcsFreightDBContext();
             //return Json(db.SysModules.ToList(), JsonRequestBehavior.AllowGet);
             //db.Database.Exists();
-            var result = db.Database.SqlQuery<string>("select display_name from sys_module").ToList();
+            //var result = db.Database.SqlQuery<string>("select display_name from sys_module").ToList();
             var items = "";
 
-            foreach (var item in result)
-                items += item + ",";
+            //foreach (var item in result)
+            //    items += item + ",";
             //return Content(items);
 
-            string ipList = Request.UserHostAddress;
-            var userAgent = HttpContext.Request.UserAgent;
-            return Content(userAgent + " ; " + ipList);
+            //var hawb = db.Database.SqlQuery<Hawb>("select * from a_hawb where hawb_no = 'WFF74277000'").FirstOrDefault();
+            //hawb.MODIFY_DATE = DateTime.Now;
+            //db.Entry(hawb).State = System.Data.Entity.EntityState.Modified;
+            //db.SaveChanges();
+
+            Hawb result = DbUtils.Utils.GetSqlQueryResult<Hawb>("a_hawb", "hawb_no", "WFF74277000").FirstOrDefault();
+            foreach (var prop in result.GetType().GetProperties())
+            {
+                if (prop.GetValue(result) != null)
+                    items += prop.GetValue(result).ToString() + ",";
+            }
+            return Content(items);
+
+            //string ipList = Request.UserHostAddress;
+            //var userAgent = HttpContext.Request.UserAgent;
+            //return Content(userAgent + " ; " + ipList);
         }
 
         [HttpGet]
@@ -88,11 +103,6 @@ namespace RcsCargoWeb.Controllers
             return View();
         }
 
-        public ActionResult lockscreen()
-        {
-            return View();
-        }
-
         public ActionResult GetSysCompanies()
         {
             var admin = new DbUtils.Admin();
@@ -105,6 +115,12 @@ namespace RcsCargoWeb.Controllers
             return Json(admin.GetSysModules(), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetPortsView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetPortsView(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetPorts(string searchValue = "", int take = 50)
         {
             searchValue = searchValue.Trim().ToUpper();
@@ -115,6 +131,12 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetPorts(searchValue).Take(take), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetAirlinesView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetAirlinesView(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetAirlines(string searchValue = "", int take = 50)
         {
             searchValue = searchValue.Trim().ToUpper();
@@ -123,6 +145,12 @@ namespace RcsCargoWeb.Controllers
 
             var masterRecords = new MasterRecords();
             return Json(masterRecords.GetAirlines(searchValue).Take(take), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetChargesView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetChargesView(), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetCharges(string searchValue = "", int take = 50)
@@ -161,6 +189,12 @@ namespace RcsCargoWeb.Controllers
         {
             var masterRecords = new MasterRecords();
             return Json(masterRecords.GetChargeTemplate(templateName, companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetEquipCodes()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetEquipCodes(), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetReportData(string reportName)

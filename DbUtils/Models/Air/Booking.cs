@@ -108,9 +108,12 @@ namespace DbUtils.Models.Air
         public string GOOD_DESC { get; set; }
         [NotMapped]
         public List<BookingPo> BookingPos { get; set; }
+        [NotMapped]
+        public List<WarehouseHistory> WarehouseHistories { get; set; }
         public Booking()
         {
             BookingPos = new List<BookingPo>();
+            WarehouseHistories = new List<WarehouseHistory>();
         }
     }
 

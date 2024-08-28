@@ -38,7 +38,8 @@
                     controls.setValuesToFormControls(masterForm, result);
                     if (masterForm.additionalScript != null)
                         eval(`controllers.${masterForm.formName}.${masterForm.additionalScript}(masterForm);`);
-
+                },
+                complete: function () {
                     kendo.ui.progress($(".container-fluid"), false);
                 }
             });
@@ -50,10 +51,12 @@
         var html = "";
 
         //Hidden fields
-        masterForm.schema.hiddenFields.forEach(function (item) {
-            html += ` <input type="hidden" name="${item}" />`;
-        });
-        $(masterForm.targetForm).append(html);
+        if (masterForm.schema.hiddenFields != null) {
+            masterForm.schema.hiddenFields.forEach(function (item) {
+                html += ` <input type="hidden" name="${item}" />`;
+            });
+            $(masterForm.targetForm).append(html);
+        }
 
         //Form tabStrip
         if (masterForm.formTabs != null) {
@@ -63,9 +66,15 @@
             masterForm.formTabs.forEach(function (tab) {
                 formGroupTab.append({ text: tab.title, content: `<div name="${tab.name}" class="row"></div>` });
 
+                if (tab.formGroups == null)
+                    return;
+
                 tab.formGroups.forEach(function (formGroupName) {
                     var formGroup = masterForm.formGroups.filter(a => a.name == formGroupName)[0];
                     html = "";
+
+                    if (formGroup == null)
+                        return;
 
                     for (var j in formGroup.formControls) {
                         var control = formGroup.formControls[j];
@@ -89,25 +98,25 @@
 
                         if (control.type == "label") {
                             html += `
-                            <div class="row">
-                                <label class="col-lg-12 col-form-label"><h5>${control.label}</h5></label>
-                            </div>`;
+                                <div class="row">
+                                    <label class="col-lg-12 col-form-label"><h5>${control.label}</h5></label>
+                                </div>`;
                         } else if (control.type == "buttonGroup") {
                             var colWidth = "";
                             if (control.colWidth != null)
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
                             html += `
-                            <div class="row ${colWidth}">
-                                <label class="col-sm-3 col-form-label">${control.label}</label>
-                                <div class="col-sm-9">
-                                    <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
-                                </div>
-                            </div>`;
+                                <div class="row ${colWidth}">
+                                    <label class="col-sm-3 col-form-label">${control.label}</label>
+                                    <div class="col-sm-9">
+                                        <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
+                                    </div>
+                                </div>`;
                         } else if (control.type == "grid") {
                             html += `
-                            <div class="row">
-                                <div name="grid_${control.name}" type="${control.type}" />
-                            </div>`;
+                                <div class="row">
+                                    <div name="grid_${control.name}" type="${control.type}" />
+                                </div>`;
                         } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                             var readonlyAttr = "";
                             if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
@@ -115,42 +124,50 @@
                                     readonlyAttr = "readonly";
                                 }
                                 html += `
-                                <div class="row col-xl-6 col-lg-12">
-                                    <label class="col-sm-3 col-form-label">${control.label}</label>
-                                    <div class="col-sm-9">
-                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
-                                        <input type="hidden" name="${control.name}_CODE" />
-                                        <input type="hidden" name="${control.name}_BRANCH" />
-                                        <input type="hidden" name="${control.name}_SHORT_DESC" />
-                                        <input type="text" class="form-control" name="${control.name}_ADDR1" ${readonlyAttr} />
-                                        <input type="text" class="form-control" name="${control.name}_ADDR2" ${readonlyAttr} />
-                                        <input type="text" class="form-control" name="${control.name}_ADDR3" ${readonlyAttr} />
-                                        <input type="text" class="form-control" name="${control.name}_ADDR4" ${readonlyAttr} style="margin-bottom: 4px" />
-                                    </div>
-                                </div>`;
+                                    <div class="row col-xl-6 col-lg-12">
+                                        <label class="col-sm-3 col-form-label">${control.label}</label>
+                                        <div class="col-sm-9">
+                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
+                                            <input type="hidden" name="${control.name}_CODE" />
+                                            <input type="hidden" name="${control.name}_BRANCH" />
+                                            <input type="hidden" name="${control.name}_SHORT_DESC" />
+                                            <input type="text" class="form-control" name="${control.name}_ADDR1" ${readonlyAttr} />
+                                            <input type="text" class="form-control" name="${control.name}_ADDR2" ${readonlyAttr} />
+                                            <input type="text" class="form-control" name="${control.name}_ADDR3" ${readonlyAttr} />
+                                            <input type="text" class="form-control" name="${control.name}_ADDR4" ${readonlyAttr} style="margin-bottom: 4px" />
+                                        </div>
+                                    </div>`;
                             }
                         } else if (control.type == "currency") {
                             if (control.exRateName != null) {
                                 var colWidth = control.colWidth != null ? control.colWidth : "3";
                                 html += `
-                                <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
-                                    <label class="col-sm-3 col-form-label">${control.label}</label>
-                                    <div class="row col-sm-9">
-                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="width: 95px; height: 28.89px" />
-                                        &nbsp;
-                                        <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly />
-                                    </div>
-                                </div>`;
+                                    <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
+                                        <label class="col-sm-3 col-form-label">${control.label}</label>
+                                        <div class="row col-sm-9">
+                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="margin-left: 9.5px; width: 95px; height: 28.79px" />
+                                            &nbsp;
+                                            <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly />
+                                        </div>
+                                    </div>`;
                             }
                         } else if (control.type == "chargeTemplate") {
                             var colWidth = control.colWidth != null ? control.colWidth : "3";
                             html += `
-                            <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
-                                <label class="col-sm-4 col-form-label">${control.label}</label>
-                                <div class="row col-sm-8">
-                                    <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
-                                </div>
-                            </div>`;
+                                <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
+                                    <label class="col-sm-4 col-form-label">${control.label}</label>
+                                    <div class="row col-sm-8">
+                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
+                                    </div>
+                                </div>`;
+                        } else if (control.type == "button") {
+                            if (control.colWidth != null)
+                                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+
+                            html += `
+                                <div class="row ${colWidth}">
+                                    <button type="button" class="customButton button-icon-${control.icon}" name="${control.name}" style="margin: 4px;">${control.label}</button>
+                                </div>`;
                         } else {
                             var colWidth = "";
                             var controlHtml = "";
@@ -160,12 +177,12 @@
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
 
                             html += `
-                            <div class="row ${colWidth}">
-                                <label class="col-sm-3 col-form-label">${control.label}</label>
-                                <div class="col-sm-9">
-                                    ${controlHtml}
-                                </div>
-                            </div>`;
+                                <div class="row ${colWidth}">
+                                    <label class="col-sm-3 col-form-label">${control.label}</label>
+                                    <div class="col-sm-9">
+                                        ${controlHtml}
+                                    </div>
+                                </div>`;
                         }
                     }
 
@@ -178,12 +195,23 @@
         controls.kendo.renderFormControl_kendoUI(masterForm);
 
         //readonly fields
-        masterForm.schema.readonlyFields.forEach(function (item) {
-            if (item.readonly == "always") {
-                $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
-            } else if (item.readonly == "edit" && masterForm.mode == "edit") {
-                $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
-            }
-        });
+        if (masterForm.schema.readonlyFields != null) {
+            masterForm.schema.readonlyFields.forEach(function (item) {
+                if (item.readonly == "always") {
+                    $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
+                } else if (item.readonly == "edit" && masterForm.mode == "edit") {
+                    $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
+                }
+            });
+        }
+
+        //collapse cards
+        if (masterForm.formGroups != null) {
+            masterForm.formGroups.forEach(function (formGroup) {
+                if (formGroup.collapse == true) {
+                    $(`.card-title:contains("${formGroup.title}")`).CardWidget("collapse");
+                }
+            });
+        }
     }
 }

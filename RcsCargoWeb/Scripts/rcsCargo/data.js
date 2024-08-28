@@ -2,22 +2,27 @@
 var user;
 var sessionId;
 var intervalId;
-var take = 50;
-var indexGridPageSize = 25;
+var take = 40;
+var indexGridPageSize = 40;
 var companyId = "RCSHKG";
 var dateFormat = "M/d/yyyy";
 var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
-var chargeQtyUnit = ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"];
-var packageUnit = ["CTNS", "PLT", "PKG", "ROLLS", "PCS"];
-var bookingType = [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }];
-var vwtsFactor = [6000, 6500, 7000, 9000];
-var incoterm = ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"];
-var paymentTerms = [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }];
-var invoiceType = [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }];
-var invoiceCategory = [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }];
-var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency", "chargeTemplate", "vwtsFactor", "incoterm"];
-var currencies, sysCompanies, airlines, charges, chargeTemplates, ports, customers;
+var masterRecords = {
+    chargeQtyUnit: ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"],
+    packageUnit: ["CTNS", "PLT", "PKG", "ROLLS", "PCS"],
+    bookingType: [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }],
+    vwtsFactor: [6000, 6500, 7000, 9000],
+    incoterm: ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"],
+    paymentTerms: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }],
+    showCharges: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }, { text: "Prepaid + Collect", value: "PC" }],
+    invoiceType: [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }],
+    invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
+    fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, ports: {}, customers: {},
+};
+var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
+    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -334,7 +339,7 @@ var indexPages = [
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
             ],
             columns: [
-                { field: "MAWB", title: "MAWB#", attributes: { style: "cursor: pointer" } },
+                { field: "MAWB", title: "MAWB#", attributes: { "class": "link-cell" } },
                 { field: "JOB", title: "Job#" },
                 {
                     field: "JOB_TYPE", title: "Type",
@@ -380,7 +385,7 @@ var indexPages = [
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
             ],
             columns: [
-                { field: "BOOKING_NO", title: "Booking#", attributes: { style: "cursor: pointer" } },
+                { field: "BOOKING_NO", title: "Booking#", attributes: { "class": "link-cell" } },
                 { field: "SHIPPER_DESC", title: "Shipper" },
                 { field: "AGENT_DESC", title: "Consignee" },
                 { field: "ORIGIN_CODE", title: "Origin" },
@@ -397,7 +402,43 @@ var indexPages = [
         },
     },
     {
-        pageName: "airHawb"
+        pageName: "airHawb",
+        id: "",
+        title: "HAWB",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Flight Date", type: "dateRange", name: "flightDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "HAWB# / MAWB# / Job# / Shipper / Consignee" },
+        ],
+        gridConfig: {
+            gridName: "gridAirHawbIndex",
+            dataSourceUrl: "../Air/Hawb/GridHawb_Read",
+            linkIdPrefix: "airHawb",
+            linkTabTitle: "HAWB# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "HAWB_NO", title: "HAWB#", attributes: { "class": "link-cell" } },
+                { field: "JOB_NO", title: "Job#" },
+                { field: "MAWB_NO", title: "MAWB#" },
+                { field: "AIRLINE_CODE", title: "Airline" },
+                { field: "FLIGHT_NO", title: "Flight#" },
+                { field: "FLIGHT_DATE", title: "Flight Date" },
+                { field: "ORIGIN_CODE", title: "Origin" },
+                { field: "DEST_CODE", title: "Destination" },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
+                { field: "PACKAGE", title: "Package" },
+                { field: "GWTS", title: "G/Wts" },
+                { field: "CWTS", title: "C/Wts" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date" },
+            ],
+        },
     },
     {
         pageName: "airInvoice"
@@ -436,7 +477,7 @@ var masterForms = [
             {
                 title: "Load Plan",
                 name: "loadPlan",
-                formGroups: ["contactMain", "contactOthers", "loadplanBookingList"]
+                formGroups: ["contactMain", "contactOthers", "loadplanBookingList", "loadplanHawbList", "loadplanHawbEquip"]
             },
             {
                 title: "Direct Job",
@@ -472,6 +513,7 @@ var masterForms = [
                     { label: "Co-Loader", type: "customer", name: "COLOADER_CODE" },
                     { label: "Package", type: "numberInt", name: "CTNS" },
                     { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT" },
+                    { label: "V/wts Factor", type: "vwtsFactor", name: "VWTS_FACTOR" },
                     { label: "G/wts", type: "number", name: "GWTS" },
                     { label: "V/wts", type: "number", name: "VWTS" },
                     { label: "Remarks", type: "textArea", name: "REMARKS" },
@@ -524,20 +566,20 @@ var masterForms = [
                         label: "Prepaid Charges", type: "grid", name: "MawbChargesPrepaid",
                         columns: [
                             {
-                                title: "Charge", field: "CHARGE_CODE", width: 250,
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -575,20 +617,20 @@ var masterForms = [
                         label: "Prepaid Charges", type: "grid", name: "MawbChargesCollect",
                         columns: [
                             {
-                                title: "Charge", field: "CHARGE_CODE", width: 250,
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -596,6 +638,8 @@ var masterForms = [
                             { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
                         ],
                         fields: {
+                            //data type of the field {number|string|boolean|date} default is string
+                            //set validation rules, defaultValue, editable, validation: { required: true, min: 1 }
                             CHARGE_CODE: { validation: { required: true } },
                             CHARGE_DESC: { defaultValue: "" },
                             PAYMENT_TYPE: { defaultValue: "C" },
@@ -626,7 +670,7 @@ var masterForms = [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Length", field: "LENGTH", width: 90 },
                             { title: "Width", field: "WIDTH", width: 90 },
@@ -646,6 +690,7 @@ var masterForms = [
                         },
                         formulas: [
                             { fieldName: "DIMENSION", formula: `{LENGTH}x{WIDTH}x{HEIGHT}C\\{CTNS}` },
+                            { fieldName: "VWTS", formula: `utils.calcVwts({LENGTH},{WIDTH},{HEIGHT},{CTNS})` },
                         ],
                     },
                 ]
@@ -657,17 +702,20 @@ var masterForms = [
                 formControls: [
                     {
                         label: "Booking List", type: "grid", name: "LoadplanBookingListViews",
+                        toolbar: [
+                            { name: "searchBooking", text: "Search Booking", iconClass: "k-icon k-i-search", callbackFunction: "controllers.airMawb.searchBookingClick" },
+                        ],
                         columns: [
                             { title: "Booking #", field: "BOOKING_NO", width: 90 },
-                            { title: "Shipper", field: "SHIPPER_DESC", width: 200 },
-                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 200 },
+                            { title: "Shipper", field: "SHIPPER_DESC", width: 220 },
+                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 220 },
                             { title: "Packages", field: "PACKAGE", width: 80 },
                             { title: "G/Wts", field: "GWTS", width: 80 },
                             { title: "V/Wts", field: "VWTS", width: 80 },
                             { title: "Doc Rcvd?", field: "IS_DOC_REC", width: 80 },
                             { title: "Approved?", field: "IS_BOOKING_APP", width: 80 },
                             { title: "Received?", field: "IS_RECEIVED", width: 80 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }]},
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
                         ],
                         fields: {
                             BOOKING_NO: { editable: false },
@@ -679,6 +727,70 @@ var masterForms = [
                             IS_DOC_REC: { editable: false },
                             IS_BOOKING_APP: { editable: false },
                             IS_RECEIVED: { editable: false },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "loadplanHawbList",
+                title: "HAWB List",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "HAWB List", type: "grid", name: "LoadplanHawbListViews",
+                        toolbar: [],
+                        columns: [
+                            { title: "HAWB #", field: "HAWB_NO", width: 90 },
+                            { title: "Shipper", field: "SHIPPER_DESC", width: 220 },
+                            { title: "Consignee", field: "CONSIGNEE_DESC", width: 220 },
+                            { title: "Packages", field: "PACKAGE", width: 80 },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                        ],
+                        fields: {
+                            HAWB_NO: { editable: false },
+                            SHIPPER_DESC: { editable: false },
+                            CONSIGNEE_DESC: { editable: false },
+                            PACKAGE: { editable: false },
+                            GWTS: { editable: false },
+                            VWTS: { editable: false },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "loadplanHawbEquip",
+                title: "Equipment List",
+                colWidth: 12,
+                formControls: [
+                    {
+                        toolbar: ["create", "cancel", { name: "checkData", text: "Check Data", iconClass: "k-icon k-i-tick", callbackFunction: "controllers.airMawb.checkDataClick" },],
+                        label: "Equipment List", type: "grid", name: "LoadplanHawbEquips",
+                        columns: [
+                            {
+                                title: "HAWB #", field: "HAWB_NO", width: 100,
+                                editor: function (container, options) { controls.kendo.renderGridEditorLoadplanEquipHawbNos(container, options) }
+                            },
+                            {
+                                title: "Equipment", field: "EQUIP_CODE", width: 250,
+                                template: function (dataItem) { return `${dataItem.EQUIP_CODE} / ${dataItem.EQUIP_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorLoadplanEquips(container, options) }
+                            },
+                            { title: "Packages", field: "PACKAGE", width: 100 },
+                            {
+                                title: "Type", field: "PACKAGE_UNIT", width: 100,
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                            },
+                            { title: "G/Wts", field: "GWTS", width: 100 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                        ],
+                        fields: {
+                            HAWB_NO: { validation: { required: true } },
+                            EQUIP_CODE: { validation: { required: true } },
+                            EQUIP_DESC: { validation: { required: true } },
+                            PACKAGE: { type: "number", validation: { required: true } },
+                            PACKAGE_UNIT: { validation: { required: true } },
+                            GWTS: { type: "number" },
                         },
                     },
                 ]
@@ -700,8 +812,9 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "printBooking", text: "Print MAWB", icon: "file-report" },
-                    { id: "printBookingHawb", text: "Preview MAWB", icon: "file-report" },
+                    { id: "printBooking", text: "Booking", icon: "file-report" },
+                    { id: "printBookingHawb", text: "Booking (HAWB)", icon: "file-report" },
+                    { id: "printWarehouseReceipt", text: "Warehouse Receipt", icon: "file-report" },
                 ]
             },
         ],
@@ -714,12 +827,12 @@ var masterForms = [
             {
                 title: "PO Information",
                 name: "bookingPo",
-                formGroups: ["dims"]
+                formGroups: ["pos"]
             },
             {
                 title: "Warehouse",
                 name: "warehouse",
-                formGroups: []
+                formGroups: ["warehouse"]
             },
         ],
         schema: {
@@ -733,7 +846,7 @@ var masterForms = [
                 title: "Booking Information",
                 colWidth: 8,
                 formControls: [
-                    { label: "MAWB #", type: "text", name: "BOOKING_NO", colWidth: 6 },
+                    { label: "Booking #", type: "text", name: "BOOKING_NO", colWidth: 6 },
                     { label: "Booking Type", type: "buttonGroup", dataType: "bookingType", name: "BOOKING_TYPE", colWidth: 6 },
                     { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
                     { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
@@ -766,27 +879,282 @@ var masterForms = [
                     { label: "Marks & Numbers", type: "textArea", name: "MARKS_NO", colWidth: 6 },
                     { label: "Goods Description", type: "textArea", name: "GOOD_DESC", colWidth: 6 },
                     { label: "Remarks", type: "textArea", name: "REMARKS", colWidth: 6 },
+                    { label: "PO", type: "text", name: "PO", colWidth: 6 },
+                    { label: "S/R", type: "text", name: "SR", colWidth: 6 },
+                    { label: "Style", type: "text", name: "STYLE", colWidth: 6 },
                 ]
             },
             {
-                name: "dims",
-                title: "Dimension",
+                name: "pos",
+                title: "PO Information",
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Dimension", type: "grid", name: "MawbDims",
+                        label: "PO Information", type: "grid", name: "BookingPos",
+                        columns: [
+                            { title: "PO#", field: "PO_NO", width: 120 },
+                            { title: "Style #", field: "STYLE_NO", width: 120 },
+                            { title: "Material #", field: "MATERIAL_NO", width: 120 },
+                            { title: "SKU", field: "SKU", width: 120 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                            },
+                            { title: "Pcs", field: "PCS", width: 80 },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                            { title: "C/Wts", field: "CWTS", width: 80 },
+                            { title: "Cu.ft.", field: "CUFT", width: 80 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            PO_NO: { validation: { required: true } },
+                            STYLE_NO: { type: "string" },
+                            MATERIAL_NO: { type: "string" },
+                            SKU: { type: "string" },
+                            QTY: { type: "number", validation: { required: true } },
+                            UNIT: { validation: { required: true } },
+                            PCS: { type: "number" },
+                            GWTS: { type: "number" },
+                            VWTS: { type: "number" },
+                            CWTS: { type: "number" },
+                            CUFT: { type: "number" },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "warehouse",
+                title: "Warehouse",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Warehouse", type: "grid", name: "WarehouseHistories",
                         columns: [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorQtyUnit(container, options) }
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                            },
+                            { title: "Date/Time", field: "CREATE_DATE", width: 120, template: ({ CREATE_DATE }) => `${kendo.toString(CREATE_DATE, data.dateTimeFormat)}` },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "Length", field: "LENGTH", width: 80 },
+                            { title: "Width", field: "WIDTH", width: 80 },
+                            { title: "Height", field: "HEIGHT", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                            { title: "Dimension", field: "DIMENSION", width: 160 },
+                            {
+                                title: "Pickup", field: "IS_PICKUP", width: 60,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                template: function (dataItem) {
+                                    if (dataItem.IS_PICKUP == "true" || dataItem.IS_PICKUP == "Y")
+                                        return "Y";
+                                    else
+                                        return "N";
+                                }
+                            },
+                            {
+                                title: "Delivered", field: "IS_DEL", width: 60,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                template: function (dataItem) {
+                                    if (dataItem.IS_DEL == "true" || dataItem.IS_DEL == "Y")
+                                        return "Y";
+                                    else
+                                        return "N";
+                                }
+                            },
+                            {
+                                title: "Damaged", field: "IS_DAM", width: 60,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                template: function (dataItem) {
+                                    if (dataItem.IS_DAM == "true" || dataItem.IS_DAM == "Y")
+                                        return "Y";
+                                    else
+                                        return "N";
+                                }
+                            },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CTNS: { type: "number", validation: { required: true } },
+                            PACKAGE_TYPE: { validation: { required: true } },
+                            CREATE_DATE: { type: "date", validation: { required: true } },
+                            LENGTH: { type: "number", validation: { required: true } },
+                            WIDTH: { type: "number", validation: { required: true } },
+                            HEIGHT: { type: "number", validation: { required: true } },
+                            MEASURE_UNIT: { type: "string", defaultValue: "C" },
+                            GWTS: { type: "number", validation: { required: true } },
+                            VWTS: { type: "number", validation: { required: true } },
+                            DIMENSION: { editable: false },
+                            IS_PICKUP: { type: "string", controlType: "checkBox" },
+                            IS_DEL: { type: "string", controlType: "checkBox" },
+                            IS_DAM: { type: "string", controlType: "checkBox" },
+                        },
+                        formulas: [
+                            { fieldName: "DIMENSION", formula: `{LENGTH}x{WIDTH}x{HEIGHT}C\\{CTNS}` },
+                            { fieldName: "VWTS", formula: `utils.calcVwts({LENGTH},{WIDTH},{HEIGHT},{CTNS})` },
+                        ],
+                    },
+                ]
+            },
+        ]
+    },
+    {
+        formName: "airHawb",
+        mode: "edit",   //create / edit
+        title: "HAWB#",
+        readUrl: "../Air/Hawb/GetHawb",
+        updateUrl: "../Air/Hawb/UpdateHawb",
+        additionalScript: "initAirHawb",
+        id: "",
+        targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "printHawb", text: "Print HAWB", icon: "file-txt" },
+                    { id: "previewHawb", text: "Preview HAWB", icon: "file-report" },
+                ]
+            },
+        ],
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "detail", "otherContacts"]
+            },
+            {
+                title: "Cargo / Manifest",
+                name: "CargoManifest",
+                formGroups: ["measure", "dimension", "cargo", "licNo", "manifest"]
+            },
+            {
+                title: "Charges / Invoice",
+                name: "charges",
+                formGroups: ["prepaidCharges", "collectCharges", "invoice"]
+            },
+            {
+                title: "PO / Documents / Shipment Status",
+                name: "poStatus",
+                formGroups: ["po", "doc", "status" ]
+            },
+        ],
+        schema: {
+            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            readonlyFields: [
+                { name: "HAWB_NO", readonly: "always" },
+                { name: "MAWB_NO", readonly: "edit" },
+                { name: "BOOKING_NO", readonly: "edit" },
+                { name: "JOB_NO", readonly: "always" },
+                { name: "CWTS", readonly: "always" }],
+        },
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Main Information",
+                colWidth: 8,
+                formControls: [
+                    { label: "HAWB #", type: "text", name: "HAWB_NO", colWidth: 6 },
+                    { label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
+                    { label: "Booking #", type: "text", name: "BOOKING_NO", colWidth: 6 },
+                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER" },
+                    { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE" },
+                    { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY" },
+                    { label: "Agent", type: "customerAddrEditable", name: "AGENT" },
+                ]
+            },
+            {
+                name: "otherContacts",
+                title: "Other Contacts",
+                collapse: true,
+                colWidth: 8,
+                formControls: [
+                    { label: "Notify Party 1", type: "customerAddrEditable", name: "NOTIFY1" },
+                    { label: "Notify Party 2", type: "customerAddrEditable", name: "NOTIFY2" },
+                    { label: "Notify Party 3", type: "customerAddrEditable", name: "NOTIFY3" },
+                ]
+            },
+            {
+                name: "detail",
+                title: "HAWB Details",
+                colWidth: 8,
+                formControls: [
+                    { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 6 },
+                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE", colWidth: 6 },
+                    { label: "Origin", type: "port", name: "ORIGIN_CODE", colWidth: 6 },
+                    { label: "Destination", type: "port", name: "DEST_CODE", colWidth: 6 },
+                    { label: "Onboard Date", type: "date", name: "ONBOARD_DATE", colWidth: 6 },
+                    { label: "Quoted Date", type: "date", name: "QUOTED_DATE", colWidth: 6 },
+                    { label: "Prepaid Curr.", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 6 },
+                    { label: "Collect Curr.", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 6 },
+                    { label: "Freight Payment", type: "paymentTerms", name: "FRT_PAYMENT_PC", colWidth: 6 },
+                    { label: "Other Payment", type: "paymentTerms", name: "OTHER_PAYMENT_PC", colWidth: 6 },
+                    { label: "Show Frt Charge", type: "showCharges", name: "SHOW_FRT_CHG", colWidth: 6 },
+                    { label: "Show Other Charge", type: "showCharges", name: "SHOW_OTHER_CHG", colWidth: 6 },
+                    { label: "Selling Rate", type: "text", name: "SELLING_RATE", colWidth: 6 },
+                    { label: "Insurance Amount", type: "text", name: "AMOUNT_OF_INS", colWidth: 6 },
+                    { label: "DV Custom", type: "text", name: "DV_CUSTOM", colWidth: 6 },
+                    { label: "DV Carriage", type: "text", name: "DV_CARRIAGE", colWidth: 6 },
+                    { label: "Booking Rcvd Date", type: "date", name: "BOOKING_REC_DATE", colWidth: 6 },
+                    { label: "Execution Date", type: "date", name: "EX_DATE", colWidth: 6 },
+                    { label: "Cargo Rcvd Date", type: "dateTime", name: "CARGO_REC_DATE", colWidth: 6 },
+                    { label: "Document Rcvd Date", type: "dateTime", name: "DOC_REC_DATE", colWidth: 6 },
+                    { label: "NDC Date", type: "date", name: "NDC_DATE", colWidth: 6 },
+                    { label: "Ship Cancel Date", type: "date", name: "SHIP_CANCEL_DATE", colWidth: 6 },
+                    { label: "Division Code", type: "text", name: "DIV_CODE", colWidth: 6 },
+                    { label: "Flight Services Type", type: "fltServiceType", name: "FLT_SERVICE_TYPE", colWidth: 6 },
+                    { label: "Shipment Ref.#", type: "text", name: "DIV_CODE", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Incoterm", type: "incoterm", name: "INCOTERM_2012", colWidth: 6 },
+                    { label: "Port", type: "port", name: "INCOTERM_2012_PORT", colWidth: 6 },
+                ]
+            },
+            {
+                name: "measure",
+                title: "Measurement",
+                colWidth: 8,
+                formControls: [
+                    { label: "Show LB", type: "switch", name: "SHOW_LB", colWidth: 3 },
+                    { label: "Show OZ", type: "switch", name: "SHOW_OZ", colWidth: 3 },
+                    { label: "Hide KG", type: "switch", name: "HIDE_KG", colWidth: 3 },
+                    { label: "V/Wts Factor", type: "vwtsFactor", name: "VWTS_FACTOR", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "G/Wts", type: "number", name: "GWTS", colWidth: 6 },
+                    { label: "V/Wts", type: "number", name: "VWTS", colWidth: 6 },
+                    { label: "Total Volume", type: "number", name: "TOTAL_VOL", colWidth: 6 },
+                    { label: "CBM", type: "number", name: "CBM", colWidth: 6 },
+                    { label: "C/Wts", type: "number", name: "CWTS", colWidth: 6 },
+                    { label: "Show Cargo Rcvd Date", type: "switch", name: "SHOW_CARGO_REC_DATE", colWidth: 6 },
+                ],
+            },
+            {
+                name: "dimension",
+                title: "Dimension",
+                colWidth: 8,
+                formControls: [
+                    //example of adding buttons to the form
+                    //{ label: "Update From Warehouse", type: "button", name: "updateFromWarehouse", icon: "refresh", callbackFunction: "controllers.airHawb.updateFromWarehouse", colWidth: 2 },
+                    {
+                        label: "Dimension", type: "grid", name: "HawbDims",
+                        toolbar: ["create", "cancel", { name: "updateFromWarehouse", text: "Update From Warehouse", iconClass: "k-icon k-i-refresh", callbackFunction: "controllers.airHawb.updateFromWarehouse" },],
+                        columns: [
+                            { title: "Ctns", field: "CTNS", width: 90 },
+                            {
+                                title: "Type", field: "PACKAGE_TYPE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Length", field: "LENGTH", width: 90 },
                             { title: "Width", field: "WIDTH", width: 90 },
                             { title: "Height", field: "HEIGHT", width: 90 },
                             { title: "V/Wts", field: "VWTS", width: 90 },
                             { title: "Dimension", field: "DIMENSION", width: 160 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
                         ],
                         fields: {
                             CTNS: { type: "number", validation: { required: true } },
@@ -799,12 +1167,297 @@ var masterForms = [
                         },
                         formulas: [
                             { fieldName: "DIMENSION", formula: `{LENGTH}x{WIDTH}x{HEIGHT}C\\{CTNS}` },
+                            { fieldName: "VWTS", formula: `utils.calcVwts({LENGTH},{WIDTH},{HEIGHT},{CTNS})` },
                         ],
+                    },
+
+                ],
+            },
+            {
+                name: "cargo",
+                title: "Cargo Information",
+                colWidth: 8,
+                formControls: [
+                    { label: "Handle Information", type: "textArea", name: "HANDLE_INFO", colWidth: 6 },
+                    { label: "Goods Description", type: "textArea", name: "GOOD_DESC", colWidth: 6 },
+                    { label: "Marks and Nos on HAWB	", type: "textArea", name: "MARKS_NO_HAWB", colWidth: 6 },
+                    { label: "Marks and Nos", type: "textArea", name: "MARKS_NO", colWidth: 6 },
+                    { label: "As Agents for the Carrier", type: "text", name: "AS_AGENT_FOR_CARRIER", colWidth: 6 },
+                ]
+            },
+            {
+                name: "licNo",
+                title: "License No.",
+                colWidth: 8,
+                formControls: [
+                    {
+                        label: "License No.", type: "grid", name: "HawbLics",
+                        columns: [
+                            { title: "Issue Date", field: "ISSUE_DATE", width: 100, template: ({ ISSUE_DATE }) => `${kendo.toString(ISSUE_DATE, data.dateTimeFormat)}` },
+                            { title: "License No.", field: "LIC_NO", width: 160 },
+                            { title: "Expiry Date", field: "EXP_DATE", width: 100, template: ({ EXP_DATE }) => `${kendo.toString(EXP_DATE, data.dateTimeFormat)}` },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                        ],
+                        fields: {
+                            ISSUE_DATE: { type: "date", validation: { required: true } },
+                            LIC_NO: { type: "string", validation: { required: true } },
+                            EXP_DATE: { type: "date", validation: { required: true } },
+                        },
+                    },
+
+                ],
+            },
+            {
+                name: "manifest",
+                title: "Manifest Information",
+                colWidth: 8,
+                formControls: [
+                    { label: "Shipper", type: "customerAddrEditable", name: "MAN_SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddrEditable", name: "MAN_CONSIGNEE", colWidth: 6 },
+                    { label: "Print Contact and Fax", type: "switch", name: "MAN_PRINT_SHIPPER_CONTACT", colWidth: 6 },
+                    { label: "Print Contact and Fax", type: "switch", name: "MAN_PRINT_CONSIGNEE_CONTACT", colWidth: 6 },
+                    { label: "Goods Description", type: "textArea", name: "MAN_GOOD_DESC", colWidth: 6 },
+                    { label: "Remarks", type: "textArea", name: "MAN_REMARKS", colWidth: 6 },
+                ]
+            },
+            ,
+            {
+                name: "prepaidCharges",
+                title: "Prepaid Charges",
+                colWidth: 12,
+                formControls: [
+                    /*{ label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },*/
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesPrepaid" },
+                    {
+                        label: "Prepaid Charges", type: "grid", name: "HawbChargesPrepaid",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            PAYMENT_TYPE: { defaultValue: "P" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "collectCharges",
+                title: "Collect Charges",
+                colWidth: 12,
+                formControls: [
+                    /*{ label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },*/
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesCollect" },
+                    {
+                        label: "Prepaid Charges", type: "grid", name: "HawbChargesCollect",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            PAYMENT_TYPE: { defaultValue: "C" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "invoice",
+                title: "Invoice",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Invoice", type: "grid", name: "Invoices", editable: false,
+                        toolbar: [
+                            { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add" },
+                        ],
+                        columns: [
+                            { title: "Invoice #", field: "INV_NO", attributes: { "class": "link-cell" }, width: 80 },
+                            { title: "Customer", field: "CUSTOMER_DESC", width: 260 },
+                            { title: "Curr.", field: "CURR_CODE", width: 60 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "po",
+                title: "PO Information",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "PO Information", type: "grid", name: "HawbPos",
+                        columns: [
+                            { title: "PO#", field: "PO_NO", width: 120 },
+                            { title: "Style #", field: "STYLE_NO", width: 120 },
+                            { title: "Material #", field: "MATERIAL_NO", width: 120 },
+                            { title: "SKU", field: "SKU", width: 120 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                            },
+                            { title: "Pcs", field: "PCS", width: 80 },
+                            { title: "G/Wts", field: "GWTS", width: 80 },
+                            { title: "V/Wts", field: "VWTS", width: 80 },
+                            { title: "C/Wts", field: "CWTS", width: 80 },
+                            { title: "Cu.ft.", field: "CUFT", width: 80 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                        ],
+                        fields: {
+                            PO_NO: { validation: { required: true } },
+                            STYLE_NO: { type: "string" },
+                            MATERIAL_NO: { type: "string" },
+                            SKU: { type: "string" },
+                            QTY: { type: "number", validation: { required: true } },
+                            UNIT: { validation: { required: true } },
+                            PCS: { type: "number" },
+                            GWTS: { type: "number" },
+                            VWTS: { type: "number" },
+                            CWTS: { type: "number" },
+                            CUFT: { type: "number" },
+                        },
+                    }
+                ]
+            },
+            {
+                name: "doc",
+                title: "Documents",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Documents", type: "grid", name: "HawbDocs",
+                        toolbar: [
+                            { name: "uploadFile", text: "Upload File", iconClass: "k-icon k-i-file-add" },
+                        ],
+                        columns: [
+                            { title: "Document Name", field: "DOC_NAME", attributes: { "class": "link-cell" }, width: 220 },
+                            { title: "Size", field: "DOC_SIZE", width: 60 },
+                            { title: "Comments", field: "COMMENTS", width: 260 },
+                            { title: "Create", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(dataItem.CREATE_DATE, data.dateTimeLongFormat)}`; }, width: 160 },
+                            { title: "Modify", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(dataItem.CREATE_DATE, data.dateTimeLongFormat)}`; }, width: 160 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                        ],
+                        fields: {
+                            DOC_NAME: { validation: { required: true }, editable: false },
+                            DOC_SIZE: { type: "number", editable: false },
+                            COMMENTS: { type: "string" },
+                            CREATE_USER: { editable: false },
+                            CREATE_DATE: { type: "date", editable: false },
+                            MODIFY_USER: { editable: false },
+                            MODIFY_DATE: { type: "date", editable: false },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "status",
+                title: "Shipment Status",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Shipment Status", type: "grid", name: "HawbStatuses",
+                        columns: [
+                            { title: "Status", field: "STATUS_CODE", width: 120 },
+                            { title: "Date/Time", field: "STATUS_DATE", template: function (dataItem) { return `${kendo.toString(dataItem.STATUS_DATE, data.dateTimeFormat)}`; }, width: 100 },
+                            { title: "Remarks", field: "REMARKS", width: 220 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                        ],
+                        fields: {
+                            STATUS_CODE: { validation: { required: true } },
+                            STATUS_DATE: { type: "date" },
+                            REMARKS: { type: "string" },
+                        },
                     },
                 ]
             },
         ]
     },
+    {
+        formName: "airInvoice",
+        mode: "edit",   //create / edit
+        title: "Invoice#",
+        readUrl: "../Air/Invoice/GetInvoice",
+        updateUrl: "../Air/Invoice/UpdateInvoice",
+        //additionalScript: "initAirInvoice",
+        id: "",
+        targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "printInvoice", text: "Print Invoice", icon: "file-txt" },
+                    { id: "previewInvoice", text: "Preview Invoice", icon: "file-report" },
+                ]
+            },
+        ],
+        schema: {},
+    }
 ];
 
 export default class {
@@ -847,14 +1500,8 @@ export default class {
     get dateFormat() { return dateFormat; }
     get dateTimeFormat() { return dateTimeFormat; }
     get dateTimeLongFormat() { return dateTimeLongFormat; }
-    get chargeQtyUnit() { return chargeQtyUnit; }
-    get packageUnit() { return packageUnit; }
-    get bookingType() { return bookingType; }
-    get vwtsFactor() { return vwtsFactor; }
-    get incoterm() { return incoterm; }
+    get masterRecords() { return masterRecords; }
     get dropdownlistControls() { return dropdownlistControls; }
-    get currencies() { return currencies; }
-    get sysCompanies() { return sysCompanies; }
     get frameworkHtmlElements() { return frameworkHtmlElements; }
     get htmlElements() { return htmlElements; }
     get indexPages() { return indexPages; }
@@ -870,11 +1517,7 @@ export default class {
     set dateFormat(val) { dateFormat = val; }
     set dateTimeFormat(val) { dateTimeFormat = val; }
     set dateTimeLongFormat(val) { dateTimeLongFormat = val; }
-    set chargeQtyUnit(val) { chargeQtyUnit = val; }
-    set packageUnit(val) { packageUnit = val; }
-    set dropdownlistControls(val) { dropdownlistControls = val; }
-    set currencies(val) { currencies = val; }
-    set sysCompanies(val) { sysCompanies = val; }
+    set masterRecords(val) { masterRecords = val; }
     set frameworkHtmlElements(val) { frameworkHtmlElements = val; }
     set htmlElements(val) { htmlElements = val; }
     set indexPages(val) { indexPages = val; }
@@ -885,14 +1528,59 @@ export default class {
             url: "../Home/GetCurrencies",
             data: { companyId: companyId },
             success: function (result) {
-                currencies = result;
+                masterRecords.currencies = result;
             }
         });
 
         $.ajax({
             url: "../Home/GetSysCompanies",
             success: function (result) {
-                sysCompanies = result;
+                masterRecords.sysCompanies = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetChargeTemplates",
+            data: { companyId: companyId },
+            success: function (result) {
+                masterRecords.chargeTemplates = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetChargesView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].CHARGE_DESC_DISPLAY = result[i].CHARGE_CODE + " - " + result[i].CHARGE_DESC;
+                }
+                masterRecords.charges = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetEquipCodes",
+            success: function (result) {
+                masterRecords.equipCodes = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetPortsView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].PORT_DESC_DISPLAY = result[i].PORT_CODE + " - " + result[i].PORT_DESC;
+                }
+                masterRecords.ports = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetAirlinesView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].AIRLINE_DESC_DISPLAY = result[i].AIRLINE_CODE + " - " + result[i].AIRLINE_DESC;
+                }
+                masterRecords.airlines = result;
             }
         });
     }

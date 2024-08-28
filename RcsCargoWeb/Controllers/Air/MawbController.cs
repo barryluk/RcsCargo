@@ -16,12 +16,15 @@ namespace RcsCargoWeb.Air.Controllers
     [RoutePrefix("Air/Mawb")]
     public class MawbController : Controller
     {
+
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
 
         [Route("GridMawb_Read")]
         public ActionResult GridMawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
             [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
+            searchValue = searchValue.Trim().ToUpper();
             var sortField = "FLIGHT_DATE";
             var sortDir = "desc";
 
@@ -47,8 +50,19 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetMawb")]
         public ActionResult GetMawb(string id, string companyId, string frtMode, string changedJobType = "")
         {
+            log.Debug("request start");
             var mawb = air.GetMawb(id, companyId, frtMode);
-            mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
+            if (!string.IsNullOrEmpty(mawb.JOB))
+            {
+                mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
+                log.Debug("LoadplanBookingListViews");
+                mawb.LoadplanHawbListViews = air.GetLoadplanHawbListView(mawb.JOB, mawb.COMPANY_ID, mawb.FRT_MODE);
+                log.Debug("LoadplanHawbListViews");
+                mawb.LoadplanHawbEquips = air.GetLoadplanHawbEquipList(mawb.JOB, mawb.COMPANY_ID, mawb.FRT_MODE);
+                log.Debug("LoadplanHawbEquips");
+            }
+            if (string.IsNullOrEmpty(mawb.JOB_TYPE))
+                mawb.JOB_TYPE = "C";
 
             //Handling events for changing job type
             if (!string.IsNullOrEmpty(changedJobType))
@@ -67,6 +81,12 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GetMawbInfoByFlightNo(string flightNo, string companyId, DateTime flightDate)
         {
             return Json(air.GetMawbInfoByFlightNo(flightNo, flightDate, companyId), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("SearchBooking")]
+        public ActionResult SearchBookingsForLoadplan(string dest, string companyId)
+        {
+            return Json(air.SearchBookingsForLoadplan(dest, companyId), JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetLoadplanBookingList")]

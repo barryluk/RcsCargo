@@ -51,18 +51,10 @@
         $(`#${pageSetting.id} div.search-control`).append(html);
         $(`#${pageSetting.id} div.search-control .k-icon.k-i-search`).click(function () {
             pageSetting.id = utils.getFormId();
-            var searchData = {};
-            searchData = {
-                searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
-                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
-                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
-                companyId: data.companyId,
-                frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
-                take: data.indexGridPageSize
-            };
 
-            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource.transport.options.read.data = searchData;
-            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource.read();
+            var ds = $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource;
+            //ds.read();
+            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").setDataSource(ds);
         });
 
         controls.kendo.renderFormControl_kendoUI(pageSetting);
@@ -70,21 +62,35 @@
 
     //Render index kendoGrid
     renderIndexGrid = function (pageSetting) {
+        var gridHeight = $(".content-wrapper").height() - 220;
+
         $(`[name=${pageSetting.gridConfig.gridName}]`).kendoGrid({
             columns: pageSetting.gridConfig.columns,
             dataSource: {
                 transport: {
-                    read: {
-                        url: pageSetting.gridConfig.dataSourceUrl,
-                        data: {
+                    read: function (options) {
+                        if (pageSetting.id.indexOf("Index") == -1) {
+                            pageSetting.id = utils.getFormId();
+                        }
+
+                        var searchData = {
                             searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
                             dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
                             dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                             companyId: data.companyId,
                             frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
-                            take: data.indexGridPageSize
-                        },
-                        dataType: "json"
+                            take: data.indexGridPageSize,
+                            skip: options.data.skip,
+                            sort: options.data.sort,
+                        };
+
+                        $.ajax({
+                            url: pageSetting.gridConfig.dataSourceUrl,
+                            data: searchData,
+                            success: function (result) {
+                                options.success(result);
+                            },
+                        });
                     }
                 },
                 schema: {
@@ -102,7 +108,7 @@
             resizable: true,
             sortable: true,
             toolbar: pageSetting.gridConfig.toolbar,
-            height: 550,
+            height: gridHeight,
             scrollable: { endless: true },
             selectable: "cell",
             pageable: {
@@ -117,8 +123,9 @@
                 });
             },
             change: function (e) {
+                var grid = this;
                 var selectedCell = this.select()[0];
-                if ($(selectedCell).attr("style") == "cursor: pointer") {
+                if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
                     var id = $(selectedCell).text();
                     id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
@@ -129,6 +136,7 @@
                     } else {
                         controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
                     }
+                    grid.clearSelection();
                 }
             },
             excel: {

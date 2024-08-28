@@ -48,7 +48,10 @@
                     success: function (result) {
                         mawbList += `<b>${result[0].ORIGIN_CODE} - ${result[0].DEST_CODE}</b><br>`;
                         result.forEach(function (mawb) {
-                            mawbList += `<span class="calenderTooltip" data-id="${mawb.MAWB}">${utils.formatMawbNo(mawb.MAWB)} / ${mawb.JOB}</span><br>`;
+                            if (utils.isEmptyString(mawb.JOB))
+                                mawbList += `<span class="calenderTooltip" data-id="${mawb.MAWB}">${utils.formatMawbNo(mawb.MAWB)}</span><br>`;
+                            else
+                                mawbList += `<span class="calenderTooltip" data-id="${mawb.MAWB}">${utils.formatMawbNo(mawb.MAWB)} / ${mawb.JOB}</span><br>`;
                         });
 
                         let toolTip = $(info.el).kendoTooltip({

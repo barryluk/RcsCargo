@@ -107,7 +107,7 @@ namespace DbUtils
 
         public User GetUser(string userId)
         {
-            var user = db.Users.Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
+            var user = db.Users.AsNoTracking().Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
                 a.EMAIL.Equals(userId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
             if (user != null)

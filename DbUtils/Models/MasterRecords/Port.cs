@@ -21,4 +21,10 @@ namespace DbUtils.Models.MasterRecords
         public string SCHEDULE_D { get; set; }
 
     }
+
+    public class PortView
+    {
+        public string PORT_CODE { get; set; }
+        public string PORT_DESC { get; set; }
+    }
 }

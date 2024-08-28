@@ -10,10 +10,21 @@ namespace DbUtils
 {
     public class MasterRecords
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         RcsFreightDBContext db;
         public MasterRecords() 
         {
             db = new RcsFreightDBContext();
+        }
+
+        public List<PortView> GetPortsView()
+        {
+            var sqlCmd = @"select a.port_code, b.port_desc from
+                (select port_code from port where modify_date > sysdate - 30
+                union select origin_code from a_hawb where create_date > sysdate - 730
+                union select dest_code from a_hawb where create_date > sysdate - 730) a, port b
+                where a.port_code = b.port_code";
+            return db.Database.SqlQuery<PortView>(sqlCmd).ToList();
         }
 
         public List<Port> GetPorts(string searchValue)
@@ -31,6 +42,15 @@ namespace DbUtils
                 return port;
         }
 
+        public List<AirlineView> GetAirlinesView()
+        {
+            var sqlCmd = @"select a.airline_code, b.airline_desc from
+                (select airline_code from airline where modify_date > sysdate - 30
+                union select airline_code from a_mawb) a, airline b
+                where a.airline_code = b.airline_code";
+            return db.Database.SqlQuery<AirlineView>(sqlCmd).ToList();
+        }
+
         public List<Airline> GetAirlines(string searchValue)
         {
             return db.Airlines.Where(a => a.AIRLINE_CODE.StartsWith(searchValue) || a.AIRLINE_DESC.StartsWith(searchValue))
@@ -44,6 +64,15 @@ namespace DbUtils
                 return new Airline();
             else
                 return airline;
+        }
+
+        public List<ChargeView> GetChargesView()
+        {
+            var sqlCmd = @"select a.charge_code, b.charge_desc from 
+                (select charge_code from a_invoice_item where inv_no in (select inv_no from a_invoice where create_date > sysdate - 730)
+                union select charge_code from charge where modify_date > sysdate - 30)a, charge b
+                where a.charge_code = b.charge_code";
+            return db.Database.SqlQuery<ChargeView>(sqlCmd).ToList();
         }
 
         public List<Charge> GetCharges(string searchValue)
@@ -98,6 +127,11 @@ namespace DbUtils
 
             var customers = db.Database.SqlQuery<CustomerView>(sqlCmd, new[] { new OracleParameter("searchValue", searchValue) });
             return customers.Take(Utils.DefaultMaxQueryRows).ToList();
+        }
+
+        public List<string> GetEquipCodes()
+        {
+            return db.HawbEquips.Select(a => a.EQUIP_CODE).Distinct().ToList();
         }
     }
 }

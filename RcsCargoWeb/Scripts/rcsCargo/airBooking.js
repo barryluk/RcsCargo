@@ -18,6 +18,9 @@
                 reportName = "AirBooking";
             } else if (e.id == "printBookingHawb") {
                 reportName = "AirBookingHawb";
+            } else if (e.id == "printWarehouseReceipt") {
+                controllers.airBooking.printWarehouseReceipt();
+                return;
             }
             controls.openReportViewer(reportName, [
                 { name: "CompanyId", value: companyId },
@@ -27,4 +30,8 @@
                 { name: "filename", value: filename },]);
         });
     }
+
+    printWarehouseReceipt = function () {
+        utils.alertMessage("Warehouse Receipt...", "Print Warehouse Receipt", "info", "medium");
+    };
 }

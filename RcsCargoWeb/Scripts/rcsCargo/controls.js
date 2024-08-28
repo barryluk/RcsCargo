@@ -8,6 +8,17 @@
                 controls.initSidebar(menuItems);
                 controls.initTabstripMain();
 
+                $(window).on("resize", function () {
+                    var height = $(".content-wrapper").height();
+                    $("#tabStripMain").css("height", height - 5);
+                    //var grid = $("[name='gridAirMawbIndex']").data("kendoGrid");
+                    //var options = grid = $("[name='gridAirMawbIndex']").data("kendoGrid").getOptions;
+                    //console.log(options);
+                    //options.height = height - 220;
+                    //grid.resize();
+                });
+                $(window).trigger("resize");
+
                 $(".nav-item.dropdown").bind("click", function () {
                     $(this).toggleClass("open");
                 });
@@ -37,7 +48,7 @@
 
     //Navbar
     initNavbar = function () {
-        $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.sysCompanies));
+        $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
     }
 
     //Sidebar
@@ -75,7 +86,12 @@
             dataSource: [{
                 text: "Dashboard",
                 contentUrl: "../Home/Dashboard"
-            }]
+            }],
+            animation: {
+                open: {
+                    effects: "fade"
+                }
+            },
         }).data('kendoTabStrip');
 
         tabStripMain.activateTab($("#tabStripMain-tab-1"));
@@ -133,15 +149,17 @@
 
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model) {
-        masterForm.schema.hiddenFields.forEach(function (field) {
-            $(`#${masterForm.id} [name=${field}]`).val(model[`${field}`]);
-        });
+        if (masterForm.schema.hiddenFields != null) {
+            masterForm.schema.hiddenFields.forEach(function (field) {
+                $(`#${masterForm.id} [name=${field}]`).val(model[`${field}`]);
+            });
+        }
 
         for (var i in masterForm.formGroups) {
             for (var j in masterForm.formGroups[i].formControls) {
                 var control = masterForm.formGroups[i].formControls[j];
-                //Check the existence of the control
-                if ($(`#${masterForm.id} [name=${control.name}]`).length == 0)
+                //Check the existence of the control (name$: ends with value, speical case for grid_)
+                if ($(`#${masterForm.id} [name$=${control.name}]`).length == 0)
                     continue;
 
                 if (control.type == "date") {
@@ -151,7 +169,12 @@
                 else if (control.type == "dateTime") {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDateTimePicker").value(kendo.parseDate(model[`${control.name}`]));
                     $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
-                } else if (control.type == "airline" || control.type == "port" || control.type == "customer") {
+                } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
+                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
+                    if (control.exRateName != null) {
+                        $(`#${masterForm.id} [name=${control.exRateName}]`).val(model[`${control.exRateName}`]);
+                    }
+                } else if (control.type == "customer") {
                     if (model[`${control.name}`] != null) {
                         var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
                         ddl.search(model[`${control.name}`]);
@@ -159,11 +182,6 @@
                             this.select(1);
                             this.trigger("select");
                         });
-                    }
-                } else if (control.type == "currency" || control.type == "vwtsFactor" || control.type == "incoterm" || control.type == "pkgUnit") {
-                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
-                    if (control.exRateName != null) {
-                        $(`#${masterForm.id} [name=${control.exRateName}]`).val(model[`${control.exRateName}`]);
                     }
                 } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                     if (model[`${control.name}_CODE`] != null) {
@@ -177,10 +195,15 @@
                             });
                         });
                     }
+                } else if (control.type == "switch") {
+                    var switchCtrl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoSwitch");
+                    if (model[`${control.name}`] == "Y")
+                        switchCtrl.check(true);
+                    else
+                        switchCtrl.check(false);
                 } else if (control.type == "grid") {
                     if (model[`${control.name}`] != null) {
                         var grid = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid");
-
                         //testObj = grid;
                         var dataSource = new kendo.data.DataSource({
                             data: model[`${control.name}`],
@@ -241,17 +264,32 @@
                                 model[`${control.name}_SHORT_DESC`] = $(`#${masterForm.id} [name=${control.name}_SHORT_DESC]`).val();
                                 model[`${control.name}_DESC`] = text;
                             }
+                        } else if (control.type == "buttonGroup") {
+                            var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoButtonGroup").current().text();
+                            model[control.name] = data.masterRecords[control.dataType].filter(a => a.text == text)[0].value;
+                        } else if (control.type == "switch") {
+                            var switchCtrl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoSwitch");
+                            if (switchCtrl.check())
+                                model[`${control.name}`] = "Y";
+                            else
+                                model[`${control.name}`] = "N";
                         } else if (control.type == "grid") {
                             if ($(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data().length > 0) {
-                                var data = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data();
+                                var dsData = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data();
                                 var gridData = [];
                                 var lineNo = 1;
 
-                                data.forEach(function (item) {
+                                dsData.forEach(function (item) {
                                     var rowData = {};
                                     rowData["LINE_NO"] = lineNo;
                                     for (var field in control.fields) {
-                                        rowData[field] = item[field];
+                                        if (control.fields[field].controlType == "checkBox") {
+                                            if (item[field] == "true" || item[field] == "Y")
+                                                rowData[field] = "Y";
+                                            else
+                                                rowData[field] = "N";
+                                        } else
+                                            rowData[field] = item[field];
                                     }
                                     gridData.push(rowData);
                                     lineNo++;

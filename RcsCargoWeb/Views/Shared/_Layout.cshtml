@@ -4,9 +4,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <title>RCS Cargo System</title>
     <link rel="icon" href="@Url.Content("~/Content/img/favicon.ico")" type="image/x-icon">
     @*<link href="@Url.Content("~/Content/kendo.bootstrap-main.min.css")" rel="stylesheet" />*@
@@ -23,7 +20,7 @@
     <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
     <script src="@Url.Content("~/Scripts/index.global.min.js")"></script>
     <script src="@Url.Content("~/Scripts/dist/js/adminlte.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/rcsCargo/rcsCargoMain.js")"></script>
+    <script src="@Url.Content("~/Scripts/rcsCargo/rcsCargoMain.js?v=" + DbUtils.Utils.NewGuid() + "")"></script>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -40,6 +37,6 @@
             <strong>Copyright &copy; @DateTime.Now.ToString("yyyy") <a href="https://www.rcslogistics.com/">RCS Logistics Ltd.</a></strong> All rights reserved.
         </footer>
     </div>
-    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/Site.css?v=" + DbUtils.Utils.NewGuid() + "")" rel="stylesheet" />
 </body>
 </html>

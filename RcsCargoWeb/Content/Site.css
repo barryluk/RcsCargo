@@ -127,6 +127,16 @@ li.k-list-item {
     max-width: 280px;
 }
 
+    .k-grid .link-cell {
+        cursor: pointer;
+    }
+
+    .k-grid .link-cell:hover {
+        text-decoration: underline;
+        color: white;
+        background-color: cornflowerblue;
+    }
+
 .card form, .col-form-label {
     font-size: 12px;
 }
@@ -244,4 +254,17 @@ div[data-role="buttongroup"] {
 .sysCompany .dropdown-divider {
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+#tabStripMain {
+    height: 100%;
+}
+
+div[type=grid] .btn-destroy.k-grid-delete {
+    width: 26px !important;
+    height: 18px !important;
+}
+
+td.k-edit-cell {
+    padding: 1px !important;
 }
