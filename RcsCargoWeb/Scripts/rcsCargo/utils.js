@@ -127,6 +127,53 @@
         }
     }
 
+    isExistingMawbNo = function (mawbNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Air/Mawb/IsExistingMawbNo",
+            dataType: "text",
+            data: { id: mawbNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isValidMawbNo = function (value) {
+        if (this.isInteger(value)) {
+            if (value.length == 11) {
+                var v_firstMAWB = value.substr(3, 7);
+                var v_lastMAWB = value.substr(10, 1);
+                var v_remainder = v_firstMAWB % 7;
+
+                if (v_remainder != v_lastMAWB) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            else if (value != "") {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isInteger = function (value) {
+        var integer = "0123456789";
+        for (var i = 0; i < value.toString().length; i++) {
+            if (integer.indexOf(value.toString().substr([i], 1)) == -1)
+                return false;
+        }
+        return true;
+    }
+
     formatText = function (value) {
         return value.toUpperCase().trim();
     }
@@ -144,8 +191,13 @@
         return result;
     }
 
+    validatorErrorTemplate = function (message) {
+        return `<div class="k-widget k-tooltip k-tootip-error" style="margin:0.5em; display:block; background-color: Crimson">
+            <span class="k-icon k-i-warning">&nbsp;</span>${message}<div class="k-callout k-callout-n" style="color: Crimson"></div></div>`;
+    }
+
     //type: "info", "warning", "error", size: "small", "medium", "large"
-    alertMessage(msg, title, type = "info", size = "small") {
+    alertMessage = function (msg, title, type = "info", size = "small") {
         var html = `<div class='kendo-window-alertMessage'>
                 <div name="kendo-window-alertMessage-content">${msg}</div>
             </div>`;

@@ -9,7 +9,10 @@
         this.keyValue = id.split("_")[1];
         this.companyId = id.split("_")[2];
         this.frtMode = id.split("_")[3];
-        
+
+        if (this.keyValue == "NEW")
+            mode = "create";
+
         var masterForm = data.masterForms.filter(a => a.formName == formName)[0];
         masterForm.id = id;
         masterForm.mode = mode;
@@ -29,7 +32,7 @@
         if (para != null)
             $.extend(requestParas, para);
 
-        if (masterForm.mode == "edit") {
+        if (masterForm.mode == "edit" || masterForm.mode == "create") {
             $.ajax({
                 url: masterForm.readUrl,
                 data: requestParas,
@@ -63,6 +66,10 @@
             $(`#${masterForm.id} .row.form_group`).append(`<div class="formGroupTab"></div>`);
             var formGroupTab = $(`#${masterForm.id} .row.form_group .formGroupTab`).kendoTabStrip({ animation: false }).data("kendoTabStrip");
 
+            //Hide the tab title if only 1 tab in this form
+            if (masterForm.formTabs.length == 1)
+                $(`#${masterForm.id} .k-tabstrip-items`).attr("style", "display: none");
+
             masterForm.formTabs.forEach(function (tab) {
                 formGroupTab.append({ text: tab.title, content: `<div name="${tab.name}" class="row"></div>` });
 
@@ -80,7 +87,11 @@
                         var control = formGroup.formControls[j];
                         var formControlClass = "form-control";
                         var formControlType = "input";
+                        var required = "";
 
+                        if (masterForm.schema.requiredFields != null)
+                            required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
+                        
                         if (control.type == "date" || control.type == "dateTime") {
                             formControlClass = "form-control-dateTime";
                         } else if (control.type.startsWith("number")) {
@@ -127,7 +138,7 @@
                                     <div class="row col-xl-6 col-lg-12">
                                         <label class="col-sm-3 col-form-label">${control.label}</label>
                                         <div class="col-sm-9">
-                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />
+                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${required} />
                                             <input type="hidden" name="${control.name}_CODE" />
                                             <input type="hidden" name="${control.name}_BRANCH" />
                                             <input type="hidden" name="${control.name}_SHORT_DESC" />
@@ -145,9 +156,9 @@
                                     <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
                                         <label class="col-sm-3 col-form-label">${control.label}</label>
                                         <div class="row col-sm-9">
-                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="margin-left: 9.5px; width: 95px; height: 28.79px" />
+                                            <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" style="margin-left: 9.5px; width: 95px; height: 28.79px" ${required} />
                                             &nbsp;
-                                            <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly />
+                                            <${formControlType} class="form-control" name="${control.exRateName}" style="width: 80px;" readonly ${required} />
                                         </div>
                                     </div>`;
                             }
@@ -172,7 +183,7 @@
                             var colWidth = "";
                             var controlHtml = "";
                             if (control.type != "emptyBlock")
-                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" />`;
+                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${required} />`;
                             if (control.colWidth != null)
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
 

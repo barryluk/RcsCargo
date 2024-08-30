@@ -164,9 +164,9 @@ namespace DbUtils
             }
         }
 
-        public static List<T> GetSqlQueryResult<T>(string tableName, string fields, List<DbParameter> parameters)
+        public static List<T> GetSqlQueryResult<T>(string fromStatment, string selectStatment, List<DbParameter> parameters)
         {
-            return RunSqlQuery<T>(tableName, fields, parameters);
+            return RunSqlQuery<T>(fromStatment, selectStatment, parameters);
         }
 
         public static List<T> GetSqlQueryResult<T>(string tableName, string keyName, string keyValue, string companyId = "", string frtMode = "")
@@ -195,18 +195,44 @@ namespace DbUtils
 
         private static List<T> RunSqlQuery<T>(string tableName, string fields, List<DbParameter> parameters)
         {
-            RcsFreightDBContext db = new RcsFreightDBContext();
             var sqlCmd = $"select {fields} from {tableName} where";
-            var dbParas = new List<Oracle.ManagedDataAccess.Client.OracleParameter>();
-
-            foreach (var para in parameters)
+            try
             {
-                var str = sqlCmd.EndsWith("where") ? "" : "and";
-                sqlCmd += $" {str} {para.FieldName} {para.GetParaCompareOperator()} :{para.ParaName}";
-                dbParas.Add(new Oracle.ManagedDataAccess.Client.OracleParameter(para.ParaName, para.Value));
-            }
+                RcsFreightDBContext db = new RcsFreightDBContext();
+                var dbParas = new List<Oracle.ManagedDataAccess.Client.OracleParameter>();
 
-            return db.Database.SqlQuery<T>(sqlCmd, dbParas.ToArray()).ToList();
+                foreach (var para in parameters.Where(a => !a.OrGroupIndex.HasValue))
+                {
+                    var str = sqlCmd.EndsWith("where") ? "" : "and";
+                    sqlCmd += $" {str} {para.FieldName} {para.GetParaCompareOperator()} :{para.ParaName}";
+                    dbParas.Add(new Oracle.ManagedDataAccess.Client.OracleParameter(para.ParaName, para.Value));
+                }
+                foreach (var orGroupIndex in parameters.Where(a => a.OrGroupIndex.HasValue).Select(a => a.OrGroupIndex).Distinct())
+                {
+                    sqlCmd += " " + (sqlCmd.EndsWith("where") ? "(" : "and (");
+                    foreach (var para in parameters.Where(a => a.OrGroupIndex == orGroupIndex))
+                    {
+                        var str = sqlCmd.EndsWith("(") ? "" : "or";
+                        sqlCmd += $" {str} {para.FieldName} {para.GetParaCompareOperator()} :{para.ParaName}";
+                        dbParas.Add(new Oracle.ManagedDataAccess.Client.OracleParameter(para.ParaName, para.Value));
+                    }
+                    sqlCmd += ") ";
+                }
+                sqlCmd = sqlCmd.Trim().Replace("  ", " ").Replace("( ", "(");
+                //log.Debug(sqlCmd);
+
+                return db.Database.SqlQuery<T>(sqlCmd, dbParas.ToArray()).ToList();
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+                log.Error(sqlCmd);
+                foreach (var para in parameters)
+                {
+                    log.Error($"FieldName: {para.FieldName} | ParaName: {para.ParaName} | Value: {para.Value} | operator: {para.GetParaCompareOperator()}");
+                }
+                return null;
+            }
         }
 
         #region Decrypt / Encrypt
@@ -397,6 +423,7 @@ namespace DbUtils
         public CompareType ParaCompareType { get; set; }
         public string ParaName { get; set; }
         public object Value { get; set; }
+        public int? OrGroupIndex { get; set; }
         public string GetParaCompareOperator()
         {
             switch (this.ParaCompareType) 

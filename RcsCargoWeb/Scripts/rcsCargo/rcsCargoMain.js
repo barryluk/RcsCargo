@@ -28,13 +28,15 @@ $(document).ready(function () {
 
         //For development only
         setTimeout(function () {
-            //controls.append_tabStripMain("MAWB Allocation", `airMawbIndex_${data.companyId}`, "airMawb");
-            //controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking");
+            //setTimeout(function () { controls.append_tabStripMain("MAWB", `airMawbIndex_${data.companyId}`, "airMawb"); }, 500);
+            setTimeout(function () { controls.append_tabStripMain("MAWB# NEW", `airMawb_NEW_RCSHKG_AE`, "airMawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Hawb", `airHawbIndex_${data.companyId}`, "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("MAWB# 27274093235", "airMawb_27274093235_RCSHKG_AE", "airMawb"); }, 500);
-            //setTimeout(function () { controls.append_tabStripMain("MAWB# 17286649382", "airMawb_17286649382_RCSHKG_AE", "airMawb"); }, 1500);
+            //setTimeout(function () { controls.append_tabStripMain("MAWB# 17286649382", "airMawb_17286649382_RCSHKG_AE", "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking# WFF74277243", "airBooking_WFF74277243_RCSHKG_AE", "airBooking"); }, 500);
-            setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124773", "airHawb_HKG18124773_RCSHKG_AE", "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124773", "airHawb_HKG18124773_RCSHKG_AE", "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187325", "airInvoice_TD0187325_RCSHKG_AE", "airInvoice"); }, 500);
         }, 1000);
 
         //send request to server to keep session alive and also get the status

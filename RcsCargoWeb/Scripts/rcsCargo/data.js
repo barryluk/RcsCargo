@@ -441,7 +441,54 @@ var indexPages = [
         },
     },
     {
-        pageName: "airInvoice"
+        pageName: "airInvoice",
+        id: "",
+        title: "Invoice",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Invoice Date", type: "dateRange", name: "invoiceDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Invoice# / MAWB# / HAWB# / Job# / Customer" },
+        ],
+        gridConfig: {
+            gridName: "gridAirInvoiceIndex",
+            dataSourceUrl: "../Air/Invoice/GridInvoice_Read",
+            linkIdPrefix: "airInvoice",
+            linkTabTitle: "Invoice# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "INV_NO", title: "Invoice#", attributes: { "class": "link-cell" } },
+                { template: function (dataItem) { return dataItem.INV_CATEGORY == "L" ? dataItem.LOT_NO : dataItem.JOB_NO; }, title: "Job / Lot#" },
+                {
+                    field: "INV_TYPE", title: "Type",
+                    template: function (dataItem) {
+                        switch (dataItem.INV_TYPE) {
+                            case "I":
+                                return "Invoice";
+                            case "D":
+                                return "Debit Note";
+                            case "C":
+                                return "Credit Note";
+                        }
+                    }
+                },
+                { field: "MAWB_NO", title: "MAWB#" },
+                { field: "HAWB_NO", title: "HAWB#" },
+                { field: "FLIGHT_NO", title: "Flight#" },
+                { template: function (dataItem) { return kendo.toString(new Date(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "ORIGIN", title: "Origin" },
+                { field: "DEST", title: "Destination" },
+                { field: "CUSTOMER_DESC", title: "Customer" },
+                { field: "CURR_CODE", title: "Curr." },
+                { field: "AMOUNT", title: "Amount" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date" },
+            ],
+        },
     },
 ];
 
@@ -486,10 +533,33 @@ var masterForms = [
             },
         ],
         schema: {
+            requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE"],
             hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE"],
             readonlyFields: [
                 { name: "MAWB", readonly: "edit" },
-                { name: "JOB", readonly: "always" }],
+                { name: "JOB", readonly: "always" }
+            ],
+            validation: {
+                rules: {
+                    mawbNoRule: function (input) {
+                        if (input.is("[name=MAWB]")) {
+                            return utils.isValidMawbNo(input.val());
+                        }
+                        return true;
+                    },
+                    mawbNoExistsRule: function (input) {
+                        if (input.is("[name=MAWB]")) {
+                            return !utils.isExistingMawbNo(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: {
+                    mawbNoRule: "Invalid MAWB#!",
+                    mawbNoExistsRule: "MAWB# already exists in the database!",
+                },
+            },
         },
         formGroups: [
             {
@@ -1039,7 +1109,7 @@ var masterForms = [
             {
                 title: "PO / Documents / Shipment Status",
                 name: "poStatus",
-                formGroups: ["po", "doc", "status" ]
+                formGroups: ["po", "doc", "status"]
             },
         ],
         schema: {
@@ -1456,7 +1526,33 @@ var masterForms = [
                 ]
             },
         ],
-        schema: {},
+        schema: {
+            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            readonlyFields: [
+                { name: "INV_NO", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "charges"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Invoice Information",
+                colWidth: 8,
+                formControls: [
+                    { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 6 },
+                    { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 6 },
+                    { label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
+                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER" },
+                ]
+            },
+        ],
     }
 ];
 

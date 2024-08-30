@@ -117,9 +117,15 @@
             },
             dataBound: function (e) {
                 var grid = this;
+                var formId = utils.getFormId(grid.element);
                 controls.kendo.gridAutoFitColumns(grid);
-                $(".k-grid-autoFitColumns").click(function (e) {
+                $(".k-grid-autoFitColumns").bind("click", function (e) {
                     controls.kendo.gridAutoFitColumns(grid);
+                });
+
+                $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
+                    var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
+                    controls.append_tabStripMain("New MAWB", id, pageSetting.pageName);
                 });
             },
             change: function (e) {

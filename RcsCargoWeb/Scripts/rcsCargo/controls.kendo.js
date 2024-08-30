@@ -4,6 +4,18 @@
 
     //Render form controls (KendoUI)
     renderFormControl_kendoUI = function (masterForm) {
+        //Unbind all previous click events
+
+        //kendoValidator
+        var validator = $(`#${masterForm.id}`).data("kendoValidator");
+        if (validator == null) {
+            validator = $(`#${masterForm.id}`).kendoValidator({
+                rules: masterForm.schema.validation.rules == null ? {} : masterForm.schema.validation.rules,
+                messages: masterForm.schema.validation.messages == null ? {} : masterForm.schema.validation.messages,
+                errorTemplate: ({ message }) => utils.validatorErrorTemplate(message)
+            }).data("kendoValidator");
+        }
+
         //kendoToolBar
         $(`#${masterForm.id} div.toolbar`).each(function () {
             $(this).kendoToolBar({
@@ -11,19 +23,34 @@
             });
         });
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
-        $(`#${masterForm.id} .k-i-save`).parent().click(function () {
-            masterForm.id = utils.getFormId($(this));
-            var model = controls.getValuesFromFormControls(masterForm);
-            console.log(masterForm, model);
 
-            //$.ajax({
-            //    url: "../Air/Mawb/TestModel",
-            //    type: "post",
-            //    data: model,
-            //    success: function (result) {
-            //        console.log(result);
-            //    }
-            //});
+        $(`#${masterForm.id} button .k-i-file-add`).parent().bind("click", function () {
+            var formId = utils.getFormId($(this));
+            if (formId.split("_")[1] == "NEW") {
+                $("#btnRefresh_" + formId).trigger("click");
+            } else {
+                var controller = formId.split("_")[0];
+                controls.append_tabStripMain(`${masterForm.title} NEW`, `${controller}_NEW_${data.companyId}_${utils.getFrtMode()}`, controller);
+            }
+        });
+
+        console.log(masterForm.id);
+        $(`#${masterForm.id} button .k-i-save`).parent().bind("click", function () {
+            if (!validator.validate()) {
+                return;
+            } else {
+                var model = controls.getValuesFromFormControls(masterForm);
+                console.log(masterForm, model);
+
+                //$.ajax({
+                //    url: "../Air/Mawb/TestModel",
+                //    type: "post",
+                //    data: model,
+                //    success: function (result) {
+                //        console.log(result);
+                //    }
+                //});
+            }
         });
 
         //kendoDatePicker

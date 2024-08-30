@@ -69,6 +69,12 @@ namespace DbUtils
                 return mawb;
         }
 
+        public bool IsExisitingMawbNo(string mawbNo, string companyId, string frtMode)
+        {
+            return db.Mawbs.Count(a => a.MAWB == mawbNo && 
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
         public List<MawbView> GetFlightNos(DateTime startDate, DateTime endDate, string companyId)
         {
             var records = db.Mawbs.Where(a => a.COMPANY_ID == companyId && a.FLIGHT_DATE >= startDate && a.FLIGHT_DATE <= endDate)
@@ -256,27 +262,27 @@ namespace DbUtils
 
         public List<HawbView> GetHawbs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
-            var sqlCmd = @"select h.hawb_no, h.company_id, h.frt_mode, h.job_no, h.mawb_no,
+            var selectCmd = @"h.hawb_no, h.company_id, h.frt_mode, h.job_no, h.mawb_no,
                 m.airline_code, m.flight_no, m.flight_date, h.origin_code, h.dest_code,
                 h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc,
                 case when h.gwts > h.vwts then h.gwts else h.vwts end as cwts,
-                h.package, h.gwts, h.vwts, h.cbm, h.create_user, h.create_date
-                from a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode
-                where m.flight_date >= :startDate
-                and m.flight_date <= :endDate
-                and h.company_id = :companyId and h.frt_mode = :frtMode
-                and (h.hawb_no like :searchValue or h.mawb_no like :searchValue or h.job_no like :searchValue
-                or h.shipper_code like :searchValue or h.shipper_desc like :searchValue 
-                or h.consignee_code like :searchValue or h.consignee_desc like :searchValue)";
-
-            var result = db.Database.SqlQuery<HawbView>(sqlCmd, new[]
+                h.package, h.gwts, h.vwts, h.cbm, h.create_user, h.create_date";
+            var fromCmd = "a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode";
+            var dbParas = new List<DbParameter>
             {
-                new OracleParameter("startDate", startDate),
-                new OracleParameter("endDate", endDate),
-                new OracleParameter("companyId", companyId),
-                new OracleParameter("frtMode", frtMode),
-                new OracleParameter("searchValue", searchValue),
-            }).Take(Utils.DefaultMaxQueryRows).ToList();
+                new DbParameter { FieldName = "h.hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.shipper_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.flight_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "m.flight_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<HawbView>(fromCmd, selectCmd, dbParas);
 
             return result;
         }
@@ -319,12 +325,19 @@ namespace DbUtils
 
         public List<InvoiceView> GetInvoices(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
-            var dbParas = new List<DbParameter>();
-            dbParas.Add(new DbParameter { FieldName = "inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue });
-            dbParas.Add(new DbParameter { FieldName = "inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate });
-            dbParas.Add(new DbParameter { FieldName = "inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate });
-            dbParas.Add(new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId });
-            dbParas.Add(new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode });
+            var dbParas = new List<DbParameter>
+            { 
+                new DbParameter { FieldName = "inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
             var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
 
             return result;
@@ -332,13 +345,33 @@ namespace DbUtils
 
         public List<InvoiceView> GetHawbInvoices(string hawbNo, string companyId, string frtMode)
         {
-            var dbParas = new List<DbParameter>();
-            dbParas.Add(new DbParameter { FieldName = "hawb_no", ParaName = "hawb_no", ParaCompareType = DbParameter.CompareType.equals, Value = hawbNo });
-            dbParas.Add(new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId });
-            dbParas.Add(new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode });
+            var dbParas = new List<DbParameter> 
+            {
+                new DbParameter { FieldName = "hawb_no", ParaName = "hawb_no", ParaCompareType = DbParameter.CompareType.equals, Value = hawbNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
             var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
 
             return result;
+        }
+
+        public Invoice GetInvoice(string invNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "inv_no", ParaName = "inv_no", ParaCompareType = DbParameter.CompareType.equals, Value = invNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var invoice = Utils.GetSqlQueryResult<Invoice>("a_invoice", "*", dbParas).FirstOrDefault();
+            if (invoice != null)
+            {
+                invoice.InvoiceHawbs = Utils.GetSqlQueryResult<InvoiceHawb>("a_invoice_hawb", "*", dbParas);
+                invoice.InvoiceItems = Utils.GetSqlQueryResult<InvoiceItem>("a_invoice_item", "*", dbParas);
+            }
+
+            return invoice;
         }
 
         #endregion

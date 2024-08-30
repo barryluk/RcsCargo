@@ -161,6 +161,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
+    <Compile Include="Controllers\Air\InvoiceController.cs" />
     <Compile Include="Controllers\Air\HawbController.cs" />
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
@@ -393,7 +394,6 @@
     <Content Include="Images\Team-members\WHITC.jpg" />
     <Content Include="Images\Team-members\WILMK.jpg" />
     <Content Include="Images\Team-members\WOLZA.jpg" />
-    <Content Include="Kendo.Mvc.dll" />
     <Content Include="Scripts\dist\js\adminlte.js" />
     <Content Include="Scripts\dist\js\adminlte.min.js" />
     <Content Include="Scripts\angular.min.js" />
@@ -480,7 +480,6 @@
     <Content Include="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Scripts\plugins\" />
     <Folder Include="Views\Test\" />
   </ItemGroup>
   <ItemGroup>

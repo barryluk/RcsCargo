@@ -60,6 +60,10 @@
         buttonGroup.trigger("select");
     }
 
+    isExistingMawbNo = function (mawbNo) {
+
+    }
+
     searchBookingClick = function (selector) {
         var formId = utils.getFormId(selector);
         var targetGridName = "grid_LoadplanBookingListViews";

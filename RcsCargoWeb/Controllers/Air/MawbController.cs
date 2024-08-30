@@ -50,16 +50,26 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetMawb")]
         public ActionResult GetMawb(string id, string companyId, string frtMode, string changedJobType = "")
         {
-            log.Debug("request start");
+            if (id == "NEW")
+            {
+                return Json(new Mawb 
+                {
+                    COMPANY_ID = companyId,
+                    FRT_MODE = frtMode,
+                    JOB_TYPE = string.IsNullOrEmpty(changedJobType) ? "C" : changedJobType,
+                    VWTS_FACTOR = 6000,
+                    FLIGHT_DATE = DateTime.Now,
+                    CREATE_DATE = DateTime.Now,
+                    MODIFY_DATE = DateTime.Now,
+                }, JsonRequestBehavior.AllowGet);
+            }
+
             var mawb = air.GetMawb(id, companyId, frtMode);
             if (!string.IsNullOrEmpty(mawb.JOB))
             {
                 mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
-                log.Debug("LoadplanBookingListViews");
                 mawb.LoadplanHawbListViews = air.GetLoadplanHawbListView(mawb.JOB, mawb.COMPANY_ID, mawb.FRT_MODE);
-                log.Debug("LoadplanHawbListViews");
                 mawb.LoadplanHawbEquips = air.GetLoadplanHawbEquipList(mawb.JOB, mawb.COMPANY_ID, mawb.FRT_MODE);
-                log.Debug("LoadplanHawbEquips");
             }
             if (string.IsNullOrEmpty(mawb.JOB_TYPE))
                 mawb.JOB_TYPE = "C";
@@ -69,6 +79,12 @@ namespace RcsCargoWeb.Air.Controllers
                 mawb.JOB_TYPE = changedJobType;
 
             return Json(mawb, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("IsExistingMawbNo")]
+        public ActionResult IsExistingMawbNo(string id, string companyId, string frtMode)
+        {
+            return Content(air.IsExisitingMawbNo(id, companyId, frtMode).ToString());
         }
 
         [Route("GetFlightNos")]

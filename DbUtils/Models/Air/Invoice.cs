@@ -133,8 +133,8 @@ namespace DbUtils.Models.Air
         public string LOT_NO { get; set; }
         public string CUSTOMER_CODE { get; set; }
         public string CUSTOMER_DESC { get; set; }
-        public string ORIGIN_CODE { get; set; }
-        public string DEST_CODE { get; set; }
+        public string ORIGIN { get; set; }
+        public string DEST { get; set; }
         public string FLIGHT_NO { get; set; }
         public DateTime FLIGHT_DATE { get; set; }
         public decimal? PACKAGE { get; set; }
