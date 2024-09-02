@@ -22,28 +22,40 @@
 
             if (control.type == "searchInput") {
                 html += `
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">${control.label}</label>
-                    <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md col-md-10" style="max-width: 340px; margin: 7px; padding: 0px">
-                        <input class="k-input-inner" name="${control.name}" placeholder="${control.searchLabel}" style="max-width: 100%" />
-                        <span class="k-input-separator k-input-separator-vertical"></span>
-                        <span class="k-input-suffix k-input-suffix-horizontal">
-                            <span class="k-icon k-i-search" aria-hidden="true"></span>
-                        </span>
-                    </span>
-                </div>`;
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="col-form-label" >${control.label}</label>
+                        </div>
+                        <div class="col-md-10">
+                            <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md" style="max-width: 340px; margin: 2px; padding: 0px">
+                                <input class="k-input-inner" name="${control.name}" placeholder="${control.searchLabel}" style="max-width: 100%" />
+                                <span class="k-input-separator k-input-separator-vertical"></span>
+                                <span class="k-input-suffix k-input-suffix-horizontal">
+                                    <span class="k-icon k-i-search" aria-hidden="true"></span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>`;
             } else if (control.type == "buttonGroup") {
                 html += `
-            <div class="form-group row">
-                <label class="col-form-label col-md-2" >${control.label}</label>
-                <${formControlType} class="col-md-10" type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
-            </div>`;
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="col-form-label" >${control.label}</label>
+                        </div>
+                        <div class="col-md-10">
+                            <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
+                        </div>
+                    </div>`;
             } else {
                 html += `
-            <div class="form-group row">
-                <label class="col-form-label col-md-2">${control.label}</label>
-                <${formControlType} class="col-md-10" type="${control.type}" name="${control.name}" />
-            </div>`;
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="col-form-label" >${control.label}</label>
+                        </div>
+                        <div class="col-md-10">
+                            <${formControlType} type="${control.type}" name="${control.name}" />
+                        </div>
+                    </div>`;
             }
         });
 
@@ -125,7 +137,7 @@
 
                 $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                     var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
-                    controls.append_tabStripMain("New MAWB", id, pageSetting.pageName);
+                    controls.append_tabStripMain(`New ${pageSetting.title}`, id, pageSetting.pageName);
                 });
             },
             change: function (e) {

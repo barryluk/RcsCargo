@@ -11,11 +11,6 @@
                 $(window).on("resize", function () {
                     var height = $(".content-wrapper").height();
                     $("#tabStripMain").css("height", height - 5);
-                    //var grid = $("[name='gridAirMawbIndex']").data("kendoGrid");
-                    //var options = grid = $("[name='gridAirMawbIndex']").data("kendoGrid").getOptions;
-                    //console.log(options);
-                    //options.height = height - 220;
-                    //grid.resize();
                 });
                 $(window).trigger("resize");
 
@@ -308,6 +303,21 @@
             });
         });
 
+        //special case for multiple MAWB#
+        if (masterForm.formName == "airMawb" && masterForm.mode == "create") {
+            var formId = utils.getFormId();
+            if ($(`#${formId} #airMawb_NEW_${data.companyId}_${utils.getFrtMode()}_mawbNoList`).length == 1) {
+                var mawbNos = "";
+                $(`#${formId} .k-chip.k-chip-solid-info span.k-chip-label`).each(function () {
+                    mawbNos += $(this).text() + ",";
+                });
+
+                //MAWB length = 11
+                if (mawbNos.length > 11) {
+                    model["MAWB"] = mawbNos.substring(0, mawbNos.length - 1);
+                }
+            }
+        }
         return model;
     }
 

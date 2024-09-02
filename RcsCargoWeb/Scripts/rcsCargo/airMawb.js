@@ -58,10 +58,120 @@
         });
 
         buttonGroup.trigger("select");
-    }
 
-    isExistingMawbNo = function (mawbNo) {
+        //multiple MAWB# (only available in create mode)
+        if (masterForm.mode == "create") {
+            $(`#${masterForm.id} [name="MAWB"]`).attr("class", "k-input k-input-solid k-input-md k-rounded-md");
+            $(`#${masterForm.id} [name="MAWB"]`).after(`<button type="button" name="multipleMawbNo" style="margin: 4px;">Multiple MAWB#</button>`);
+            $("[name='multipleMawbNo']").kendoButton({ icon: "ungroup" });
+            $("[name='multipleMawbNo']").bind("click", function () {
+                var html = `
+                <span class="k-input k-textarea k-input-solid k-input-md k-rounded-md k-resize-none">
+		            <textarea type="textArea" class="!k-overflow-y-auto k-input-inner" name="multipleMawbNo" maxlength="1000" rows="9" placeholder="Each MAWB# separated by new line..." style="width: 90%; resize: none; height: 100%;"></textarea>
+	            </span>
+                <div style="text-align: center; padding-top: 4px">
+	            <button type="button" name="${masterForm.id}_processMultipleMawbNo" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">
+                    <span class="k-icon k-i-gears k-button-icon"></span>
+                &nbsp;&nbsp;OK</button></div><span class="notification"></span>`;
+                utils.alertMessage(html, "Multiple MAWB#", "info", "small");
 
+                $(`button[name="${masterForm.id}_processMultipleMawbNo"]`).bind("click", function () {
+                    if (utils.isEmptyString($("textarea[name='multipleMawbNo']").val().trim())) {
+                        var notification = $(".kendo-window-alertMessage span.notification").kendoNotification({
+                            width: 190,
+                            position: {
+                                top: $("textarea[name='multipleMawbNo']").offset().top + 50,
+                                left: $("textarea[name='multipleMawbNo']").offset().left + 130,
+                            }
+                        }).data("kendoNotification");
+                        notification.show("MAWB# should not be empty.", "error");
+                        return;
+                    }
+
+                    kendo.ui.progress($(`[name="kendo-window-alertMessage-content"]`), true);
+
+                    if ($(`#${masterForm.id}_mawbNoList`).length == 0)
+                        $(`#${masterForm.id} [name="MAWB"]`).before(`<span class="k-input k-input-solid k-input-md k-rounded-md" style="max-width: 340px; padding: 2px;"><div id="${masterForm.id}_mawbNoList"></div></span>`);
+                    else
+                        $(`#${masterForm.id}_mawbNoList`).parent().removeClass("hidden");
+                        
+
+                    $(`#${masterForm.id} [name="MAWB"]`).addClass("hidden");
+                    var mawbNos = [];
+                    $("textarea[name='multipleMawbNo']").val().split("\n").forEach(function (mawbNo) {
+                        if (!utils.isEmptyString(mawbNo.trim())) {
+                            if (!utils.isValidMawbNo(mawbNo.trim())) {
+                                $(`#${masterForm.id} [name="MAWB"]`).val(mawbNo.trim());
+                                mawbNos.push({ label: mawbNo.trim(), themeColor: "error", attributes: { "toolip-data-val": "Invalid MAWB#" } });
+                            } else if (utils.isExistingMawbNo(mawbNo.trim())) {
+                                $(`#${masterForm.id} [name="MAWB"]`).val(mawbNo.trim());
+                                mawbNos.push({ label: mawbNo.trim(), themeColor: "error", attributes: { "toolip-data-val": "MAWB# already exists" } });
+                            } else {
+                                if (utils.isEmptyString($(`#${masterForm.id} [name="MAWB"]`).val().trim()))
+                                    $(`#${masterForm.id} [name="MAWB"]`).val(mawbNo.trim());
+
+                                mawbNos.push({ label: mawbNo.trim(), themeColor: "info" });
+                            }
+                        }
+                    });
+
+                    if ($(`#${masterForm.id}_mawbNoList`).data("kendoChipList") == null) {
+                        $(`#${masterForm.id}_mawbNoList`).kendoChipList({
+                            itemSize: "small",
+                            removable: true,
+                            items: mawbNos,
+                            remove: function (e) {
+                                //setTimeout trigger this function after item has been removed
+                                setTimeout(function () {
+                                    $(`#${masterForm.id} .k-chip.k-chip-solid-info span.k-chip-label`).each(function () {
+                                        $(`#${masterForm.id} [name="MAWB"]`).val($(this).text());
+                                    });
+                                    $(`#${masterForm.id} .k-chip.k-chip-solid-error span.k-chip-label`).each(function () {
+                                        $(`#${masterForm.id} [name="MAWB"]`).val($(this).text());
+                                    });
+
+                                    var validator = $(`#${masterForm.id}`).data("kendoValidator");
+                                    validator.hideMessages();
+
+                                    if ($("div.k-chip").length == 0) {
+                                        $(`#${masterForm.id}_mawbNoList`).parent().addClass("hidden");
+                                        $(`#${masterForm.id} [name="MAWB"]`).val("");
+                                        $(`#${masterForm.id} [name="MAWB"]`).removeClass("hidden");
+                                    }
+
+                                }, 500);
+                            }
+                        });
+                    } else {
+                        var chipList = $(`#${masterForm.id}_mawbNoList`).data("kendoChipList");
+                        $("div.k-chip").each(function () {
+                            chipList.remove($(this));
+                        });
+                        mawbNos.forEach(function (item) {
+                            chipList.add(item);
+                        });
+                    }
+
+                    $(`#${masterForm.id} [toolip-data-val]`).each(function () {
+                        var content = $(this).attr("toolip-data-val");
+                        $(this).kendoTooltip({
+                            //autoHide: false,
+                            content: content,
+                            show: function (e) {
+                                e.sender.popup.element.addClass("red-tooltip");
+                            }
+                        });
+                    })
+
+                    var validator = $(`#${masterForm.id}`).data("kendoValidator");
+                    validator.hideMessages();
+
+                    kendo.ui.progress($(`[name="kendo-window-alertMessage-content"]`), false);
+                    var dialog = $(".kendo-window-alertMessage").data("kendoWindow");
+                    dialog.destroy();
+                });
+            });
+        }
     }
 
     searchBookingClick = function (selector) {

@@ -51,5 +51,11 @@ namespace RcsCargoWeb.Air.Controllers
             var hawb = air.GetInvoice(id, companyId, frtMode);
             return Json(hawb, JsonRequestBehavior.AllowGet);
         }
+
+        [Route("IsExistingInvNo")]
+        public ActionResult IsExistingInvNo(string id, string companyId, string frtMode)
+        {
+            return Content(air.IsExistingInvNo(id, companyId, frtMode).ToString());
+        }
     }
 }

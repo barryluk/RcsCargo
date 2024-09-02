@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 using System.Security.Cryptography;
 using System.Data.SqlTypes;
+using System.IO;
 
 namespace DbUtils
 {
@@ -72,6 +73,12 @@ namespace DbUtils
         public bool IsExisitingMawbNo(string mawbNo, string companyId, string frtMode)
         {
             return db.Mawbs.Count(a => a.MAWB == mawbNo && 
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        public bool IsExistingJobNo(string jobNo, string companyId, string frtMode)
+        {
+            return db.Mawbs.Count(a => a.JOB == jobNo &&
                 a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
 
@@ -237,12 +244,15 @@ namespace DbUtils
                     CREATE_DATE = a.CREATE_DATE,
                 }).Take(Utils.DefaultMaxQueryRows).ToList();
         }
-        
+         
         public Booking GetBooking(string bookingNo, string companyId, string frtMode)
         {
             var booking = db.Bookings.FirstOrDefault(a => a.BOOKING_NO == bookingNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode);
-            booking.BookingPos = db.BookingPos.Where(a => a.BOOKING_NO == bookingNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
-            booking.WarehouseHistories = this.GetWarehouseHistory(bookingNo, companyId, frtMode);
+            if (booking != null)
+            {
+                booking.BookingPos = db.BookingPos.Where(a => a.BOOKING_NO == bookingNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                booking.WarehouseHistories = this.GetWarehouseHistory(bookingNo, companyId, frtMode);
+            }
 
             if (booking == null)
                 return new Booking();
@@ -254,6 +264,12 @@ namespace DbUtils
         {
             var records = db.WarehouseHistories.Where(a => a.BOOKING_NO == bookingNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
             return records;
+        }
+
+        public bool IsExisitingBookingNo(string bookingNo, string companyId, string frtMode)
+        {
+            return db.Bookings.Count(a => a.BOOKING_NO == bookingNo &&
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
 
         #endregion
@@ -319,6 +335,48 @@ namespace DbUtils
                 return hawb;
         }
 
+        public bool IsExisitingHawbNo(string hawbNo, string companyId, string frtMode)
+        {
+            return db.Hawbs.Count(a => a.HAWB_NO == hawbNo &&
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        public List<HawbDoc> GetHawbDocs(string hawbNo)
+        {
+            return db.HawbDocs.Where(a => a.HAWB_NO == hawbNo).ToList();
+        }
+
+        public void AddHawbDoc(HawbDoc hawbDoc)
+        {
+            db.HawbDocs.Add(hawbDoc);
+            db.SaveChanges();
+        }
+
+        public void UpdateHawbDoc(HawbDoc hawbDoc)
+        {
+            db.Entry(hawbDoc).State = System.Data.Entity.EntityState.Modified;
+            db.SaveChanges();
+        }
+
+        public void DeleteHawbDoc(string docId)
+        {
+            var path = new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString();
+            var record = db.HawbDocs.Where(a => a.DOC_ID == docId).FirstOrDefault();
+            if (record != null)
+            {
+                try
+                {
+                    System.IO.File.Delete(Path.Combine(path, record.DOC_PATH, record.DOC_ID));
+                    db.HawbDocs.Remove(record);
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                }
+            }
+        }
+
         #endregion
 
         #region Invoice
@@ -372,6 +430,12 @@ namespace DbUtils
             }
 
             return invoice;
+        }
+
+        public bool IsExistingInvNo(string invNo, string companyId, string frtMode)
+        {
+            return db.Invoices.Count(a => a.INV_NO == invNo &&
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
 
         #endregion

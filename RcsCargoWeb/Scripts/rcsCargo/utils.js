@@ -63,8 +63,8 @@
             var els = $(selector).parentsUntil("#tabStripMain");
             return els.eq(els.length - 2).attr("id");
         } else {
-            if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length == 1)
-                return $(`.k-tabstrip-content.k-content.k-active div[id]`).attr("id");
+            if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length > 0)
+                return $(`.k-tabstrip-content.k-content.k-active div[id]`).first().attr("id");
             else
                 return null;
         }
@@ -74,8 +74,8 @@
         if ($(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
             return $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
                 .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
-        } else if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length == 1) {
-            return $(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).val();
+        } else if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
+            return $(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
         } else
             return null;
     }
@@ -110,7 +110,11 @@
     }
 
     convertDateToISOString = function (date) {
-        return date.toISOString();
+        try {
+            return date.toISOString();
+        } catch {
+            return null;
+        }
     }
 
     roundUp = function (value, decimals) {
@@ -192,8 +196,11 @@
     }
 
     validatorErrorTemplate = function (message) {
-        return `<div class="k-widget k-tooltip k-tootip-error" style="margin:0.5em; display:block; background-color: Crimson">
-            <span class="k-icon k-i-warning">&nbsp;</span>${message}<div class="k-callout k-callout-n" style="color: Crimson"></div></div>`;
+        return `
+            <div class="k-widget k-tooltip k-tootip-error red-tooltip">
+                <span class="k-icon k-i-warning">&nbsp;</span>${message}
+                <div class="k-callout k-callout-n"></div>
+            </div>`;
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"
@@ -235,5 +242,57 @@
         }).data("kendoWindow");
 
         alertWin.center().open();
+    }
+
+    confirmMessage = function (msg, eventObj, confirmCallback, cancelCallback, title) {
+        var html = `<div class='kendo-window-confirmMessage'>
+                <div name="kendo-window-confirmMessage-content" style="height: calc(100% - 35px);">${msg}</div>
+                <div style="text-align: center;">
+                    <button type="button" class="customButton button-icon-check-outline" style="width: 80px; margin: 4px;">Yes</button>
+                    <button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">No</button>
+                </div>
+            </div>`;
+        var width = "25%";
+        var height = "25%";
+
+        if (utils.isEmptyString(title))
+            title = "RCS Cargo System";
+
+        title = `<i class='k-icon k-i-question-circle' style='margin-left: 5px; margin-right: 5px; margin-top: 2px;'></i> <b>${title}</b>`;
+
+        $(".content-wrapper").append(html);
+        var confirmWin = $(".kendo-window-confirmMessage").kendoWindow({
+            title: { text: title, encoded: false },
+            modal: true,
+            width: width,
+            height: height,
+            close: function (e) {
+                confirmWin.destroy();
+            },
+        }).data("kendoWindow");
+
+        confirmWin.center().open();
+
+        $(`.kendo-window-confirmMessage button[type=button].customButton`).each(function () {
+            var icon = $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1).length == 1 ?
+                $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1)[0].replace("button-icon-", "") : "";
+            $(this).kendoButton({ icon: icon });
+
+            if (icon == "check-outline") {
+                $(this).bind("click", function () {
+                    confirmWin.destroy();
+                    if (!utils.isEmptyString(confirmCallback) && eventObj != null) {
+                        eval(`${confirmCallback}(eventObj)`);
+                    }
+                });
+            } else if (icon == "x-outline") {
+                $(this).bind("click", function () {
+                    confirmWin.destroy();
+                    if (!utils.isEmptyString(cancelCallback)) {
+                        eval(`${cancelCallback}(eventObj)`);
+                    }
+                });
+            }
+        });
     }
 }

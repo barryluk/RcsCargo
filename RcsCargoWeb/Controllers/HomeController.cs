@@ -103,6 +103,8 @@ namespace RcsCargoWeb.Controllers
             return View();
         }
 
+        #region Master Records, Utils
+
         public ActionResult GetSysCompanies()
         {
             var admin = new DbUtils.Admin();
@@ -207,5 +209,7 @@ namespace RcsCargoWeb.Controllers
         {
             return Content(DbUtils.Utils.DESEncrypt(value), "text/plain");
         }
+
+        #endregion
     }
 }

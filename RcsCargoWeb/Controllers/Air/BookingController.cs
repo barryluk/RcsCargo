@@ -50,5 +50,11 @@ namespace RcsCargoWeb.Air.Controllers
             var booking = air.GetBooking(id, companyId, frtMode);
             return Json(booking, JsonRequestBehavior.AllowGet);
         }
+
+        [Route("IsExistingBookingNo")]
+        public ActionResult IsExistingBookingNo(string id, string companyId, string frtMode)
+        {
+            return Content(air.IsExisitingBookingNo(id, companyId, frtMode).ToString());
+        }
     }
 }

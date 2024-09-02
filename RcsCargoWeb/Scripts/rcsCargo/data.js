@@ -45,7 +45,7 @@ var frameworkHtmlElements = {
 
                     <div class="form-inline">
                         <div class="input-group" data-widget="sidebar-search">
-                            <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" style="font-size: 12pt; height: 37px">
+                            <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" style="margin: 0px; font-size: 12pt; height: 37px">
                             <div class="input-group-append">
                                 <button class="btn btn-sidebar">
                                     <i class="fas fa-search fa-fw"></i>
@@ -1459,19 +1459,31 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Documents", type: "grid", name: "HawbDocs",
+                        label: "Documents",
+                        type: "grid",
+                        name: "HawbDocs",
+                        deleteCallbackFunction: "controllers.airHawb.gridHawbDocsDelete",
                         toolbar: [
-                            { name: "uploadFile", text: "Upload File", iconClass: "k-icon k-i-file-add" },
+                            { name: "uploadFile", text: "Upload File", iconClass: "k-icon k-i-file-add", callbackFunction: "controllers.airHawb.uploadFiles" },
+                            { name: "save", callbackFunction: "controllers.airHawb.gridHawbDocsConfirmSaveChanges" },
+                            { name: "cancel" },
                         ],
                         columns: [
                             { title: "Document Name", field: "DOC_NAME", attributes: { "class": "link-cell" }, width: 220 },
                             { title: "Size", field: "DOC_SIZE", width: 60 },
                             { title: "Comments", field: "COMMENTS", width: 260 },
-                            { title: "Create", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(dataItem.CREATE_DATE, data.dateTimeLongFormat)}`; }, width: 160 },
-                            { title: "Modify", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(dataItem.CREATE_DATE, data.dateTimeLongFormat)}`; }, width: 160 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { title: "Create", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(kendo.parseDate(dataItem.CREATE_DATE), data.dateTimeLongFormat)}`; }, width: 160 },
+                            { title: "Modify", template: function (dataItem) { return `${dataItem.MODIFY_USER} - ${kendo.toString(kendo.parseDate(dataItem.MODIFY_DATE), data.dateTimeLongFormat)}`; }, width: 160 },
+                            {
+                                command: [{
+                                    className: "btn-destroy", name: "destroy", text: " "
+                                }], width: 50
+                            },
                         ],
                         fields: {
+                            DOC_ID: { type: "string" },
+                            HAWB_NO: { type: "string" },
+                            DOC_PATH: { type: "string" },
                             DOC_NAME: { validation: { required: true }, editable: false },
                             DOC_SIZE: { type: "number", editable: false },
                             COMMENTS: { type: "string" },

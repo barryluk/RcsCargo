@@ -3,15 +3,13 @@
     }
 
     //Render form controls (KendoUI)
-    renderFormControl_kendoUI = function (masterForm) {
-        //Unbind all previous click events
-
+    renderFormControl_kendoUI = function (masterForm, enableValidation = false) {
         //kendoValidator
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
-        if (validator == null) {
+        if (validator == null && enableValidation) {
             validator = $(`#${masterForm.id}`).kendoValidator({
-                rules: masterForm.schema.validation.rules == null ? {} : masterForm.schema.validation.rules,
-                messages: masterForm.schema.validation.messages == null ? {} : masterForm.schema.validation.messages,
+                rules: masterForm.schema.validation == null ? {} : masterForm.schema.validation.rules,
+                messages: masterForm.schema.validation == null ? {} : masterForm.schema.validation.messages,
                 errorTemplate: ({ message }) => utils.validatorErrorTemplate(message)
             }).data("kendoValidator");
         }
@@ -34,7 +32,6 @@
             }
         });
 
-        console.log(masterForm.id);
         $(`#${masterForm.id} button .k-i-save`).parent().bind("click", function () {
             if (!validator.validate()) {
                 return;
@@ -85,8 +82,8 @@
         $(`#${masterForm.id} div[type=buttonGroup][dataType=frtMode]`).each(function () {
             $(this).kendoButtonGroup({
                 items: [
-                    { text: "Export", icon: "export", selected: true },
-                    { text: "Import", icon: "import" },
+                    { text: "Export", iconClass: "fa fa-plane-departure", selected: true },
+                    { text: "Import", iconClass: "fa fa-plane-arrival" },
                 ]
             });
         });
@@ -412,6 +409,7 @@
             var columns;
             var formulas;
             var toolbar;
+            var deleteCallbackFunction;
             var editable = { mode: "incell", confirmation: false };
             var controlName = $(this).attr("name");
             masterForm.formGroups.forEach(function (formGroup) {
@@ -420,6 +418,7 @@
                         columns = control.columns;
                         formulas = control.formulas;
                         toolbar = control.toolbar;
+                        deleteCallbackFunction = control.deleteCallbackFunction;
                         if (control.editable == false)
                             editable = false;
                     }
@@ -468,7 +467,22 @@
                             controls.kendo.gridFormula(e.container, formula.fieldName, formula.formula);
                         });
                     }
-                }
+                },
+                saveChanges: function (e) {
+                    e.preventDefault();
+                    if (toolbar != null) {
+                        if (toolbar.filter(a => a.name == "save").length == 1) {
+                            if (toolbar.filter(a => a.name == "save")[0].callbackFunction != null)
+                                eval(`${toolbar.filter(a => a.name == "save")[0].callbackFunction}(e)`);
+                        }
+                    }
+                },
+                remove: function (e) {
+                    e.preventDefault();
+                    if (deleteCallbackFunction != null) {
+                        eval(`${deleteCallbackFunction}(e)`);
+                    }
+                },
             });
         });
     }

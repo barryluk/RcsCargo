@@ -203,7 +203,7 @@
             });
             formGroupTab.activateTab($(`#${masterForm.id} .formGroupTab li`).eq(0));
         }
-        controls.kendo.renderFormControl_kendoUI(masterForm);
+        controls.kendo.renderFormControl_kendoUI(masterForm, true);
 
         //readonly fields
         if (masterForm.schema.readonlyFields != null) {

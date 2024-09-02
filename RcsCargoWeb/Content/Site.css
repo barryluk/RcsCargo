@@ -20,6 +20,18 @@ li {
     font-weight: bolder;
 }
 
+.k-tooltip.red-tooltip {
+    background-color: crimson;
+}
+
+    .k-tooltip.red-tooltip .k-callout.k-callout-n {
+        color: crimson;
+    }
+
+.k-input{
+    margin: 2px;
+}
+
 .k-input-inner {
     font-size: 12px;
 }
@@ -66,9 +78,10 @@ select, .k-dropdownlist {
     cursor: pointer;
 }
 
-/*.grid tbody tr:hover {
-    background: #52b1fd;
-}*/
+.k-button-group {
+    margin-left: 2px;
+}
+
 
 .k-button, .k-menu-link-text {
     font-size: 12px;
@@ -186,7 +199,7 @@ div .row.form-group {
 }
 
 .k-dropdownlist {
-    height: calc(1.5rem);
+    height: calc(1.6rem);
 }
 
 .k-i-search {
