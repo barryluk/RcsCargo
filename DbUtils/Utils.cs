@@ -195,7 +195,12 @@ namespace DbUtils
 
         private static List<T> RunSqlQuery<T>(string tableName, string fields, List<DbParameter> parameters)
         {
-            var sqlCmd = $"select {fields} from {tableName} where";
+            var sqlCmd = string.Empty;
+            if (tableName.Contains(" where "))
+                sqlCmd = $"select {fields} from {tableName}";
+            else
+                sqlCmd = $"select {fields} from {tableName} where";
+
             try
             {
                 RcsFreightDBContext db = new RcsFreightDBContext();
@@ -219,7 +224,7 @@ namespace DbUtils
                     sqlCmd += ") ";
                 }
                 sqlCmd = sqlCmd.Trim().Replace("  ", " ").Replace("( ", "(");
-                //log.Debug(sqlCmd);
+                log.Debug(sqlCmd);
 
                 return db.Database.SqlQuery<T>(sqlCmd, dbParas.ToArray()).ToList();
             }

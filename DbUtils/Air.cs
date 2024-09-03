@@ -218,6 +218,29 @@ namespace DbUtils
 
         #region Booking, Warehouse
 
+        public List<BookingView> GetUnusedBookings(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var selectCmd = @"booking_no, company_id, frt_mode, origin_code, dest_code,
+                shipper_code, shipper_desc, consignee_code, consignee_desc,
+                package, gwts, vwts, create_user, create_date";
+            var fromCmd = "a_booking where booking_no not in (select booking_no from a_hawb where company_id = a_booking.company_id and booking_no is not null)";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "booking_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "shipper_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "create_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "create_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<BookingView>(fromCmd, selectCmd, dbParas);
+
+            return result;
+        }
+
         public List<BookingView> GetBookings(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
             return db.Bookings.Where(a => 

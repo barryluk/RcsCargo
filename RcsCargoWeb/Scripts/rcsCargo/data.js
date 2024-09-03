@@ -22,7 +22,7 @@ var masterRecords = {
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, ports: {}, customers: {},
 };
 var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
-    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType"];
+    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType", "unUsedBooking"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -1129,7 +1129,7 @@ var masterForms = [
                 formControls: [
                     { label: "HAWB #", type: "text", name: "HAWB_NO", colWidth: 6 },
                     { label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
-                    { label: "Booking #", type: "text", name: "BOOKING_NO", colWidth: 6 },
+                    { label: "Booking #", type: "unUsedBooking", name: "BOOKING_NO", callbackFunction: "controllers.airHawb.selectUnusedBooking", colWidth: 6 },
                     { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
                     { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER" },
                     { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE" },

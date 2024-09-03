@@ -10,6 +10,7 @@ using DbUtils.Models.Air;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
 using System.IO;
+using System.Web.Services;
 
 namespace RcsCargoWeb.Air.Controllers
 {
@@ -45,6 +46,19 @@ namespace RcsCargoWeb.Air.Controllers
             }
 
             return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        [Route("GetUnusedBooking")]
+        public ActionResult GetUnusedBooking(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now;
+
+            var result = air.GetUnusedBookings(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue);
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetHawb")]

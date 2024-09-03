@@ -71,13 +71,19 @@
     }
 
     getFrtMode = function () {
+        var frtMode = null;
         if ($(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
-            return $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
+            frtMode = $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
                 .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
-        } else if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
-            return $(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
-        } else
-            return null;
+        }
+        if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
+            frtMode = $(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
+        }
+        if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length > 0) {
+            var values = $(".k-tabstrip-content.k-content.k-active div[id]").first().attr("id").split("_");
+            frtMode = values[values.length - 1];
+        }
+        return frtMode;
     }
 
     getExRate = function (currCode) {

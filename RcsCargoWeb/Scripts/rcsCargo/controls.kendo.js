@@ -329,6 +329,57 @@
             });
         });
 
+        //kendoDropDownList for unUsedBooking
+        $(`#${masterForm.id} input[type=unUsedBooking]`).each(function () {
+            var filterValue = "";
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "BOOKING_NO",
+                dataValueField: "BOOKING_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Air/Hawb/GetUnusedBooking",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode()
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        //for (var i in result) {
+                                        //    result[i].BOOKING_DISPLAY = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
+                                        //}
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
+                select: function (e) {
+                    var callbackFunction = data.masterForm.filter(a => a.formName == "airHawb")
+                    eval(`${callbackFunction}(e)`);
+                }
+            });
+        });
+
 
         //kendoButton
         $(`#${masterForm.id} button[type=button].customButton`).each(function () {
@@ -642,6 +693,7 @@
             dataSource: gridHawbList.dataSource.data(),
         });
     }
+
     renderGridEditorLoadplanEquips = function (container, options) {
         var cbb = $(`<input name="${options.field}" style="width: 80px; height: 25.6px; margin-right: 5px;" />`);
         var txt = $(`<input name="EQUIP_DESC" style="width: 150px" />`);
