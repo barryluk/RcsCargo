@@ -131,6 +131,10 @@
                 var grid = this;
                 var formId = utils.getFormId(grid.element);
                 controls.kendo.gridAutoFitColumns(grid);
+
+                $(".k-grid-autoFitColumns").unbind("click");
+                $(`#${formId} .k-grid button:contains("New")`).unbind("click");
+
                 $(".k-grid-autoFitColumns").bind("click", function (e) {
                     controls.kendo.gridAutoFitColumns(grid);
                 });

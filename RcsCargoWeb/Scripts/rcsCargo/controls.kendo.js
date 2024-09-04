@@ -374,7 +374,9 @@
                     $(e.sender.filterInput).val(filterValue);
                 },
                 select: function (e) {
-                    var callbackFunction = data.masterForm.filter(a => a.formName == "airHawb")
+                    var callbackFunction = data.masterForms.filter(a => a.formName == "airHawb")[0]
+                        .formGroups.filter(a => a.name == "mainInfo")[0]
+                        .formControls.filter(a => a.name == "BOOKING_NO")[0].callbackFunction;
                     eval(`${callbackFunction}(e)`);
                 }
             });
@@ -534,6 +536,24 @@
                         eval(`${deleteCallbackFunction}(e)`);
                     }
                 },
+            });
+        });
+
+        //readonly attributes for kendoDropDownList
+        data.dropdownlistControls.forEach(function (ddl) {
+            $(`#${masterForm.id} input[type="${ddl}"]`).each(function () {
+                var control = $(this)
+                masterForm.schema.readonlyFields.forEach(function (readonlyCtrl) {
+                    if (readonlyCtrl.readonly == "always") {
+                        if (readonlyCtrl.name == $(control).attr("name")) {
+                            $(control).data("kendoDropDownList").enable(false);
+                        }
+                    } else {
+                        if (readonlyCtrl.name == $(control).attr("name") && utils.getEditMode(control) == "edit") {
+                            $(control).data("kendoDropDownList").enable(false);
+                        }
+                    }
+                });
             });
         });
     }

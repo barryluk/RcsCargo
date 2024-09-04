@@ -58,6 +58,14 @@
         return value;
     }
 
+    getEditMode = function (selector) {
+        var formId = utils.getFormId(selector);
+        if (formId.indexOf("NEW") == -1)
+            return "edit";
+        else
+            return "create";
+    }
+
     getFormId = function (selector) {
         if (selector != null) {
             var els = $(selector).parentsUntil("#tabStripMain");
@@ -73,7 +81,7 @@
     getFrtMode = function () {
         var frtMode = null;
         if ($(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
-            frtMode = $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
+            return $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
                 .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
         }
         if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {

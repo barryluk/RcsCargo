@@ -35,6 +35,20 @@
         });
     }
 
+    selectUnusedBooking = function (selector) {
+        console.log(selector, selector.dataItem.BOOKING_NO);
+        $.ajax({
+            url: "../Air/Booking/GetBooking",
+            data: { id: selector.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            success: function (result) {
+                //console.log(result);
+                if (result.BookingPos != null)
+                    result.HawbPos = result.BookingPos;
+
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result);
+            }
+        });
+    }
 
     updateFromWarehouse = function (selector) {
         var formId = utils.getFormId(selector);

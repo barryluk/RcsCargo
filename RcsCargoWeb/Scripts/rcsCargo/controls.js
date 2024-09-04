@@ -90,6 +90,23 @@
         }).data('kendoTabStrip');
 
         tabStripMain.activateTab($("#tabStripMain-tab-1"));
+
+        $("span:contains(Dashboard)").before("<button id='btntabStripMainCloseAll' type='button'>Close Tabs</button>");
+        $("#btntabStripMainCloseAll").kendoDropDownButton({
+            items: [
+                {
+                    text: "Close All", click: function (e) {
+                        $("#tabStripMain li.k-tabstrip-item .k-icon.k-i-close").each(function () {
+                            var tabId = $(this).attr("id").replace("btnClose_", "");
+                            controls.remove_tabStripMain(tabId);
+                        })
+                    }
+                },
+                { text: "Close All but this" }
+            ],
+            showArrowButton: true,
+        });
+        $("#btntabStripMainCloseAll span.k-button-text").after("<span class='k-icon k-i-arrow-s k-button-icon'></span>");
     }
 
     append_tabStripMain = function (text, id, controller) {
@@ -166,9 +183,21 @@
                     $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
+                    if (control.name == "BOOKING_NO") {
+                        if (utils.getEditMode($(`#${masterForm.id} [name=${control.name}]`)) == "edit") {
+                            var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
+                            var dataSource = new kendo.data.DataSource({ data: [{ BOOKING_NO: model[`${control.name}`] }] });
+                            ddl.setDataSource(dataSource);
+                            ddl.value(model[`${control.name}`]);
+                        }
+                    }
                     if (control.exRateName != null) {
                         $(`#${masterForm.id} [name=${control.exRateName}]`).val(model[`${control.exRateName}`]);
                     }
+                //} else if (control.type == "unUsedBooking") {
+                //    console.log(control, control.type);
+                //    var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
+                //    console.log(ddl);
                 } else if (control.type == "customer") {
                     if (model[`${control.name}`] != null) {
                         var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
