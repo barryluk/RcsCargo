@@ -10,6 +10,7 @@ namespace RcsCargoWeb
 {
     public static class AppUtils
     {
+        public static readonly int takeRecords = 25;
         public static ContentResult JsonContentResult(IEnumerable<object> obj, int skip = 0, int take = 0)
         {
             string jsonString = string.Empty;

@@ -87,27 +87,94 @@
                     effects: "fade"
                 }
             },
-        }).data('kendoTabStrip');
+            activate: function (e) {
+                try {
+                    if ($(e.contentElement).find("div[id]")[0]["id"] != "dashboardMain")
+                        data.lastActiveTabId = $(e.contentElement).find("div[id]")[0]["id"];
+                } catch { }
+            }
+        }).data("kendoTabStrip");
 
         tabStripMain.activateTab($("#tabStripMain-tab-1"));
+        controls.configureSortable();
 
-        $("span:contains(Dashboard)").before("<button id='btntabStripMainCloseAll' type='button'>Close Tabs</button>");
-        $("#btntabStripMainCloseAll").kendoDropDownButton({
+        $("span:contains(Dashboard)").prepend(`<i class="k-icon k-icon-sm k-color-default fa fa-gauge-high" style="margin-right: 6px"></i>`);
+        $(".k-tabstrip-items-wrapper").eq(0).before("<button id='btntabStripMainControl' type='button' style='width: 95.5px; left: 1.5px; top: 27px; z-index: 999'>Tab Control</button>");
+        $("ul.k-tabstrip-items").before("<span class='tab-control'><div style='width: 100px'></div></span>");
+        //$("span:contains(Dashboard)").before("<button id='btntabStripMainCloseAll' type='button'>Tab Control</button>");
+        $("#btntabStripMainControl").kendoDropDownButton({
             items: [
                 {
-                    text: "Close All", click: function (e) {
+                    text: "Close all tabs", icon: "close", click: function (e) {
                         $("#tabStripMain li.k-tabstrip-item .k-icon.k-i-close").each(function () {
                             var tabId = $(this).attr("id").replace("btnClose_", "");
-                            controls.remove_tabStripMain(tabId);
+                            if (!$(this).prev().prev().hasClass("k-i-pin"))
+                                controls.remove_tabStripMain(tabId);
                         })
                     }
                 },
-                { text: "Close All but this" }
+                {
+                    text: "Close other tabs", icon: "close", click: function (e) {
+                        $("#tabStripMain li.k-tabstrip-item .k-icon.k-i-close").each(function () {
+                            var tabId = $(this).attr("id").replace("btnClose_", "");
+                            if (!$(this).prev().prev().hasClass("k-i-pin") && $(this).attr("id").replace("btnClose_", "") != data.lastActiveTabId)
+                                controls.remove_tabStripMain(tabId);
+                        })
+                    },
+                },
+                {
+                    text: "Pin all tabs", icon: "pin", click: function (e) {
+                        $("#tabStripMain .btnPin").each(function () {
+                            $(this).removeClass("k-i-unpin");
+                            $(this).addClass("k-i-pin");
+                        })
+                    },
+                },
+                {
+                    text: "Un-Pin all tabs", icon: "unpin", click: function (e) {
+                        $("#tabStripMain .btnPin").each(function () {
+                            $(this).removeClass("k-i-pin");
+                            $(this).addClass("k-i-unpin");
+                        })
+                    },
+                },
+                {
+                    text: "Refresh all tabs", icon: "refresh", click: function (e) {
+                        $("#tabStripMain li.k-tabstrip-item .k-icon.k-i-refresh").each(function () {
+                            $(this).trigger("click");
+                        })
+                    },
+                },
             ],
-            showArrowButton: true,
+            //showArrowButton: true,
         });
-        $("#btntabStripMainCloseAll span.k-button-text").after("<span class='k-icon k-i-arrow-s k-button-icon'></span>");
+        $("#btntabStripMainControl span.k-button-text").after("<span class='k-icon k-i-arrow-s k-button-icon'></span>");
     }
+
+    configureSortable = function () {
+        $("#tabStripMain ul.k-tabstrip-items").kendoSortable({
+            filter: "li.k-item",
+            axis: "x",
+            container: "ul.k-tabstrip-items",
+            hint: function (element) {
+                return $("<div id='hint' class='k-widget k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-active k-tab-on-top'>" + element.html() + "</li></ul></div>");
+            },
+            start: function (e) {
+                var tabstrip = $("#tabStripMain").data("kendoTabStrip");
+                tabstrip.activateTab(e.item);
+            },
+            change: function (e) {
+                var tabstrip = $("#tabStripMain").data("kendoTabStrip"),
+                    reference = tabstrip.tabGroup.children().eq(e.newIndex);
+
+                if (e.oldIndex < e.newIndex) {
+                    tabstrip.insertAfter(e.item, reference);
+                } else {
+                    tabstrip.insertBefore(e.item, reference);
+                }
+            }
+        });
+    };
 
     append_tabStripMain = function (text, id, controller) {
         kendo.ui.progress($(".container-fluid"), true);
@@ -118,8 +185,9 @@
         if (tabStrip.tabGroup.find("[id='btnClose_" + id + "']").length == 0) {
             tabStrip.append({
                 text: text +
-                    " &nbsp;&nbsp;<i class='k-icon k-icon-sm k-color-primary k-i-refresh btnRefresh' id='btnRefresh_" + id + "'></i>" +
-                    " &nbsp;&nbsp;<i class='k-icon k-i-close text-red btnClose' id='btnClose_" + id + "'></i>",
+                    " &nbsp;&nbsp;<i class='k-icon k-icon-sm k-color-default k-i-unpin btnPin'></i>" +
+                    " &nbsp;&nbsp;<i class='k-icon k-icon-sm k-color-default k-i-refresh btnRefresh' id='btnRefresh_" + id + "'></i>" +
+                    " &nbsp;&nbsp;<i class='k-icon k-i-close k-color-default btnClose' id='btnClose_" + id + "'></i>",
                 encoded: false,
                 content: `<div id="${id}"></div>`
             });
@@ -141,6 +209,18 @@
                 else
                     controls.edit.initEditPage(id);
             });
+
+            $(".btnPin").unbind("click");
+
+            $(".btnPin").bind("click", function () {
+                if ($(this).hasClass("k-i-unpin")) {
+                    $(this).removeClass("k-i-unpin");
+                    $(this).addClass("k-i-pin");
+                } else {
+                    $(this).removeClass("k-i-pin");
+                    $(this).addClass("k-i-unpin");
+                }
+            });
         }
 
         tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
@@ -160,10 +240,23 @@
     }
 
     //Set the values to form controls
-    setValuesToFormControls = function (masterForm, model) {
+    setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
         if (masterForm.schema.hiddenFields != null) {
             masterForm.schema.hiddenFields.forEach(function (field) {
-                $(`#${masterForm.id} [name=${field}]`).val(model[`${field}`]);
+                var value;
+                if (model[`${field}`] != null) {
+                    if (typeof model[`${field}`] == "object")
+                        value = JSON.stringify(model[`${field}`]);
+                    else
+                        value = model[`${field}`];
+                }
+
+                if (!partialUpdate)
+                    $(`#${masterForm.id} [name=${field}]`).val(value);
+                else {
+                    if (model[`${field}`] != null)
+                        $(`#${masterForm.id} [name=${field}]`).val(value);
+                }
             });
         }
 
@@ -172,6 +265,9 @@
                 var control = masterForm.formGroups[i].formControls[j];
                 //Check the existence of the control (name$: ends with value, speical case for grid_)
                 if ($(`#${masterForm.id} [name$=${control.name}]`).length == 0)
+                    continue;
+
+                if (partialUpdate && model[`${control.name}`] == null)
                     continue;
 
                 if (control.type == "date") {
@@ -183,21 +279,29 @@
                     $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
-                    if (control.name == "BOOKING_NO") {
-                        if (utils.getEditMode($(`#${masterForm.id} [name=${control.name}]`)) == "edit") {
-                            var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
-                            var dataSource = new kendo.data.DataSource({ data: [{ BOOKING_NO: model[`${control.name}`] }] });
-                            ddl.setDataSource(dataSource);
-                            ddl.value(model[`${control.name}`]);
+                    if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO" || control.name == "LOT_NO") {
+                        var controlName = control.name;
+                        if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
+                            var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
+                            if (!utils.isEmptyString(model[`${controlName}`])) {
+                                ddl.filterInput.val(model[`${controlName}`]);
+                                ddl.dataSource.data([{ [controlName]: model[`${controlName}`] }]);
+                                ddl.value(model[`${controlName}`]);
+                                ddl.search(model[`${controlName}`]);
+                            }
+                        }
+                    } else if (control.name == "BOOKING_NO") {
+                        var controlName = control.name;
+                        if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
+                            var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
+                            ddl.dataSource.data([{ BOOKING_NO: model[`${controlName}`] }]);
+                            ddl.value(model[`${controlName}`]);
                         }
                     }
+
                     if (control.exRateName != null) {
                         $(`#${masterForm.id} [name=${control.exRateName}]`).val(model[`${control.exRateName}`]);
                     }
-                //} else if (control.type == "unUsedBooking") {
-                //    console.log(control, control.type);
-                //    var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
-                //    console.log(ddl);
                 } else if (control.type == "customer") {
                     if (model[`${control.name}`] != null) {
                         var ddl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList");
@@ -228,7 +332,6 @@
                 } else if (control.type == "grid") {
                     if (model[`${control.name}`] != null) {
                         var grid = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid");
-                        //testObj = grid;
                         var dataSource = new kendo.data.DataSource({
                             data: model[`${control.name}`],
                             batch: true,
@@ -247,17 +350,19 @@
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoNumericTextBox").value(model[`${control.name}`]);
                 } else if (control.type == "buttonGroup") {
                     var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup");
-                    if (control.dataType == "jobType") {
-                        if (!utils.isEmptyString(model[`${control.name}`])) {
-                            var jobType = model[`${control.name}`] == "C" ? "Consol" : "Direct";
-                            buttonGroup.select($(`div[type=buttonGroup][name=JOB_TYPE] span:contains('${jobType}')`).parent());
-                        }
+                    //if (control.dataType == "jobType") {
+                    if (!utils.isEmptyString(model[`${control.name}`])) {
+                        var buttonText = data.masterRecords[`${control.dataType}`].filter(a => a.value == model[`${control.name}`])[0].text;
+                        //var jobType = model[`${control.name}`] == "C" ? "Consol" : "Direct";
+                        buttonGroup.select($(`div[type=buttonGroup][name="${control.name}"] span:contains('${buttonText}')`).parent());
                     }
+                    //}
                 } else {
                     $(`#${masterForm.id} [name=${control.name}]`).val(model[`${control.name}`]);
                 }
             }
         }
+
     }
 
     //Get values from form controls

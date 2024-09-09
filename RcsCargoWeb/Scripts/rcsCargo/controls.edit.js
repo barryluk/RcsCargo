@@ -18,6 +18,7 @@
         masterForm.mode = mode;
         masterForm.targetForm = `#${id} .container-fluid .row.form_group`;
         $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : this.keyValue}`));
+        //console.log("form ID:", id);
         this.renderFormControls(masterForm);
         this.getModelData(masterForm, para);
     }
@@ -181,12 +182,16 @@
                                 </div>`;
                         } else {
                             var colWidth = "";
+                            var callbackFunction = "";
                             var controlHtml = "";
+
+                            if (control.callbackFunction != null)
+                                callbackFunction = `callbackFunction="${control.callbackFunction}"`;
                             if (control.type != "emptyBlock")
-                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${required} />`;
+                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
                             if (control.colWidth != null)
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
-
+                            
                             html += `
                                 <div class="row ${colWidth}">
                                     <label class="col-sm-3 col-form-label">${control.label}</label>
@@ -203,6 +208,7 @@
             });
             formGroupTab.activateTab($(`#${masterForm.id} .formGroupTab li`).eq(0));
         }
+        //console.log(masterForm.id);
         controls.kendo.renderFormControl_kendoUI(masterForm, true);
 
         //readonly fields
@@ -215,6 +221,28 @@
                 }
             });
         }
+
+        //Readonly kendo controls
+        $(`#${masterForm.id} input[readonly=readonly], div[readonly=readonly]`).each(function () {
+            var ctrlType = $(this).attr("data-role");
+            switch (ctrlType) {
+                case "dropdownlist":
+                    $(this).data("kendoDropDownList").enable(false);
+                    break;
+                case "datetimepicker":
+                    $(this).data("kendoDateTimePicker").enable(false);
+                    break;
+                case "datepicker":
+                    $(this).data("kendoDatePicker").enable(false);
+                    break;
+                case "numerictextbox":
+                    $(this).data("kendoNumericTextBox").enable(false);
+                    break;
+                case "buttongroup":
+                    $(this).data("kendoButtonGroup").enable(false);
+                    break;
+            }
+        });
 
         //collapse cards
         if (masterForm.formGroups != null) {

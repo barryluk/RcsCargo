@@ -22,6 +22,7 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GridBooking_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
             [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
+            searchValue = searchValue.Trim().ToUpper() + "%";
             var sortField = "CREATE_DATE";
             var sortDir = "desc";
 
@@ -49,6 +50,13 @@ namespace RcsCargoWeb.Air.Controllers
         {
             var booking = air.GetBooking(id, companyId, frtMode);
             return Json(booking, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetWarehouseHistory")]
+        public ActionResult GetWarehouseHistory(string id, string companyId, string frtMode)
+        {
+            var warehouseHistories = air.GetWarehouseHistory(id, companyId, frtMode);
+            return Json(warehouseHistories, JsonRequestBehavior.AllowGet);
         }
 
         [Route("IsExistingBookingNo")]

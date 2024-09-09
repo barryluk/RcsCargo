@@ -53,11 +53,44 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now;
 
-            var result = air.GetUnusedBookings(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue);
+            var result = air.GetUnusedBookings(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetHawbNos")]
+        public ActionResult GetHawbNos(string id, string companyId, string frtMode)
+        {
+            var result = air.GetHawbNos(id, companyId, frtMode);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetHawbs")]
+        public ActionResult GetHawbs(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now;
+
+            var result = air.GetHawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetMawbs")]
+        public ActionResult GetMawbs(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper();
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now;
+
+            var result = air.GetMawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
@@ -118,6 +151,23 @@ namespace RcsCargoWeb.Air.Controllers
                 }
             }
             return Content(count.ToString());
+        }
+
+
+        [Route("DownloadFile")]
+        public ActionResult DownloadFile(string docId)
+        {
+            var path = new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString();
+            var doc = air.GetHawbDocByDocId(docId);
+            FileStream fs = new FileStream(Path.Combine(path, doc.DOC_PATH, doc.DOC_ID), FileMode.Open, FileAccess.Read);
+
+            byte[] fileByte = new byte[fs.Length];
+            fs.Read(fileByte, 0, (int)fs.Length);
+            fs.Flush();
+            fs.Close();
+
+            Response.AppendHeader("Content-Disposition", $"attachment;filename={doc.DOC_NAME}");
+            return File(fileByte, $"application/{doc.DOC_NAME.Substring(doc.DOC_NAME.LastIndexOf(".") + 1)}");
         }
 
         [Route("UpdateHawbDocs")]

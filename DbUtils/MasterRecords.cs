@@ -21,6 +21,7 @@ namespace DbUtils
         {
             var sqlCmd = @"select a.port_code, b.port_desc from
                 (select port_code from port where modify_date > sysdate - 30
+                union select dest_code from a_mawb where create_date > sysdate - 730
                 union select origin_code from a_hawb where create_date > sysdate - 730
                 union select dest_code from a_hawb where create_date > sysdate - 730) a, port b
                 where a.port_code = b.port_code";

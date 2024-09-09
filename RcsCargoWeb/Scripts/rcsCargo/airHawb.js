@@ -35,55 +35,59 @@
         });
     }
 
+    selectMawb = function (selector, filterValue) {
+        $.ajax({
+            url: "../Air/Mawb/GetMawb",
+            data: { id: filterValue, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            success: function (result) {
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result, true);
+            }
+        });
+    }
+
     selectUnusedBooking = function (selector) {
-        console.log(selector, selector.dataItem.BOOKING_NO);
         $.ajax({
             url: "../Air/Booking/GetBooking",
-            data: { id: selector.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            data: { id: "", companyId: data.companyId, frtMode: utils.getFrtMode() },
             success: function (result) {
-                //console.log(result);
                 if (result.BookingPos != null)
                     result.HawbPos = result.BookingPos;
 
-                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result);
+                result.PACKAGE2 = result.SEC_PACKAGE;
+                result.PACKAGE_UNIT2 = result.SEC_PACKAGE_UNIT;
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result, true);
             }
         });
     }
 
     updateFromWarehouse = function (selector) {
         var formId = utils.getFormId(selector);
-        utils.alertMessage(formId, "", "warning");
-        //var gridHawbData = $(`#${formId} [name="grid_LoadplanHawbListViews"]`).data("kendoGrid").dataSource.data();
-        //var gridEquipData = $(`#${formId} [name="grid_LoadplanHawbEquips"]`).data("kendoGrid").dataSource.data();
-        //var result = [];
-        //console.log(gridHawbData);
-        //console.log(gridEquipData);
-        //gridHawbData.forEach(function (hawb) {
-        //    var pkgs = 0;
-        //    gridEquipData.forEach(function (equip) {
-        //        if (hawb.HAWB_NO == equip.HAWB_NO)
-        //            pkgs += equip.PACKAGE;
-        //    });
-
-        //    if (hawb.PACKAGE != pkgs)
-        //        result.push({ HAWB_NO: hawb.HAWB_NO, PACKAGE: hawb.PACKAGE, PKGS: pkgs });
-        //});
-
-        //console.log(result);
-        //if (result.length > 0) {
-        //    var msg = "Equipments no. of packages doesn't match with HAWB packages:<br>";
-        //    result.forEach(function (item) {
-        //        msg += `HAWB: ${item.HAWB_NO}, Packages: ${item.PACKAGE}, wrong packages: <span style="color: red">${item.PKGS}</span><br>`;
-        //    });
-        //    utils.alertMessage(msg, "", "warning");
-        //} else {
-        //    utils.alertMessage("All data entries are correct.");
-        //}
+        $.ajax({
+            url: "../Air/Booking/GetWarehouseHistory",
+            data: { id: utils.getFormValue("BOOKING_NO"), companyId: data.companyId, frtMode: utils.getFrtMode() },
+            success: function (result) {
+                var model = {};
+                var gwts = 0, vwts = 0, cwts = 0, pkgs = 0, vol = 0, cbm = 0;
+                model.HawbDims = result;
+                result.forEach(function (item) {
+                    gwts += item.GWTS;
+                    vwts += item.VWTS;
+                    pkgs += item.CTNS;
+                    vol += utils.roundUp(item.LENGTH * item.WIDTH * item.HEIGHT * item.CTNS, 2);
+                });
+                model.GWTS = gwts;
+                model.VWTS = vwts;
+                model.CWTS = gwts > vwts ? gwts : vwts;
+                model.PACKAGE = pkgs;
+                model.TOTAL_VOL = vol;
+                model.CBM = utils.roundUp(vol / 1000000, 2);
+                console.log(model);
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], model, true);
+            }
+        });
     }
 
     uploadFiles = function (selector) {
-        //console.log(selector);
-        //testObj = selector;
         var formId = utils.getFormId(selector);
         var hawbNo = utils.getFormValue("HAWB_NO");
         var html = `<input type="file" name="uploadFiles" />`;
@@ -115,6 +119,11 @@
                 });
             }
         });
+    }
+
+    downloadFile = function (sender, docId) {
+        console.log(docId);
+        window.open(`../Air/Hawb/DownloadFile?docId=${docId}`);
     }
 
     gridHawbDocsConfirmSaveChanges = function (e) {

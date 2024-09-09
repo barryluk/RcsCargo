@@ -117,6 +117,24 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(air.GetLoadplanBookingListView(jobNo, companyId), JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetLotNos")]
+        public ActionResult GetLotNos(string searchValue, string companyId, string frtMode, DateTime? startDate, DateTime? endDate)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!startDate.HasValue)
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+            if (!endDate.HasValue)
+                endDate = DateTime.Now;
+
+            return Json(air.GetLotNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetLotDetail")]
+        public ActionResult GetLotDetail(string lotNo, string companyId, string frtMode)
+        {
+            return Json(air.GetLotDetail(lotNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
+        }
+
         [Route("TestModel")]
         public ActionResult TestModel(Mawb model)
         {

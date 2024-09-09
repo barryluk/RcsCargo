@@ -28,7 +28,7 @@
         if (!this.isEmptyString(container))
             el = $(container).parentsUntil("div.container-fluid").find(`[name=${fieldName}]`);
         else
-            el = $(".k-tabstrip-content.k-content.k-active").find(`[name=${fieldName}]`);
+            el = $("[id^=tabStripMain-].k-tabstrip-content.k-content.k-active").find(`[name=${fieldName}]`);
 
         var value;
         if (el.length > 0) {
@@ -71,24 +71,30 @@
             var els = $(selector).parentsUntil("#tabStripMain");
             return els.eq(els.length - 2).attr("id");
         } else {
-            if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length > 0)
-                return $(`.k-tabstrip-content.k-content.k-active div[id]`).first().attr("id");
+            if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length > 0)
+                return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).first().attr("id");
             else
                 return null;
         }
     }
 
-    getFrtMode = function () {
+    getFrtMode = function (selector) {
+        //console.log("000", $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length);
+        //console.log("001", $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length);
         var frtMode = null;
-        if ($(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
-            return $(`.k-tabstrip-content.k-content.k-active div[name=frtMode]`)
+        if (selector != null) {
+            var values = selector.split("_");
+            frtMode = values[values.length - 1];
+        }
+        if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
+            return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`)
                 .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
         }
-        if ($(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
-            frtMode = $(`.k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
+        if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
+            frtMode = $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
         }
-        if ($(`.k-tabstrip-content.k-content.k-active div[id]`).length > 0) {
-            var values = $(".k-tabstrip-content.k-content.k-active div[id]").first().attr("id").split("_");
+        if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length > 0) {
+            var values = $("[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]").first().attr("id").split("_");
             frtMode = values[values.length - 1];
         }
         return frtMode;
@@ -112,6 +118,11 @@
 
     //Common JS functions
     isEmptyString = function (str) {
+        if (str == null)
+            return true;
+        if (str.trim().length == 0)
+            return true;
+
         return (!str || 0 === str.length);
     }
 
@@ -218,9 +229,19 @@
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"
-    alertMessage = function (msg, title, type = "info", size = "small") {
+    alertMessage = function (msg, title, type = "info", size = "small", showCloseButtons = false) {
+        var contentHeight = "100%";
+        if (showCloseButtons)
+            contentHeight = "calc(100% - 35px)";
+        var closeButtons = "";
+        if (showCloseButtons)
+            closeButtons = `<div style="text-align: center;">
+                    <button type="button" class="customButton button-icon-check-outline" style="width: 80px; margin: 4px;">Ok</button>
+                    <button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>
+                </div>`;
         var html = `<div class='kendo-window-alertMessage'>
-                <div name="kendo-window-alertMessage-content">${msg}</div>
+                <div name="kendo-window-alertMessage-content" style="height: ${contentHeight};">${msg}</div>
+                ${closeButtons}
             </div>`;
         var width = "25%";
         var height = "25%";
@@ -256,6 +277,18 @@
         }).data("kendoWindow");
 
         alertWin.center().open();
+
+        $(`.kendo-window-alertMessage button[type=button].customButton`).each(function () {
+            var icon = $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1).length == 1 ?
+                $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1)[0].replace("button-icon-", "") : "";
+            $(this).kendoButton({ icon: icon });
+
+            if (icon == "x-outline") {
+                $(this).bind("click", function () {
+                    alertWin.destroy();
+                });
+            }
+        });
     }
 
     confirmMessage = function (msg, eventObj, confirmCallback, cancelCallback, title) {

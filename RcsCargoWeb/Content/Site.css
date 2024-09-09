@@ -32,6 +32,10 @@ li {
     margin: 2px;
 }
 
+    .k-input.k-disabled {
+        background-color: #E9ECEF
+    }
+
 .k-input-inner {
     font-size: 12px;
 }
@@ -70,15 +74,15 @@ select, .k-dropdownlist {
     padding-right: 5px;
 }
 
-.handCursor {
-    cursor: pointer;
-}
-
+.handCursor,
+#flightSchedule .fc-event,
+.k-tooltip-content span,
 .grid tbody {
     cursor: pointer;
 }
 
 .k-button-group {
+    margin-top: 2px;
     margin-left: 2px;
 }
 
@@ -202,10 +206,6 @@ div .row.form-group {
     height: calc(1.6rem);
 }
 
-.k-i-search {
-    cursor: pointer;
-}
-
 .formGroupTab {
     padding: 0px;
 }
@@ -239,11 +239,6 @@ div[data-role="buttongroup"] {
     @include hover() {
         color: black !important;
     }
-}
-
-#flightSchedule .fc-event,
-.k-tooltip-content span {
-    cursor: pointer;
 }
 
 .nav-item .fa-circle.nav-icon {
@@ -281,3 +276,27 @@ div[type=grid] .btn-destroy.k-grid-delete {
 td.k-edit-cell {
     padding: 1px !important;
 }
+
+.k-tabstrip-item.k-item {
+    color: black;
+    background: #E9ECEF;
+    border-color: #D7D9DC;
+}
+
+    .k-tabstrip-item.k-item.k-active {
+        color: white;
+        background: #3788D8;
+        /*background: #E9ECEF;*/
+        /*border-color: #D7D9DC;*/
+    }
+
+.tab-control {
+    /*background: #E9ECEF;*/
+    border-color: #D7D9DC;
+}
+
+.selectHawbNoList .k-chip.k-selected {
+    color: white;
+    background-color: #1274AC;
+}
+

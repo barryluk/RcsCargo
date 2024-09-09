@@ -25,6 +25,7 @@ $(document).ready(function () {
         controllers.airMawb = new ((await import(`../../Scripts/rcsCargo/airMawb.js?v=${version}`)).default);
         controllers.airBooking = new ((await import(`../../Scripts/rcsCargo/airBooking.js?v=${version}`)).default);
         controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js?v=${version}`)).default);
+        controllers.airInvoice = new ((await import(`../../Scripts/rcsCargo/airInvoice.js?v=${version}`)).default);
 
         //For development only
         setTimeout(function () {
@@ -35,9 +36,12 @@ $(document).ready(function () {
             //setTimeout(function () { controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking# WFF74277243", "airBooking_WFF74277243_RCSHKG_AE", "airBooking"); }, 500)
             //setTimeout(function () { controls.append_tabStripMain("Hawb", `airHawbIndex_${data.companyId}`, "airHawb"); }, 500);
-            setTimeout(function () { controls.append_tabStripMain("HAWB# NEW", `airHawb_NEW_RCSHKG_AE`, "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("HAWB# NEW", `airHawb_NEW_RCSHKG_AE`, "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124773", "airHawb_HKG18124773_RCSHKG_AE", "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124768", "airHawb_HKG18124768_RCSHKG_AE", "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187325", "airInvoice_TD0187325_RCSHKG_AE", "airInvoice"); }, 500);
+            setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187274", "airInvoice_TD0187274_RCSHKG_AE", "airInvoice"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("Invoice# CNHK121248", "airInvoice_CNHK121248_RCSHKG_AE", "airInvoice"); }, 500);
         }, 1000);
 
         //send request to server to keep session alive and also get the status

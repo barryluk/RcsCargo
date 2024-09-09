@@ -8,9 +8,11 @@ var companyId = "RCSHKG";
 var dateFormat = "M/d/yyyy";
 var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
+var lastActiveTabId = "";
 var masterRecords = {
     chargeQtyUnit: ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"],
     packageUnit: ["CTNS", "PLT", "PKG", "ROLLS", "PCS"],
+    jobType: [{ text: "Consol", value: "C" }, { text: "Direct", value: "D" }],
     bookingType: [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }],
     vwtsFactor: [6000, 6500, 7000, 9000],
     incoterm: ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"],
@@ -22,7 +24,8 @@ var masterRecords = {
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, ports: {}, customers: {},
 };
 var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
-    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType", "unUsedBooking"];
+    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType",
+    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -670,8 +673,8 @@ var masterForms = [
                             AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
                         },
                         formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
                         ],
                     },
                 ]
@@ -723,8 +726,8 @@ var masterForms = [
                             AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
                         },
                         formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
                         ],
                     },
                 ]
@@ -1116,10 +1119,12 @@ var masterForms = [
             hiddenFields: ["COMPANY_ID", "FRT_MODE"],
             readonlyFields: [
                 { name: "HAWB_NO", readonly: "always" },
-                { name: "MAWB_NO", readonly: "edit" },
+                //{ name: "MAWB_NO", readonly: "edit" },
                 { name: "BOOKING_NO", readonly: "edit" },
                 { name: "JOB_NO", readonly: "always" },
-                { name: "CWTS", readonly: "always" }],
+                { name: "CWTS", readonly: "always" },
+                { name: "FLIGHT_NO", readonly: "always" },
+                { name: "FLIGHT_DATE", readonly: "always" }],
         },
         formGroups: [
             {
@@ -1128,7 +1133,7 @@ var masterForms = [
                 colWidth: 8,
                 formControls: [
                     { label: "HAWB #", type: "text", name: "HAWB_NO", colWidth: 6 },
-                    { label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
+                    { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airHawb.selectMawb", colWidth: 6 },
                     { label: "Booking #", type: "unUsedBooking", name: "BOOKING_NO", callbackFunction: "controllers.airHawb.selectUnusedBooking", colWidth: 6 },
                     { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
                     { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER" },
@@ -1195,6 +1200,10 @@ var masterForms = [
                     { label: "Hide KG", type: "switch", name: "HIDE_KG", colWidth: 3 },
                     { label: "V/Wts Factor", type: "vwtsFactor", name: "VWTS_FACTOR", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 6 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 6 },
+                    { label: "Second Package", type: "numberInt", name: "PACKAGE2", colWidth: 6 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT2", colWidth: 6 },
                     { label: "G/Wts", type: "number", name: "GWTS", colWidth: 6 },
                     { label: "V/Wts", type: "number", name: "VWTS", colWidth: 6 },
                     { label: "Total Volume", type: "number", name: "TOTAL_VOL", colWidth: 6 },
@@ -1336,8 +1345,8 @@ var masterForms = [
                             AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
                         },
                         formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
                         ],
                     },
                 ]
@@ -1387,8 +1396,8 @@ var masterForms = [
                             AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
                         },
                         formulas: [
-                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
-                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{EX_RATE}*{QTY}" },
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
                         ],
                     },
                 ]
@@ -1469,7 +1478,9 @@ var masterForms = [
                             { name: "cancel" },
                         ],
                         columns: [
-                            { title: "Document Name", field: "DOC_NAME", attributes: { "class": "link-cell" }, width: 220 },
+                            //{ title: "Document Name", field: "DOC_NAME", attributes: { "class": "link-cell" }, width: 220 },
+                            { title: "", template: (dataItem) => `<i class="k-icon k-i-download handCursor" onclick="controllers.airHawb.downloadFile(this, '${dataItem.DOC_ID}')"></i>`, width: 24 },
+                            { title: "Document Name", field: "DOC_NAME", width: 220 },
                             { title: "Size", field: "DOC_SIZE", width: 60 },
                             { title: "Comments", field: "COMMENTS", width: 260 },
                             { title: "Create", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(kendo.parseDate(dataItem.CREATE_DATE), data.dateTimeLongFormat)}`; }, width: 160 },
@@ -1484,7 +1495,7 @@ var masterForms = [
                             DOC_ID: { type: "string" },
                             HAWB_NO: { type: "string" },
                             DOC_PATH: { type: "string" },
-                            DOC_NAME: { validation: { required: true }, editable: false },
+                            DOC_NAME: { validation: { required: true } },
                             DOC_SIZE: { type: "number", editable: false },
                             COMMENTS: { type: "string" },
                             CREATE_USER: { editable: false },
@@ -1524,7 +1535,7 @@ var masterForms = [
         title: "Invoice#",
         readUrl: "../Air/Invoice/GetInvoice",
         updateUrl: "../Air/Invoice/UpdateInvoice",
-        //additionalScript: "initAirInvoice",
+        additionalScript: "initAirInvoice",
         id: "",
         targetForm: {},
         toolbar: [
@@ -1539,9 +1550,13 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "InvoiceHawbs"],
             readonlyFields: [
                 { name: "INV_NO", readonly: "always" },
+                { name: "INV_DATE", readonly: "edit" },
+                { name: "INV_TYPE", readonly: "edit" },
+                { name: "AMOUNT", readonly: "always" },
+                { name: "AMOUNT_HOME", readonly: "always" },
             ],
         },
         formTabs: [
@@ -1555,13 +1570,87 @@ var masterForms = [
             {
                 name: "mainInfo",
                 title: "Invoice Information",
-                colWidth: 8,
+                colWidth: 10,
                 formControls: [
                     { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 6 },
                     { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 6 },
-                    { label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
-                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
-                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER" },
+                    { label: "Invoice Type", type: "buttonGroup", name: "INV_TYPE", dataType: "invoiceType", colWidth: 6 },
+                    { label: "Category", type: "buttonGroup", name: "INV_CATEGORY", dataType: "invoiceCategory", colWidth: 6 },
+                    { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airInvoice.selectHawb", colWidth: 3 },
+                    { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
+                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
+                    { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airInvoice.selectLot", colWidth: 3 },
+                    //{ label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
+                    //{ label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
+                    { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },
+                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE", colWidth: 4 },
+                    { label: "Freight Charge", type: "paymentTerms", name: "FRT_PAYMENT_PC", colWidth: 4 },
+                    { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 4 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 4 },
+                    { label: "G/Wts", type: "number", name: "GWTS", colWidth: 4 },
+                    { label: "V/Wts", type: "number", name: "VWTS", colWidth: 4 },
+                    { label: "C/Wts", type: "number", name: "CWTS", colWidth: 4 },
+                    { label: "Origin", type: "port", name: "ORIGIN", colWidth: 4 },
+                    { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
+                    { label: "Cr Invoice#", type: "text", name: "CR_INVOICE", colWidth: 4 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Amount", type: "number", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "number", name: "AMOUNT_HOME", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                    { label: "Payment Terms", type: "text", name: "PAYMENT_TERMS", colWidth: 4 },
+                ]
+            },
+            {
+                name: "charges",
+                title: "Charge Items",
+                colWidth: 10,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
+                    {
+                        label: "Charges", type: "grid", name: "InvoiceItems",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            PAYMENT_TYPE: { defaultValue: "P" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
+                        ],
+                    },
                 ]
             },
         ],
@@ -1608,6 +1697,7 @@ export default class {
     get dateFormat() { return dateFormat; }
     get dateTimeFormat() { return dateTimeFormat; }
     get dateTimeLongFormat() { return dateTimeLongFormat; }
+    get lastActiveTabId() { return lastActiveTabId; }
     get masterRecords() { return masterRecords; }
     get dropdownlistControls() { return dropdownlistControls; }
     get frameworkHtmlElements() { return frameworkHtmlElements; }
@@ -1625,6 +1715,7 @@ export default class {
     set dateFormat(val) { dateFormat = val; }
     set dateTimeFormat(val) { dateTimeFormat = val; }
     set dateTimeLongFormat(val) { dateTimeLongFormat = val; }
+    set lastActiveTabId(val) { lastActiveTabId = val; }
     set masterRecords(val) { masterRecords = val; }
     set frameworkHtmlElements(val) { frameworkHtmlElements = val; }
     set htmlElements(val) { htmlElements = val; }

@@ -446,6 +446,7 @@
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
+    <Content Include="Scripts\rcsCargo\airInvoice.js" />
     <Content Include="Scripts\rcsCargo\airHawb.js" />
     <Content Include="Scripts\rcsCargo\controls.kendo.js" />
     <Content Include="Scripts\rcsCargo\controls.edit.js" />

@@ -99,11 +99,24 @@
         //kendoButtonGroup for jobType
         $(`#${masterForm.id} div[type=buttonGroup][dataType=jobType]`).each(function () {
             $(this).kendoButtonGroup({
-                items: [
-                    { text: "Consol", value: "C" },
-                    { text: "Direct", value: "D" },
-                ],
+                items: data.masterRecords.jobType,
                 //index: 0
+            });
+        });
+
+        //kendoButtonGroup for invoiceType
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=invoiceType]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.invoiceType,
+                index: 0
+            });
+        });
+
+        //kendoButtonGroup for invoiceCategory
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=invoiceCategory]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.invoiceCategory,
+                index: 0
             });
         });
 
@@ -316,27 +329,261 @@
         });
 
         //kendoDropDownList for invoice type
-        $(`#${masterForm.id} input[type=invoiceType]`).each(function () {
-            $(this).kendoDropDownList({
-                dataSource: data.masterRecords.invoiceType
-            });
-        });
+        //$(`#${masterForm.id} input[type=invoiceType]`).each(function () {
+        //    $(this).kendoDropDownList({
+        //        dataSource: data.masterRecords.invoiceType
+        //    });
+        //});
 
         //kendoDropDownList for invoice category
-        $(`#${masterForm.id} input[type=invoiceCategory]`).each(function () {
-            $(this).kendoDropDownList({
-                dataSource: data.masterRecords.invoiceCategory
-            });
+        //$(`#${masterForm.id} input[type=invoiceCategory]`).each(function () {
+        //    $(this).kendoDropDownList({
+        //        dataSource: data.masterRecords.invoiceCategory
+        //    });
+        //});
+
+        //kendoDropDownList for selectMawb
+        $(`#${masterForm.id} input[type=selectMawb]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "MAWB_NO",
+                dataValueField: "MAWB_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: (dataItem) => `${dataItem.MAWB_NO} / ${dataItem.JOB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
+                    ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    if (options.data.filter.filters[0].value.toUpperCase() != ddl.optionLabel.text().toUpperCase())
+                                        filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Air/Hawb/GetMawbs",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                },
+                select: function (e) {
+                    filterValue = e.dataItem.MAWB_NO;
+                    if (e.sender.element.attr("callbackFunction") != null) {
+                        var callbackFunction = e.sender.element.attr("callbackFunction");
+                        eval(`${callbackFunction}(e, filterValue)`);
+                    }
+                },
+                dataBound: function (e) {
+                }
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectJob
+        $(`#${masterForm.id} input[type=selectJob]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "JOB_NO",
+                dataValueField: "JOB_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: (dataItem) => `${dataItem.JOB_NO} / ${dataItem.MAWB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
+                    ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    if (options.data.filter.filters[0].value.toUpperCase() != ddl.optionLabel.text().toUpperCase())
+                                        filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Air/Hawb/GetMawbs",
+                                    data: {
+                                        searchValue: utils.formatText(filterValue),
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                },
+                select: function (e) {
+                    filterValue = e.dataItem.JOB_NO;
+                    if (e.sender.element.attr("callbackFunction") != null) {
+                        var callbackFunction = e.sender.element.attr("callbackFunction");
+                        eval(`${callbackFunction}(e, filterValue)`);
+                    }
+                },
+                dataBound: function (e) {
+                }
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectLot
+        $(`#${masterForm.id} input[type=selectLot]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "LOT_NO",
+                dataValueField: "LOT_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: (dataItem) => `${dataItem.LOT_NO} / ${dataItem.ORIGIN_CODE} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
+                    ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    if (options.data.filter.filters[0].value.toUpperCase() != ddl.optionLabel.text().toUpperCase())
+                                        filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Air/Mawb/GetLotNos",
+                                    data: {
+                                        searchValue: utils.formatText(filterValue),
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                },
+                select: function (e) {
+                    filterValue = e.dataItem.LOT_NO;
+                    if (e.sender.element.attr("callbackFunction") != null) {
+                        var callbackFunction = e.sender.element.attr("callbackFunction");
+                        eval(`${callbackFunction}(e, filterValue)`);
+                    }
+                },
+                dataBound: function (e) {
+                }
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectHawb
+        $(`#${masterForm.id} input[type=selectHawb]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "HAWB_NO",
+                dataValueField: "HAWB_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: (dataItem) => `${dataItem.HAWB_NO} / ${dataItem.MAWB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
+                    ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    //console.log(options.data.filter.filters[0].value, ddl.optionLabel.text());
+                                    if (options.data.filter.filters[0].value.toUpperCase() != ddl.optionLabel.text().toUpperCase())
+                                        filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Air/Hawb/GetHawbs",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    //if (!utils.isEmptyString(e.sender.filterInput.val()) && e.sender.dataItems().length == 0) {
+                    //    e.sender.search(e.sender.filterInput.val());
+                    //}
+                },
+                select: function (e) {
+                    filterValue = e.dataItem.HAWB_NO;
+                    if (e.sender.element.attr("callbackFunction") != null) {
+                        var callbackFunction = e.sender.element.attr("callbackFunction");
+                        eval(`${callbackFunction}(e, filterValue)`);
+                    }
+                },
+                dataBound: function (e) {
+                    //if (!utils.isEmptyString(filterValue) && e.sender.dataItems().length > 0) {
+                    //    e.sender.filterInput.val(utils.formatText(filterValue));
+                    //    ddl.value(utils.formatText(filterValue));
+                    //}
+                }
+            }).data("kendoDropDownList");
         });
 
         //kendoDropDownList for unUsedBooking
         $(`#${masterForm.id} input[type=unUsedBooking]`).each(function () {
             var filterValue = "";
-            $(this).kendoDropDownList({
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
                 filter: "startswith",
                 dataTextField: "BOOKING_NO",
                 dataValueField: "BOOKING_NO",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: ({ BOOKING_NO, ORIGIN_CODE, DEST_CODE, CONSIGNEE_DESC }) => `${BOOKING_NO} / ${ORIGIN_CODE} - ${DEST_CODE} / ${CONSIGNEE_DESC}`,
                 dataSource: {
                     type: "json",
                     serverFiltering: true,
@@ -355,14 +602,11 @@
                                     data: {
                                         searchValue: filterValue,
                                         companyId: data.companyId,
-                                        frtMode: utils.getFrtMode()
+                                        frtMode: utils.getFrtMode(masterForm.id)
                                     },
                                     dataType: "json",
                                     type: "post",
                                     success: function (result) {
-                                        //for (var i in result) {
-                                        //    result[i].BOOKING_DISPLAY = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
-                                        //}
                                         options.success(result);
                                     }
                                 });
@@ -378,8 +622,8 @@
                         .formGroups.filter(a => a.name == "mainInfo")[0]
                         .formControls.filter(a => a.name == "BOOKING_NO")[0].callbackFunction;
                     eval(`${callbackFunction}(e)`);
-                }
-            });
+                },
+            }).data("kendoDropDownList");
         });
 
 
@@ -420,7 +664,6 @@
                         var templateName = e.sender._cascadedValue;
                         var grid = $(`#${masterForm.id} [name=${e.sender.element.attr("targetControl")}]`).data("kendoGrid");
                         var cwts = utils.getFormValue("CWTS", e.sender.element);
-                        testObj = grid;
 
                         $.ajax({
                             url: "../Home/GetChargeTemplate",
@@ -538,24 +781,6 @@
                 },
             });
         });
-
-        //readonly attributes for kendoDropDownList
-        data.dropdownlistControls.forEach(function (ddl) {
-            $(`#${masterForm.id} input[type="${ddl}"]`).each(function () {
-                var control = $(this)
-                masterForm.schema.readonlyFields.forEach(function (readonlyCtrl) {
-                    if (readonlyCtrl.readonly == "always") {
-                        if (readonlyCtrl.name == $(control).attr("name")) {
-                            $(control).data("kendoDropDownList").enable(false);
-                        }
-                    } else {
-                        if (readonlyCtrl.name == $(control).attr("name") && utils.getEditMode(control) == "edit") {
-                            $(control).data("kendoDropDownList").enable(false);
-                        }
-                    }
-                });
-            });
-        });
     }
 
     //kendoGrid related functions
@@ -655,8 +880,6 @@
 
     //kendoGrid kendoDropDownList for Currency
     renderGridEditorCurrency = function (container, options) {
-        //testObj = container;
-        //testObj2 = options;
         var ddl = $(`<input name="${options.field}" />`);
         ddl.appendTo(container);
 

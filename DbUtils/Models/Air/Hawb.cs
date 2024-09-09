@@ -410,6 +410,7 @@ namespace DbUtils.Models.Air
         public string SHIPPER_DESC { get; set; }
         public string CONSIGNEE_CODE { get; set; }
         public string CONSIGNEE_DESC { get; set; }
+        public string FRT_PAYMENT_PC { get; set; }
         public decimal? PACKAGE { get; set; }
         public decimal? GWTS { get; set; }
         public decimal? VWTS { get; set; }
