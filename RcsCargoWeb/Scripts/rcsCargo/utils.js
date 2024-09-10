@@ -120,6 +120,8 @@
     isEmptyString = function (str) {
         if (str == null)
             return true;
+        if (typeof str != "string")
+            return true;
         if (str.trim().length == 0)
             return true;
 

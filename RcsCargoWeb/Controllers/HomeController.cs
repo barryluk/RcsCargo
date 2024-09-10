@@ -210,6 +210,12 @@ namespace RcsCargoWeb.Controllers
             return Content(DbUtils.Utils.DESEncrypt(value), "text/plain");
         }
 
+        public ActionResult GetSeqNo(string seqType, string companyId, string origin, string dest, DateTime? date)
+        {
+            var admin = new DbUtils.Admin();
+            return Content(admin.GetSequenceNumber(seqType, companyId, origin, dest, date ?? DateTime.Now), "text/plain");
+        }
+
         #endregion
     }
 }

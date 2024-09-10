@@ -22,6 +22,8 @@
         });
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
 
+        $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
+
         $(`#${masterForm.id} button .k-i-file-add`).parent().bind("click", function () {
             var formId = utils.getFormId($(this));
             if (formId.split("_")[1] == "NEW") {
@@ -116,6 +118,14 @@
         $(`#${masterForm.id} div[type=buttonGroup][dataType=invoiceCategory]`).each(function () {
             $(this).kendoButtonGroup({
                 items: data.masterRecords.invoiceCategory,
+                index: 0
+            });
+        });
+
+        //kendoButtonGroup for pvType
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=pvType]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.pvType,
                 index: 0
             });
         });

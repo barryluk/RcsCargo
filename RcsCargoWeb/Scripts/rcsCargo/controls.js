@@ -241,6 +241,10 @@
 
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
+        //Status info
+        $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 
+            Modify: ${model.MODIFY_USER} - ${kendo.toString(kendo.parseDate(model.MODIFY_DATE), data.dateTimeLongFormat)}`)
+
         if (masterForm.schema.hiddenFields != null) {
             masterForm.schema.hiddenFields.forEach(function (field) {
                 var value;

@@ -41,6 +41,8 @@ namespace DbUtils
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<InvoiceHawb> InvoiceHawbs { get; set; }
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
+        public DbSet<Pv> Pvs { get; set; }
+        public DbSet<PvItem> PvItems { get; set; }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }
@@ -49,6 +51,7 @@ namespace DbUtils
         public DbSet<SysCompany> SysCompanies { get; set; }
         public DbSet<ReportData> ReportDatas { get; set; }
         public DbSet<SysModule> SysModules { get; set; }
+        public DbSet<SeqFormat> SeqFormats { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

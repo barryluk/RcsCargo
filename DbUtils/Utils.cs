@@ -2,9 +2,10 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Common;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
-using System.Data.OracleClient;
+using Oracle.ManagedDataAccess.Client;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -193,6 +194,9 @@ namespace DbUtils
             return RunSqlQuery<T>(tableName, fields, dbParas);
         }
 
+        /// Important Notes: oracle parameters
+        /// Number of parameters appear in sql command must match in the parameters array, if same parameter appear twice or more in the sql command,
+        /// it should also add the same in the parameter, the sequence of the parameters in the sql command should be also same as in the parameter array too!
         private static List<T> RunSqlQuery<T>(string tableName, string fields, List<DbParameter> parameters)
         {
             var sqlCmd = string.Empty;
@@ -244,6 +248,22 @@ namespace DbUtils
                 }
                 return null;
             }
+        }
+
+        public static string FormatSqlErrorLog(Exception ex, string sqlCmd, List<OracleParameter> paras)
+        {
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.AppendLine(": " + ex.Message);
+            errorMsg.AppendLine("--- Command Text ---");
+            errorMsg.AppendLine(sqlCmd);
+
+            if (paras.Count > 0)
+                errorMsg.AppendLine("--- Parameters ---");
+
+            foreach (var para in paras)
+                errorMsg.AppendLine(string.Format("{0}: {1}", para.ParameterName, para.Value));
+
+            return errorMsg.ToString();
         }
 
         #region Decrypt / Encrypt

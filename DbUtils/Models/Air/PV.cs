@@ -6,25 +6,26 @@ using System.Diagnostics;
 
 namespace DbUtils.Models.Air
 {
-    [Table("A_INVOICE")]
-    public class Invoice
+    [Table("A_PV")]
+    public class Pv
     {
         [Key]
         [Column(Order = 1)]
-        public string INV_NO { get; set; }
+        public string PV_NO { get; set; }
         [Key]
         [Column(Order = 2)]
         public string COMPANY_ID { get; set; }
         [Key]
         [Column(Order = 3)]
         public string FRT_MODE { get; set; }
-        public string INV_TYPE { get; set; }
-        public string INV_CATEGORY { get; set; }
+        public string VENDOR_INV_NO { get; set; }
+        public string PV_TYPE { get; set; }
+        public string PV_CATEGORY { get; set; }
         public string JOB_NO { get; set; }
         public string MAWB_NO { get; set; }
         public string HAWB_NO { get; set; }
         public string LOT_NO { get; set; }
-        public DateTime INV_DATE { get; set; }
+        public DateTime PV_DATE { get; set; }
         public string CUSTOMER_CODE { get; set; }
         public string CUSTOMER_DESC { get; set; }
         public string CUSTOMER_BRANCH { get; set; }
@@ -39,7 +40,7 @@ namespace DbUtils.Models.Air
         public decimal? GWTS { get; set; }
         public decimal? VWTS { get; set; }
         public decimal? CWTS { get; set; }
-        public string CR_INVOICE { get; set; }
+        public string IS_CR_INVOICE { get; set; }
         public string CURR_CODE { get; set; }
         public decimal EX_RATE { get; set; }
         public decimal AMOUNT { get; set; }
@@ -55,50 +56,24 @@ namespace DbUtils.Models.Air
         public string MODIFY_USER { get; set; }
         public DateTime MODIFY_DATE { get; set; }
         public string CUSTOMER_SHORT_DESC { get; set; }
-        public string IS_TRANSFERRED { get; set; }
-        public string SHOW_DATE_TYPE { get; set; }
-        public string PAYMENT_TERMS { get; set; }
-        public string ADDR1 { get; set; }
-        public string ADDR2 { get; set; }
-        public string ADDR3 { get; set; }
-        public string ADDR4 { get; set; }
-        public string IS_VAT { get; set; }
-        public decimal? VAT_RATE { get; set; }
+        public string ORIGIN_PV_TYPE { get; set; }
+        public decimal? MAWB_CWTS { get; set; }
+        public decimal? MAWB_RATE { get; set; }
         [NotMapped]
-        public List<InvoiceHawb> InvoiceHawbs { get; set; }
-        [NotMapped]
-        public List<InvoiceItem> InvoiceItems { get; set; }
+        public List<PvItem> PvItems { get; set; }
 
-        public Invoice()
+        public Pv()
         {
-            InvoiceHawbs = new List<InvoiceHawb>();
-            InvoiceItems = new List<InvoiceItem>();
+            PvItems = new List<PvItem>();
         }
     }
 
-    [Table("A_INVOICE_HAWB")]
-    public class InvoiceHawb
+    [Table("A_PV_ITEM")]
+    public class PvItem
     {
         [Key]
         [Column(Order = 1)]
-        public string INV_NO { get; set; }
-        [Key]
-        [Column(Order = 2)]
-        public string COMPANY_ID { get; set; }
-        [Key]
-        [Column(Order = 3)]
-        public string FRT_MODE { get; set; }
-        [Key]
-        [Column(Order = 4)]
-        public string HAWB_NO { get; set; }
-    }
-
-    [Table("A_INVOICE_ITEM")]
-    public class InvoiceItem
-    {
-        [Key]
-        [Column(Order = 1)]
-        public string INV_NO { get; set; }
+        public string PV_NO { get; set; }
         [Key]
         [Column(Order = 2)]
         public string COMPANY_ID { get; set; }
@@ -115,20 +90,18 @@ namespace DbUtils.Models.Air
         public decimal PRICE { get; set; }
         public decimal QTY { get; set; }
         public string QTY_UNIT { get; set; }
-        public decimal MIN_CHARGE { get; set; }
         public decimal AMOUNT { get; set; }
         public decimal AMOUNT_HOME { get; set; }
-        public decimal? VAT { get; set; }
     }
 
-    public class InvoiceView
+    public class PvView
     {
-        public string INV_NO { get; set; }
+        public string PV_NO { get; set; }
         public string COMPANY_ID { get; set; }
         public string FRT_MODE { get; set; }
-        public DateTime INV_DATE { get; set; }
-        public string INV_TYPE { get; set; }
-        public string INV_CATEGORY { get; set; }
+        public DateTime PV_DATE { get; set; }
+        public string PV_TYPE { get; set; }
+        public string PV_CATEGORY { get; set; }
         public string JOB_NO { get; set; }
         public string MAWB_NO { get; set; }
         public string HAWB_NO { get; set; }

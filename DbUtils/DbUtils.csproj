@@ -69,8 +69,10 @@
     <Compile Include="Admin.cs" />
     <Compile Include="Models\Admin\ReportData.cs" />
     <Compile Include="Models\Admin\SysCompany.cs" />
+    <Compile Include="Models\Admin\SeqFormat.cs" />
     <Compile Include="Models\Admin\User.cs" />
     <Compile Include="Models\Admin\UserLog.cs" />
+    <Compile Include="Models\Air\PV.cs" />
     <Compile Include="Models\Air\Invoice.cs" />
     <Compile Include="Models\Air\Booking.cs" />
     <Compile Include="Models\Air\Hawb.cs" />

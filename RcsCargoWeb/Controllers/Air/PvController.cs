@@ -13,17 +13,17 @@ using System.Web.Configuration;
 namespace RcsCargoWeb.Air.Controllers
 {
 
-    [RoutePrefix("Air/Invoice")]
-    public class InvoiceController : Controller
+    [RoutePrefix("Air/Pv")]
+    public class PvController : Controller
     {
         DbUtils.Air air = new DbUtils.Air();
 
-        [Route("GridInvoice_Read")]
-        public ActionResult GridInvoice_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
+        [Route("GridPv_Read")]
+        public ActionResult GridPv_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
             [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
-            var sortField = "INV_DATE";
+            var sortField = "PV_DATE";
             var sortDir = "desc";
 
             if (sortings != null)
@@ -32,7 +32,7 @@ namespace RcsCargoWeb.Air.Controllers
                 sortDir = sortings.First().Single(a => a.Key == "dir").Value;
             }
 
-            var results = air.GetInvoices(dateFrom, dateTo, companyId, frtMode, searchValue);
+            var results = air.GetPvs(dateFrom, dateTo, companyId, frtMode, searchValue);
 
             if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
             {
@@ -45,17 +45,17 @@ namespace RcsCargoWeb.Air.Controllers
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
-        [Route("GetInvoice")]
-        public ActionResult GetInvoice(string id, string companyId, string frtMode)
+        [Route("GetPv")]
+        public ActionResult GetPv(string id, string companyId, string frtMode)
         {
-            var invoice = air.GetInvoice(id, companyId, frtMode);
-            return Json(invoice, JsonRequestBehavior.AllowGet);
+            var pv = air.GetPv(id, companyId, frtMode);
+            return Json(pv, JsonRequestBehavior.AllowGet);
         }
 
-        [Route("IsExistingInvNo")]
-        public ActionResult IsExistingInvNo(string id, string companyId, string frtMode)
+        [Route("IsExistingPvNo")]
+        public ActionResult IsExistingPvNo(string id, string companyId, string frtMode)
         {
-            return Content(air.IsExistingInvNo(id, companyId, frtMode).ToString());
+            return Content(air.IsExistingPvNo(id, companyId, frtMode).ToString());
         }
     }
 }

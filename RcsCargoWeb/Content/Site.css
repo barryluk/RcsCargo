@@ -300,3 +300,8 @@ td.k-edit-cell {
     background-color: #1274AC;
 }
 
+.toolbar.k-toolbar .toolbar-status {
+    position: absolute;
+    right: 10px;
+    font-size: 0.7rem;
+}

@@ -539,5 +539,54 @@ namespace DbUtils
 
         #endregion
 
+        #region Pv
+
+        public List<PvView> GetPvs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "pv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "pv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<PvView>("a_pv", "*", dbParas);
+
+            return result;
+        }
+
+        public Pv GetPv(string pvNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "pv_no", ParaName = "pv_no", ParaCompareType = DbParameter.CompareType.equals, Value = pvNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var pv = Utils.GetSqlQueryResult<Pv>("a_pv", "*", dbParas).FirstOrDefault();
+            if (pv != null)
+            {
+                pv.PvItems = Utils.GetSqlQueryResult<PvItem>("a_pv_item", "*", dbParas);
+            }
+
+            if (pv == null)
+                return new Pv();
+            else
+                return pv;
+        }
+
+        public bool IsExistingPvNo(string pvNo, string companyId, string frtMode)
+        {
+            return db.Pvs.Count(a => a.PV_NO == pvNo &&
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        #endregion
     }
 }

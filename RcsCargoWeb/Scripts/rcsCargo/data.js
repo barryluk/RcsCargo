@@ -20,11 +20,12 @@ var masterRecords = {
     showCharges: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }, { text: "Prepaid + Collect", value: "PC" }],
     invoiceType: [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }],
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
+    pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, ports: {}, customers: {},
 };
 var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
-    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "fltServiceType",
+    "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot"];
 
 var frameworkHtmlElements = {
@@ -483,6 +484,54 @@ var indexPages = [
                 { field: "HAWB_NO", title: "HAWB#" },
                 { field: "FLIGHT_NO", title: "Flight#" },
                 { template: function (dataItem) { return kendo.toString(new Date(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "ORIGIN", title: "Origin" },
+                { field: "DEST", title: "Destination" },
+                { field: "CUSTOMER_DESC", title: "Customer" },
+                { field: "CURR_CODE", title: "Curr." },
+                { field: "AMOUNT", title: "Amount" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date" },
+            ],
+        },
+    },
+    {
+        pageName: "airPv",
+        id: "",
+        title: "Payment Voucher",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "PV Date", type: "dateRange", name: "pvDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "PV# / MAWB# / HAWB# / Job# / Customer" },
+        ],
+        gridConfig: {
+            gridName: "gridAirPvIndex",
+            dataSourceUrl: "../Air/Pv/GridPv_Read",
+            linkIdPrefix: "airPv",
+            linkTabTitle: "PV# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "PV_NO", title: "PV#", attributes: { "class": "link-cell" } },
+                { template: function (dataItem) { return dataItem.PV_CATEGORY == "L" ? dataItem.LOT_NO : dataItem.JOB_NO; }, title: "Job / Lot#" },
+                {
+                    field: "PV_TYPE", title: "Type",
+                    template: function (dataItem) {
+                        switch (dataItem.PV_TYPE) {
+                            case "P":
+                                return "Payment Voucher";
+                            case "C":
+                                return "Credit Voucher";
+                        }
+                    }
+                },
+                { field: "MAWB_NO", title: "MAWB#" },
+                { field: "HAWB_NO", title: "HAWB#" },
+                { field: "FLIGHT_NO", title: "Flight#" },
+                { template: function (dataItem) { return kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
                 { field: "ORIGIN", title: "Origin" },
                 { field: "DEST", title: "Destination" },
                 { field: "CUSTOMER_DESC", title: "Customer" },
@@ -1580,8 +1629,6 @@ var masterForms = [
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airInvoice.selectLot", colWidth: 3 },
-                    //{ label: "MAWB #", type: "text", name: "MAWB_NO", colWidth: 6 },
-                    //{ label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
                     { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
@@ -1636,7 +1683,6 @@ var masterForms = [
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
                             CHARGE_DESC: { defaultValue: "" },
-                            PAYMENT_TYPE: { defaultValue: "P" },
                             CURR_CODE: { validation: { required: true } },
                             PRICE: { type: "number", validation: { required: true } },
                             QTY: { type: "number", validation: { required: true } },
@@ -1654,7 +1700,128 @@ var masterForms = [
                 ]
             },
         ],
-    }
+    },
+    {
+        formName: "airPv",
+        mode: "edit",   //create / edit
+        title: "PV#",
+        readUrl: "../Air/Pv/GetPv",
+        updateUrl: "../Air/Pv/UpdatePv",
+        additionalScript: "initAirPv",
+        id: "",
+        targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "printPv", text: "Print PV", icon: "file-txt" },
+                    { id: "previewPv", text: "Preview PV", icon: "file-report" },
+                ]
+            },
+        ],
+        schema: {
+            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            readonlyFields: [
+                { name: "PV_NO", readonly: "always" },
+                { name: "PV_DATE", readonly: "edit" },
+                { name: "PV_TYPE", readonly: "edit" },
+                { name: "AMOUNT", readonly: "always" },
+                { name: "AMOUNT_HOME", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "charges"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "PV Information",
+                colWidth: 10,
+                formControls: [
+                    { label: "Pv #", type: "text", name: "PV_NO", colWidth: 6 },
+                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 6 },
+                    { label: "Pv Type", type: "buttonGroup", name: "PV_TYPE", dataType: "pvType", colWidth: 4 },
+                    { label: "Category", type: "buttonGroup", name: "PV_CATEGORY", dataType: "invoiceCategory", colWidth: 4 },
+                    { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
+                    { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airPv.selectHawb", colWidth: 3 },
+                    { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
+                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
+                    { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airPv.selectLot", colWidth: 3 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
+                    { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },
+                    { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE", colWidth: 4 },
+                    { label: "Freight Charge", type: "paymentTerms", name: "FRT_PAYMENT_PC", colWidth: 4 },
+                    { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 4 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 4 },
+                    { label: "G/Wts", type: "number", name: "GWTS", colWidth: 4 },
+                    { label: "V/Wts", type: "number", name: "VWTS", colWidth: 4 },
+                    { label: "C/Wts", type: "number", name: "CWTS", colWidth: 4 },
+                    { label: "Origin", type: "port", name: "ORIGIN", colWidth: 4 },
+                    { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
+                    { label: "Cr Invoice", type: "switch", name: "IS_CR_INVOICE", colWidth: 4 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Amount", type: "number", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "number", name: "AMOUNT_HOME", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                ]
+            },
+            {
+                name: "charges",
+                title: "Charge Items",
+                colWidth: 10,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
+                    {
+                        label: "Charges", type: "grid", name: "PvItems",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                        ],
+                    },
+                ]
+            },
+        ],
+    },
 ];
 
 export default class {
