@@ -206,7 +206,11 @@
     }
 
     formatText = function (value) {
-        return value.toUpperCase().trim();
+        try {
+            return value.toUpperCase().trim();
+        } catch {
+            return value;
+        }
     }
 
     formatDateTime = function (value, dateFormat) {
@@ -214,6 +218,12 @@
         if (date != null) {
             return kendo.toString(date, dateFormat);
         }
+    }
+
+    removeSpecialCharacters = function (value) {
+        value = value.replaceAll("/", "").replaceAll("\"", "");
+
+        return value;
     }
 
     addDays = function (date, days) {
@@ -228,6 +238,11 @@
                 <span class="k-icon k-i-warning">&nbsp;</span>${message}
                 <div class="k-callout k-callout-n"></div>
             </div>`;
+    }
+
+    //type: "info", "success", "warning", "error"
+    showNotification = function (msg, type = "info") {
+        $("#notification").data("kendoNotification").show(msg, type);
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"

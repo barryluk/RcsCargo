@@ -2,13 +2,15 @@
     constructor() {
     }
 
-    initEditPage = function (id, mode = "edit", para) {
+    initEditPage = function (id, originalId, mode = "edit", para) {
         //linkIdPrefix: airMawb / airBooking
         //id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         var formName = id.split("_")[0];
-        this.keyValue = id.split("_")[1];
+        this.keyValue = utils.isEmptyString(originalId) ? id.split("_")[1] : originalId.split("_")[1];
         this.companyId = id.split("_")[2];
         this.frtMode = id.split("_")[3];
+
+        if (!utils.isEmptyString(originalId))
 
         if (this.keyValue == "NEW")
             mode = "create";

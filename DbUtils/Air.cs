@@ -2,6 +2,7 @@
 using DbUtils.Models.MasterRecords;
 using System;
 using System.Data;
+using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
@@ -11,6 +12,8 @@ using Oracle.ManagedDataAccess.Client;
 using System.Security.Cryptography;
 using System.Data.SqlTypes;
 using System.IO;
+using System.ComponentModel.Design;
+using System.Web.Configuration;
 
 namespace DbUtils
 {
@@ -111,6 +114,19 @@ namespace DbUtils
                 return new Mawb();
             else
                 return mawb;
+        }
+
+        public void UpdateMawb(Mawb mawb)
+        {
+            db.Entry(mawb).State = EntityState.Modified;
+            var dims = Utils.GetSqlQueryResult<MawbDim>("a_mawb_dim", "mawb_no", mawb.MAWB, mawb.COMPANY_ID, mawb.FRT_MODE);
+            var charges = Utils.GetSqlQueryResult<MawbCharge>("a_mawb_chg", "mawb_no", mawb.MAWB, mawb.COMPANY_ID, mawb.FRT_MODE);
+            if (dims != null)
+                db.MawbDims.RemoveRange(dims);
+            if (charges != null)
+                db.MawbCharges.RemoveRange(charges);
+
+            db.SaveChanges();
         }
 
         public bool IsExisitingMawbNo(string mawbNo, string companyId, string frtMode)
@@ -510,6 +526,19 @@ namespace DbUtils
             return result;
         }
 
+        public List<InvoiceView> GetJobInvoices(string jobNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = jobNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
+
+            return result;
+        }
+
         public Invoice GetInvoice(string invNo, string companyId, string frtMode)
         {
             var dbParas = new List<DbParameter>
@@ -584,6 +613,62 @@ namespace DbUtils
         public bool IsExistingPvNo(string pvNo, string companyId, string frtMode)
         {
             return db.Pvs.Count(a => a.PV_NO == pvNo &&
+                a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Other Job
+
+        public List<OtherJobView> GetOtherJobs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "lot_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "shipper_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "flight_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "flight_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<OtherJobView>("a_other_job", "*", dbParas);
+
+            return result;
+        }
+
+        public OtherJob GetOtherJob(string jobNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = jobNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var otherJob = Utils.GetSqlQueryResult<OtherJob>("a_other_job", "*", dbParas).FirstOrDefault();
+            if (otherJob != null)
+            {
+                var paraFrtMode = dbParas.Where(a => a.FieldName == "frt_mode").First();
+                dbParas.Remove(paraFrtMode);
+
+                var charges = Utils.GetSqlQueryResult<OtherJobCharge>("a_other_job_chg", "*", dbParas);
+                otherJob.OtherJobChargesPrepaid = charges.Where(a => a.PAYMENT_TYPE == "P").ToList();
+                otherJob.OtherJobChargesCollect = charges.Where(a => a.PAYMENT_TYPE == "C").ToList();
+                otherJob.Invoices = this.GetJobInvoices(jobNo, companyId, frtMode);
+            }
+
+            if (otherJob == null)
+                return new OtherJob();
+            else
+                return otherJob;
+        }
+
+        public bool IsExistingOtherJobNo(string jobNo, string companyId, string frtMode)
+        {
+            return db.OtherJobs.Count(a => a.JOB_NO == jobNo &&
                 a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
 

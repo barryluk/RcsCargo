@@ -72,6 +72,7 @@
     <Compile Include="Models\Admin\SeqFormat.cs" />
     <Compile Include="Models\Admin\User.cs" />
     <Compile Include="Models\Admin\UserLog.cs" />
+    <Compile Include="Models\Air\OtherJob.cs" />
     <Compile Include="Models\Air\PV.cs" />
     <Compile Include="Models\Air\Invoice.cs" />
     <Compile Include="Models\Air\Booking.cs" />

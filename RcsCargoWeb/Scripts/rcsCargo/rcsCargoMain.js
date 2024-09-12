@@ -32,7 +32,7 @@ $(document).ready(function () {
         setTimeout(function () {
             //setTimeout(function () { controls.append_tabStripMain("MAWB", `airMawbIndex_${data.companyId}`, "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("MAWB# NEW", `airMawb_NEW_RCSHKG_AE`, "airMawb"); }, 500);
-            //setTimeout(function () { controls.append_tabStripMain("MAWB# 27274093235", "airMawb_27274093235_RCSHKG_AE", "airMawb"); }, 500);
+            setTimeout(function () { controls.append_tabStripMain("MAWB# 27274092196", "airMawb_27274092196_RCSHKG_AE", "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("MAWB# 17286649382", "airMawb_17286649382_RCSHKG_AE", "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking# WFF74277243", "airBooking_WFF74277243_RCSHKG_AE", "airBooking"); }, 500)
@@ -43,7 +43,8 @@ $(document).ready(function () {
             //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187325", "airInvoice_TD0187325_RCSHKG_AE", "airInvoice"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187274", "airInvoice_TD0187274_RCSHKG_AE", "airInvoice"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Invoice# CNHK121248", "airInvoice_CNHK121248_RCSHKG_AE", "airInvoice"); }, 500);
-            setTimeout(function () { controls.append_tabStripMain("PV# TAPV0150685", "airPv_TAPV0150685_RCSHKG_AE", "airPv"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("PV# TAPV0150685", "airPv_TAPV0150685_RCSHKG_AE", "airPv"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("Other Job", `airOtherJobIndex_${data.companyId}`, "airOtherJob"); }, 500);
         }, 1000);
 
         //send request to server to keep session alive and also get the status

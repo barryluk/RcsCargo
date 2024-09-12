@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>RCS Cargo System</title>
     <link rel="icon" href="@Url.Content("~/Content/img/favicon.ico")" type="image/x-icon">
-    @*<link href="@Url.Content("~/Content/kendo.bootstrap-main.min.css")" rel="stylesheet" />*@
     <link href="@Url.Content("~/Content/kendo.default-ocean-blue.min.css")" rel="stylesheet" />
     <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" />
     <link href="@Url.Content("~/Content/css.css")" rel="stylesheet">
@@ -24,19 +23,17 @@
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
-        @*@Html.Partial("_Navbar")*@
-        @*@Html.Partial("_MainSidebar")*@
         <div class="content-wrapper">
             @RenderBody()
         </div>
-        @*@Html.Partial("_ControlSidebar")*@
         <footer class="main-footer">
             <div class="float-right d-none d-sm-inline">
-                RCS Cargo System version 2.0.0
+                RCS Cargo System version 1.0.0
             </div>
             <strong>Copyright &copy; @DateTime.Now.ToString("yyyy") <a href="https://www.rcslogistics.com/">RCS Logistics Ltd.</a></strong> All rights reserved.
         </footer>
     </div>
+    <span id="notification"></span>
     <link href="@Url.Content("~/Content/Site.css?v=" + DbUtils.Utils.NewGuid() + "")" rel="stylesheet" />
 </body>
 </html>

@@ -41,14 +41,26 @@
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
 
-                //$.ajax({
-                //    url: "../Air/Mawb/TestModel",
-                //    type: "post",
-                //    data: model,
-                //    success: function (result) {
-                //        console.log(result);
-                //    }
-                //});
+                $.ajax({
+                    url: masterForm.updateUrl,
+                    type: "post",
+                    data: model,
+                    beforeSend: function () {
+                        kendo.ui.progress($(".container-fluid"), true);
+                    },
+                    success: function (result) {
+                        console.log(result);
+                        masterForm.mode = "edit";
+                        controls.setValuesToFormControls(masterForm, result);
+                        utils.showNotification("Save success", "success");
+                    },
+                    error: function (err) {
+                        utils.showNotification(err, "error");
+                    },
+                    complete: function () {
+                        kendo.ui.progress($(".container-fluid"), false);
+                    }
+                });
             }
         });
 
@@ -254,8 +266,9 @@
                     masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
                     if (item == null) {
-                        item = e.sender.dataSource.data()[0];
+                        item = e.sender.dataSource.data()[e.sender.selectedIndex - 1];
                     }
+                    //console.log(item);
                     var controlName = $(this.element).attr("name");
                     //$(`#${masterForm.id} input[name=${controlName}]`).val(item.CUSTOMER_DESC);
                     $(`#${masterForm.id} input[name=${controlName}_CODE]`).val(item.CUSTOMER_CODE);

@@ -59,6 +59,11 @@ namespace RcsCargoWeb.Air.Controllers
                     JOB_TYPE = string.IsNullOrEmpty(changedJobType) ? "C" : changedJobType,
                     VWTS_FACTOR = 6000,
                     FLIGHT_DATE = DateTime.Now,
+                    IS_PASSENGER_FLIGHT = "N",
+                    IS_X_RAY = "N",
+                    IS_SPLIT_SHIPMENT = "N",
+                    IS_CLOSED = "N",
+                    IS_VOIDED = "N",
                     CREATE_DATE = DateTime.Now,
                     MODIFY_DATE = DateTime.Now,
                 }, JsonRequestBehavior.AllowGet);
@@ -79,6 +84,17 @@ namespace RcsCargoWeb.Air.Controllers
                 mawb.JOB_TYPE = changedJobType;
 
             return Json(mawb, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateMawb")]
+        public ActionResult UpdateMawb(Mawb model)
+        {
+            if (string.IsNullOrEmpty(model.FRT_PAYMENT_PC))
+                model.FRT_PAYMENT_PC = "P";
+            if (string.IsNullOrEmpty(model.OTHER_PAYMENT_PC))
+                model.OTHER_PAYMENT_PC = "P";
+            air.UpdateMawb(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("IsExistingMawbNo")]

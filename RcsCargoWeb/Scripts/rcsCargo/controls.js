@@ -149,6 +149,15 @@
             //showArrowButton: true,
         });
         $("#btntabStripMainControl span.k-button-text").after("<span class='k-icon k-i-arrow-s k-button-icon'></span>");
+
+        //notification
+        $("#notification").kendoNotification({
+            autoHideAfter: 5000,
+            position: {
+                top: 130,
+                right: 50,
+            },
+        });
     }
 
     configureSortable = function () {
@@ -180,6 +189,8 @@
         kendo.ui.progress($(".container-fluid"), true);
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
+        var originalId = id;    //keep the original id value, in case of special characters appears in the id and will be removed to prevent error in js.
+        id = utils.removeSpecialCharacters(id);
         pageSetting.id = id;
 
         if (tabStrip.tabGroup.find("[id='btnClose_" + id + "']").length == 0) {
@@ -207,7 +218,7 @@
                     controls.index.initIndexPage(pageSetting);
                 }
                 else
-                    controls.edit.initEditPage(id);
+                    controls.edit.initEditPage(id, originalId);
             });
 
             $(".btnPin").unbind("click");
@@ -227,10 +238,11 @@
         if (id.indexOf("Index") != -1)
             controls.index.initIndexPage(pageSetting);
         else
-            controls.edit.initEditPage(id);
+            controls.edit.initEditPage(id, originalId);
     }
 
     remove_tabStripMain = function (id) {
+        id = utils.removeSpecialCharacters(id);
         try {
             eval("remove_" + id + "_Objects();");
         } catch (err) { }
@@ -248,11 +260,15 @@
         if (masterForm.schema.hiddenFields != null) {
             masterForm.schema.hiddenFields.forEach(function (field) {
                 var value;
-                if (model[`${field}`] != null) {
-                    if (typeof model[`${field}`] == "object")
-                        value = JSON.stringify(model[`${field}`]);
-                    else
-                        value = model[`${field}`];
+                if (field.endsWith("_DATE")) {
+                    value = utils.convertDateToISOString(kendo.parseDate(model[`${field}`]));
+                } else {
+                    if (model[`${field}`] != null) {
+                        if (typeof model[`${field}`] == "object")
+                            value = JSON.stringify(model[`${field}`]);
+                        else
+                            value = model[`${field}`];
+                    }
                 }
 
                 if (!partialUpdate)
@@ -317,13 +333,22 @@
                     }
                 } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                     if (model[`${control.name}_CODE`] != null) {
-                        //handle multiple control with the same name condition
-                        $(`#${masterForm.id} [name=${control.name}]`).each(function () {
+                        var controlName = control.name;
+                        $(`#${masterForm.id} [name=${controlName}]`).each(function () {
                             var ddl = $(this).data("kendoDropDownList");
-                            ddl.search(model[`${control.name}_CODE`]);
-                            ddl.bind("dataBound", function () {
-                                this.select(1);
-                                this.trigger("select");
+                            ddl.search(model[`${controlName}_CODE`]);
+                            ddl.bind("dataBound", function (e) {
+                                var ddlName = $(e.sender.element).attr("name");     //very important to get the correct control name!! the dropDropList search is a async function
+                                var dataItems = ddl.dataSource.data();
+                                for (var i = 0; i < dataItems.length; i++) {
+                                    //console.log(ddlName, dataItems[i].BRANCH_CODE, dataItems[i].SHORT_DESC, model[`${ddlName}_BRANCH`], model[`${ddlName}_SHORT_DESC`])
+                                    if (dataItems[i].BRANCH_CODE == model[`${ddlName}_BRANCH`] &&
+                                        dataItems[i].SHORT_DESC == model[`${ddlName}_SHORT_DESC`]) {
+                                        this.select(i + 1);
+                                        this.trigger("select");
+                                        break;
+                                    }
+                                }
                             });
                         });
                     }
@@ -384,18 +409,18 @@
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
                             if (!utils.isEmptyString(value)) {
-                                model[control.name] = value;
-                                model[control.name.replace("_CODE", "_DESC")] = text;
+                                model[control.name] = utils.formatText(value);
+                                model[control.name.replace("_CODE", "_DESC")] = utils.formatText(text);
                             }
                         } else if (control.type == "customerAddr") {
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             if (!utils.isEmptyString(value)) {
                                 var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
 
-                                model[`${control.name}_CODE`] = value;
-                                model[`${control.name}_BRANCH`] = $(`#${masterForm.id} [name=${control.name}_BRANCH]`).val();
-                                model[`${control.name}_SHORT_DESC`] = $(`#${masterForm.id} [name=${control.name}_SHORT_DESC]`).val();
-                                model[`${control.name}_DESC`] = text;
+                                model[`${control.name}_CODE`] = utils.formatText(value);
+                                model[`${control.name}_BRANCH`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_BRANCH]`).val());
+                                model[`${control.name}_SHORT_DESC`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_SHORT_DESC]`).val());
+                                model[`${control.name}_DESC`] = utils.formatText(text);
                             }
                         } else if (control.type == "buttonGroup") {
                             var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoButtonGroup").current().text();
@@ -422,7 +447,7 @@
                                             else
                                                 rowData[field] = "N";
                                         } else
-                                            rowData[field] = item[field];
+                                            rowData[field] = utils.formatText(item[field]);
                                     }
                                     gridData.push(rowData);
                                     lineNo++;
@@ -431,7 +456,9 @@
                                 model[control.name] = gridData;
                             }
                         } else {
-                            model[control.name] = $(`#${masterForm.id} [name=${control.name}]`).val();
+                            //for all default input values
+                            model[control.name] = utils.formatText($(`#${masterForm.id} [name=${control.name}]`).val());
+                            //special case for exchange rate
                             if (control.exRateName != null) {
                                 model[control.exRateName] = $(`#${masterForm.id} [name=${control.exRateName}]`).val();
                             }
@@ -456,6 +483,13 @@
                 }
             }
         }
+
+        if (masterForm.mode == "create") {
+            model.CREATE_USER = data.user.USER_ID;
+            model.CREATE_DATE = utils.convertDateToISOString(new Date());
+        }
+        model.MODIFY_USER = data.user.USER_ID;
+        model.MODIFY_DATE = utils.convertDateToISOString(new Date());
         return model;
     }
 

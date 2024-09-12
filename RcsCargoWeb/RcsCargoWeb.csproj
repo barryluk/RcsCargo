@@ -161,6 +161,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
+    <Compile Include="Controllers\Air\OtherJobController.cs" />
     <Compile Include="Controllers\Air\PvController.cs" />
     <Compile Include="Controllers\Air\InvoiceController.cs" />
     <Compile Include="Controllers\Air\HawbController.cs" />

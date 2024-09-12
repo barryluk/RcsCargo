@@ -542,6 +542,39 @@ var indexPages = [
             ],
         },
     },
+    {
+        pageName: "airOtherJob",
+        id: "",
+        title: "Other Job",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Flight Date", type: "dateRange", name: "flightDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Job# / Lot# / Shipper / Consignee" },
+        ],
+        gridConfig: {
+            gridName: "gridAirOtherJobIndex",
+            dataSourceUrl: "../Air/OtherJob/GridOtherJob_Read",
+            linkIdPrefix: "airOtherJob",
+            linkTabTitle: "Other Job# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "JOB_NO", title: "Job#", attributes: { "class": "link-cell" } },
+                { field: "LOT_NO", title: "Lot#" },
+                { template: function (dataItem) { return kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "ORIGIN", title: "Origin" },
+                { field: "DEST", title: "Destination" },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date" },
+            ],
+        },
+    },
 ];
 
 var masterForms = [
@@ -586,7 +619,7 @@ var masterForms = [
         ],
         schema: {
             requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE"],
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE", "IS_PASSENGER_FLIGHT", "IS_X_RAY", "IS_SPLIT_SHIPMENT", "IS_CLOSED", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
             readonlyFields: [
                 { name: "MAWB", readonly: "edit" },
                 { name: "JOB", readonly: "always" }
@@ -660,7 +693,7 @@ var masterForms = [
             },
             {
                 name: "contactMain",
-                title: "Contact Information",
+                title: "Main Contact Information",
                 colWidth: 6,
                 formControls: [
                     { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
@@ -670,7 +703,7 @@ var masterForms = [
             },
             {
                 name: "contactOthers",
-                title: "Contact Information",
+                title: "Other Contact Information",
                 colWidth: 6,
                 formControls: [
                     { label: "Agent", type: "customerAddr", name: "AGENT" },
@@ -1744,8 +1777,9 @@ var masterForms = [
                 title: "PV Information",
                 colWidth: 10,
                 formControls: [
-                    { label: "Pv #", type: "text", name: "PV_NO", colWidth: 6 },
-                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 6 },
+                    { label: "Pv #", type: "text", name: "PV_NO", colWidth: 4 },
+                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 4 },
+                    { label: "Cr Invoice", type: "switch", name: "IS_CR_INVOICE", colWidth: 4 },
                     { label: "Pv Type", type: "buttonGroup", name: "PV_TYPE", dataType: "pvType", colWidth: 4 },
                     { label: "Category", type: "buttonGroup", name: "PV_CATEGORY", dataType: "invoiceCategory", colWidth: 4 },
                     { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
@@ -1766,7 +1800,7 @@ var masterForms = [
                     { label: "C/Wts", type: "number", name: "CWTS", colWidth: 4 },
                     { label: "Origin", type: "port", name: "ORIGIN", colWidth: 4 },
                     { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
-                    { label: "Cr Invoice", type: "switch", name: "IS_CR_INVOICE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
                     { label: "Amount", type: "number", name: "AMOUNT", colWidth: 4 },
                     { label: "Amount Home", type: "number", name: "AMOUNT_HOME", colWidth: 4 },
@@ -1816,6 +1850,177 @@ var masterForms = [
                         formulas: [
                             { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
                             { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                        ],
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        formName: "airOtherJob",
+        mode: "edit",   //create / edit
+        title: "Job#",
+        readUrl: "../Air/OtherJob/GetOtherJob",
+        updateUrl: "../Air/OtherJob/UpdateOtherJob",
+        //additionalScript: "initAirOtherJob",
+        id: "",
+        targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+        ],
+        schema: {
+            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            readonlyFields: [
+                { name: "JOB_NO", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "prepaidCharges", "collectCharges", "invoice"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Other Job Information",
+                colWidth: 10,
+                formControls: [
+                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airOtherJob.selectLot", colWidth: 6 },
+                    { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE", colWidth: 6 },
+                    { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY", colWidth: 6 },
+                    { label: "Agent", type: "customerAddrEditable", name: "AGENT", colWidth: 6 },
+                    { label: "Flight Date", type: "date", name: "FLIGHT_DATE", colWidth: 4 },
+                    { label: "Origin", type: "port", name: "ORIGIN", colWidth: 4 },
+                    { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 4 },
+                    { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 4 },
+                    { label: "G/Wts", type: "number", name: "GWTS", colWidth: 4 },
+                    { label: "V/Wts", type: "number", name: "VWTS", colWidth: 4 },
+                    { label: "C/Wts", type: "number", name: "CWTS", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                ]
+            },
+            {
+                name: "prepaidCharges",
+                title: "Prepaid Charges",
+                colWidth: 10,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
+                    {
+                        label: "", type: "grid", name: "OtherJobChargesPrepaid",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "collectCharges",
+                title: "Collect Charges",
+                colWidth: 10,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
+                    {
+                        label: "", type: "grid", name: "OtherJobChargesCollect",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            MIN_CHARGE: { type: "number", validation: { required: true }, defaultValue: 1 },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
+                            { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
+                        ],
+                    },
+                ]
+            },
+            {
+                name: "invoice",
+                title: "Invoice",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "Invoice", type: "grid", name: "Invoices", editable: false,
+                        toolbar: [
+                            { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add" },
+                        ],
+                        columns: [
+                            { title: "Invoice #", field: "INV_NO", attributes: { "class": "link-cell" }, width: 80 },
+                            { title: "Customer", field: "CUSTOMER_DESC", width: 260 },
+                            { title: "Curr.", field: "CURR_CODE", width: 60 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
                         ],
                     },
                 ]
