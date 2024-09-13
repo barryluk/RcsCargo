@@ -230,11 +230,11 @@ namespace DbUtils
                 sqlCmd = sqlCmd.Trim().Replace("  ", " ").Replace("( ", "(");
 
                 //Debug only, must comment for production
-                foreach (var para in parameters)
-                {
-                    log.Debug($"FieldName: {para.FieldName} | ParaName: {para.ParaName} | Value: {para.Value} | operator: {para.GetParaCompareOperator()}");
-                }
-                log.Debug(sqlCmd);
+                //foreach (var para in parameters)
+                //{
+                //    log.Debug($"FieldName: {para.FieldName} | ParaName: {para.ParaName} | Value: {para.Value} | operator: {para.GetParaCompareOperator()}");
+                //}
+                //log.Debug(sqlCmd);
 
                 return db.Database.SqlQuery<T>(sqlCmd, dbParas.ToArray()).Take(Utils.DefaultMaxQueryRows).ToList();
             }

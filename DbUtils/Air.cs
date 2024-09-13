@@ -116,17 +116,63 @@ namespace DbUtils
                 return mawb;
         }
 
+        public void AddMawb(Mawb mawb)
+        {
+            try
+            {
+                db.Mawbs.Add(mawb);
+                db.MawbDims.AddRange(mawb.MawbDims);
+                db.MawbCharges.AddRange(mawb.MawbChargesPrepaid);
+                db.MawbCharges.AddRange(mawb.MawbChargesCollect);
+                db.LoadplanBookingLists.AddRange(mawb.LoadplanBookingLists);
+                db.HawbEquips.AddRange(mawb.LoadplanHawbEquips);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
         public void UpdateMawb(Mawb mawb)
         {
-            db.Entry(mawb).State = EntityState.Modified;
-            var dims = Utils.GetSqlQueryResult<MawbDim>("a_mawb_dim", "mawb_no", mawb.MAWB, mawb.COMPANY_ID, mawb.FRT_MODE);
-            var charges = Utils.GetSqlQueryResult<MawbCharge>("a_mawb_chg", "mawb_no", mawb.MAWB, mawb.COMPANY_ID, mawb.FRT_MODE);
-            if (dims != null)
-                db.MawbDims.RemoveRange(dims);
-            if (charges != null)
-                db.MawbCharges.RemoveRange(charges);
+            try
+            {
+                db.Entry(mawb).State = EntityState.Modified;
+                var dims = db.MawbDims.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
+                var charges = db.MawbCharges.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
+                var bookingList = db.LoadplanBookingLists.Where(a => a.JOB_NO == mawb.JOB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
+                var hawbNos = db.Hawbs.Where(a => a.JOB_NO == mawb.JOB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE).Select(a => a.HAWB_NO).ToList();
+                var hawbEquips = db.HawbEquips.Where(a => hawbNos.Contains(a.HAWB_NO) && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
 
-            db.SaveChanges();
+                if (dims != null)
+                {
+                    db.MawbDims.RemoveRange(dims);
+                    db.MawbDims.AddRange(mawb.MawbDims);
+                }
+                if (charges != null)
+                {
+                    db.MawbCharges.RemoveRange(charges);
+                    db.MawbCharges.AddRange(mawb.MawbChargesPrepaid);
+                    db.MawbCharges.AddRange(mawb.MawbChargesCollect);
+                }
+                if (bookingList != null)
+                {
+                    db.LoadplanBookingLists.RemoveRange(bookingList);
+                    db.LoadplanBookingLists.AddRange(mawb.LoadplanBookingLists);
+                }
+                if (hawbEquips != null)
+                {
+                    db.HawbEquips.RemoveRange(hawbEquips);
+                    db.HawbEquips.AddRange(mawb.LoadplanHawbEquips);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
         }
 
         public bool IsExisitingMawbNo(string mawbNo, string companyId, string frtMode)

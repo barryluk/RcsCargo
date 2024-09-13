@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using DbUtils.Models.Air;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
+using DbUtils.Models.MasterRecords;
 
 namespace RcsCargoWeb.Air.Controllers
 {
@@ -19,6 +20,7 @@ namespace RcsCargoWeb.Air.Controllers
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridMawb_Read")]
         public ActionResult GridMawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -87,13 +89,58 @@ namespace RcsCargoWeb.Air.Controllers
         }
 
         [Route("UpdateMawb")]
-        public ActionResult UpdateMawb(Mawb model)
+        public ActionResult UpdateMawb(Mawb model, string mode)
         {
+            if (string.IsNullOrEmpty(model.JOB))
+            {
+                model.JOB = admin.GetSequenceNumber("AE_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.FLIGHT_DATE);
+                model.JOB_NO = model.JOB;
+            }
             if (string.IsNullOrEmpty(model.FRT_PAYMENT_PC))
                 model.FRT_PAYMENT_PC = "P";
             if (string.IsNullOrEmpty(model.OTHER_PAYMENT_PC))
                 model.OTHER_PAYMENT_PC = "P";
-            air.UpdateMawb(model);
+
+            foreach(var charge in model.MawbChargesPrepaid)
+            {
+                charge.MAWB_NO = model.MAWB;
+                charge.COMPANY_ID = model.COMPANY_ID;
+                charge.FRT_MODE = model.FRT_MODE;
+                charge.PAYMENT_TYPE = "P";
+            }
+            foreach (var charge in model.MawbChargesCollect)
+            {
+                charge.MAWB_NO = model.MAWB;
+                charge.COMPANY_ID = model.COMPANY_ID;
+                charge.FRT_MODE = model.FRT_MODE;
+            }
+            foreach (var dim in model.MawbDims)
+            {
+                dim.MAWB_NO = model.MAWB;
+                dim.COMPANY_ID = model.COMPANY_ID;
+                dim.FRT_MODE = model.FRT_MODE;
+            }
+            foreach (var booking in model.LoadplanBookingListViews)
+            {
+                model.LoadplanBookingLists.Add(new LoadplanBookingList 
+                {
+                    JOB_NO = model.JOB,
+                    BOOKING_NO = booking.BOOKING_NO,
+                    COMPANY_ID = model.COMPANY_ID,
+                    FRT_MODE = model.FRT_MODE,
+                });
+            }
+            foreach(var hawbEquip in model.LoadplanHawbEquips)
+            {
+                hawbEquip.COMPANY_ID = model.COMPANY_ID;
+                hawbEquip.FRT_MODE = model.FRT_MODE;
+            }
+
+            if (mode == "edit")
+                air.UpdateMawb(model);
+            else if (mode == "create")
+                air.AddMawb(model);
+
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 

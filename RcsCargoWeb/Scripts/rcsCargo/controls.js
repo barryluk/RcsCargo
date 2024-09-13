@@ -82,11 +82,12 @@
                 text: "Dashboard",
                 contentUrl: "../Home/Dashboard"
             }],
-            animation: {
-                open: {
-                    effects: "fade"
-                }
-            },
+            animation: false,
+            //animation: {
+            //    open: {
+            //        effects: "fade"
+            //    }
+            //},
             activate: function (e) {
                 try {
                     if ($(e.contentElement).find("div[id]")[0]["id"] != "dashboardMain")
@@ -241,6 +242,12 @@
             controls.edit.initEditPage(id, originalId);
     }
 
+    activate_tabStripMain = function (id) {
+        id = utils.removeSpecialCharacters(id);
+        var tabStrip = $("#tabStripMain").data("kendoTabStrip");
+        tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
+    }
+
     remove_tabStripMain = function (id) {
         id = utils.removeSpecialCharacters(id);
         try {
@@ -254,8 +261,10 @@
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
         //Status info
-        $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 
+        if (masterForm.mode == "edit") {
+            $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 
             Modify: ${model.MODIFY_USER} - ${kendo.toString(kendo.parseDate(model.MODIFY_DATE), data.dateTimeLongFormat)}`)
+        }
 
         if (masterForm.schema.hiddenFields != null) {
             masterForm.schema.hiddenFields.forEach(function (field) {
@@ -404,7 +413,7 @@
         masterForm.formGroups.forEach(function (formGroup) {
             formGroup.formControls.forEach(function (control) {
                 if (control.type != "label") {
-                    if ($(`#${masterForm.id} [name=${control.name}]`).length == 1 || $(`#${masterForm.id} [name=grid_${control.name}]`).length == 1) {
+                    if ($(`#${masterForm.id} [name=${control.name}]`).length >= 1 || $(`#${masterForm.id} [name=grid_${control.name}]`).length == 1) {
                         if (control.type == "customer") {
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
@@ -412,7 +421,10 @@
                                 model[control.name] = utils.formatText(value);
                                 model[control.name.replace("_CODE", "_DESC")] = utils.formatText(text);
                             }
-                        } else if (control.type == "customerAddr") {
+                        } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
+                            console.log(control.name, `#${masterForm.id} [name=${control.name}]`);
+                            console.log($(`#${masterForm.id} [name=${control.name}]`).val());
+
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             if (!utils.isEmptyString(value)) {
                                 var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
@@ -423,7 +435,7 @@
                                 model[`${control.name}_DESC`] = utils.formatText(text);
                             }
                         } else if (control.type == "buttonGroup") {
-                            var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoButtonGroup").current().text();
+                            var text = $(`#${masterForm.id} .k-widget.k-button-group[name=${control.name}]`).data("kendoButtonGroup").current().text();
                             model[control.name] = data.masterRecords[control.dataType].filter(a => a.text == text)[0].value;
                         } else if (control.type == "switch") {
                             var switchCtrl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoSwitch");
@@ -446,8 +458,12 @@
                                                 rowData[field] = "Y";
                                             else
                                                 rowData[field] = "N";
-                                        } else
-                                            rowData[field] = utils.formatText(item[field]);
+                                        } else {
+                                            if (utils.isEmptyString(item[field]) && control.fields[field].defaultValue != null)
+                                                rowData[field] = control.fields[field].defaultValue;
+                                            else
+                                                rowData[field] = utils.formatText(item[field]);
+                                        }
                                     }
                                     gridData.push(rowData);
                                     lineNo++;

@@ -120,6 +120,8 @@ namespace DbUtils.Models.Air
         [NotMapped]
         public List<MawbDim> MawbDims { get; set; }
         [NotMapped]
+        public List<LoadplanBookingList> LoadplanBookingLists { get; set; }
+        [NotMapped]
         public List<LoadplanBookingListView> LoadplanBookingListViews { get; set; }
         [NotMapped]
         public List<HawbView> LoadplanHawbListViews { get; set; }
@@ -130,6 +132,7 @@ namespace DbUtils.Models.Air
             MawbChargesPrepaid = new List<MawbCharge>();
             MawbChargesCollect = new List<MawbCharge>();
             MawbDims = new List<MawbDim>();
+            LoadplanBookingLists = new List<LoadplanBookingList>();
             LoadplanBookingListViews = new List<LoadplanBookingListView>();
             LoadplanHawbListViews = new List<HawbView>();
             LoadplanHawbEquips = new List<HawbEquip>();

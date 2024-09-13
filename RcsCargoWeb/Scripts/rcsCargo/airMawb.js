@@ -9,6 +9,7 @@
         var companyId = masterForm.id.split("_")[2];
         var frtMode = masterForm.id.split("_")[3];
 
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=jobType]`).data("kendoButtonGroup").trigger("select");
         var printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
 
         //(Print) dropdownbutton events
@@ -34,30 +35,6 @@
                 { name: "CompanyName", value: data.companyId },
                 { name: "filename", value: filename },]);
         });
-
-        var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=JOB_TYPE]`).data("kendoButtonGroup");
-        buttonGroup.bind("select", function (e) {
-            //0: Consol, 1: Direct
-            //Handle change Job Type
-            var selectedJobType = e.sender.selectedIndices[0] == 0 ? "C" : "D";
-            if (selectedJobType != $(`#${masterForm.id} input[name=JOB_TYPE]`).val()) {
-                controls.edit.initEditPage(masterForm.id, "edit", { changedJobType: selectedJobType });
-                //$(`#${masterForm.id} input[name=JOB_TYPE]`).val(selectedJobType);
-                //controllers.airMawb.initAirMawb(masterForm);
-                return;
-            }
-
-            var tabStrip = $(`#${masterForm.id} .formGroupTab`).data("kendoTabStrip");
-            var tabConsol = $(`#${masterForm.id} span:contains("Load Plan")`).parent();
-            var tabDirect = $(`#${masterForm.id} span:contains("Direct Job")`).parent();
-            if (e.sender.selectedIndices[0] == 0) {
-                tabStrip.remove(tabDirect);
-            } else {
-                tabStrip.remove(tabConsol);
-            }
-        });
-
-        buttonGroup.trigger("select");
 
         //multiple MAWB# (only available in create mode)
         if (masterForm.mode == "create") {
@@ -172,6 +149,54 @@
                 });
             });
         }
+    }
+
+    changedJobType = function (selector) {
+        //testObj = selector;
+        var formId = utils.getFormId(selector.element);
+        var selectedJobType = selector.selectedIndices[0] == 0 ? "C" : "D";     //0: Consol, 1: Direct
+        //console.log(formId, selectedJobType);
+
+        var tabStrip = $(`#${formId} .formGroupTab`).data("kendoTabStrip");
+        var tabConsol = $(`#${formId} span:contains("Load Plan")`).parent();
+        var tabDirect = $(`#${formId} span:contains("Direct Job")`).parent();
+
+        if (selectedJobType == "C") {
+            tabConsol.removeAttr("style");
+            tabDirect.attr("style", "display: none");
+        } else {
+            tabConsol.attr("style", "display: none");
+            tabDirect.removeAttr("style");
+        }
+
+        //console.log(selectedJobType, tabConsol, tabDirect);
+
+        //var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=JOB_TYPE]`).data("kendoButtonGroup");
+        //buttonGroup.bind("select", function (e) {
+        //    //0: Consol, 1: Direct
+        //    //Handle change Job Type
+        //    var selectedJobType = e.sender.selectedIndices[0] == 0 ? "C" : "D";
+        //    console.log(selectedJobType);
+        //    if (selectedJobType != $(`#${masterForm.id} input[name=JOB_TYPE]`).val()) {
+        //        controls.edit.initEditPage(masterForm.id, "edit", { changedJobType: selectedJobType });
+        //        //$(`#${masterForm.id} input[name=JOB_TYPE]`).val(selectedJobType);
+        //        //controllers.airMawb.initAirMawb(masterForm);
+        //        return;
+        //    }
+
+        //    var tabStrip = $(`#${masterForm.id} .formGroupTab`).data("kendoTabStrip");
+        //    var tabConsol = $(`#${masterForm.id} span:contains("Load Plan")`).parent();
+        //    var tabDirect = $(`#${masterForm.id} span:contains("Direct Job")`).parent();
+        //    console.log(selectedJobType);
+        //    testObj = e.sender;
+        //    if (e.sender.selectedIndices[0] == 0) {
+        //        tabStrip.remove(tabDirect);
+        //    } else {
+        //        tabStrip.remove(tabConsol);
+        //    }
+        //});
+
+        //buttonGroup.trigger("select");
     }
 
     searchBookingClick = function (selector) {

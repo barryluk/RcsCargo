@@ -585,6 +585,7 @@ var masterForms = [
         readUrl: "../Air/Mawb/GetMawb",
         updateUrl: "../Air/Mawb/UpdateMawb",
         additionalScript: "initAirMawb",
+        idField: "MAWB",
         id: "",
         targetForm: {},
         toolbar: [
@@ -604,17 +605,17 @@ var masterForms = [
             {
                 title: "MAWB Information",
                 name: "mawbInfo",
-                formGroups: ["mainInfo", "2nd3rdFlights"]
+                formGroups: ["mainInfo", "contactMain", "2nd3rdFlights"]
             },
             {
                 title: "Load Plan",
                 name: "loadPlan",
-                formGroups: ["contactMain", "contactOthers", "loadplanBookingList", "loadplanHawbList", "loadplanHawbEquip"]
+                formGroups: ["contactOthers", "loadplanBookingList", "loadplanHawbList", "loadplanHawbEquip"]
             },
             {
                 title: "Direct Job",
                 name: "directJob",
-                formGroups: ["contactMain", "prepaidCharges", "collectCharges", "dims"]
+                formGroups: ["prepaidCharges", "collectCharges", "dims"]
             },
         ],
         schema: {
@@ -678,6 +679,7 @@ var masterForms = [
                 name: "2nd3rdFlights",
                 title: "Second / Third Flights",
                 colWidth: 5,
+                collapse: true,
                 formControls: [
                     { label: "Second Flight", type: "label" },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE2" },
@@ -959,6 +961,7 @@ var masterForms = [
         readUrl: "../Air/Booking/GetBooking",
         updateUrl: "../Air/Booking/UpdateBooking",
         additionalScript: "initAirBooking",
+        idField: "BOOKING_NO",
         id: "",
         targetForm: {},
         toolbar: [
@@ -1162,6 +1165,7 @@ var masterForms = [
         readUrl: "../Air/Hawb/GetHawb",
         updateUrl: "../Air/Hawb/UpdateHawb",
         additionalScript: "initAirHawb",
+        idField: "HAWB_NO",
         id: "",
         targetForm: {},
         toolbar: [
@@ -1416,7 +1420,7 @@ var masterForms = [
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
                             CHARGE_DESC: { defaultValue: "" },
-                            PAYMENT_TYPE: { defaultValue: "P" },
+                            PAYMENT_TYPE: { type: "string", defaultValue: "P" },
                             CURR_CODE: { validation: { required: true } },
                             PRICE: { type: "number", validation: { required: true } },
                             QTY: { type: "number", validation: { required: true } },
@@ -1467,7 +1471,7 @@ var masterForms = [
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
                             CHARGE_DESC: { defaultValue: "" },
-                            PAYMENT_TYPE: { defaultValue: "C" },
+                            PAYMENT_TYPE: { type: "string", defaultValue: "C" },
                             CURR_CODE: { validation: { required: true } },
                             PRICE: { type: "number", validation: { required: true } },
                             QTY: { type: "number", validation: { required: true } },
@@ -1618,6 +1622,7 @@ var masterForms = [
         readUrl: "../Air/Invoice/GetInvoice",
         updateUrl: "../Air/Invoice/UpdateInvoice",
         additionalScript: "initAirInvoice",
+        idField: "INV_NO",
         id: "",
         targetForm: {},
         toolbar: [
@@ -1741,6 +1746,7 @@ var masterForms = [
         readUrl: "../Air/Pv/GetPv",
         updateUrl: "../Air/Pv/UpdatePv",
         additionalScript: "initAirPv",
+        idField: "PV_NO",
         id: "",
         targetForm: {},
         toolbar: [
@@ -1863,6 +1869,7 @@ var masterForms = [
         readUrl: "../Air/OtherJob/GetOtherJob",
         updateUrl: "../Air/OtherJob/UpdateOtherJob",
         //additionalScript: "initAirOtherJob",
+        idField: "JOB_NO",
         id: "",
         targetForm: {},
         toolbar: [

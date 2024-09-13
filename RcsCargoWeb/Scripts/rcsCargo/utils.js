@@ -151,11 +151,20 @@
     }
 
     formatMawbNo = function (mawbNo) {
-        if (mawbNo.length == 11) {
-            return mawbNo.substr(0, 3) + "-" + mawbNo.substr(3, 4) + " " + mawbNo.substr(7);
-        } else {
+        try {
+            if (mawbNo.length == 11) {
+                return mawbNo.substr(0, 3) + "-" + mawbNo.substr(3, 4) + " " + mawbNo.substr(7);
+            } else {
+                return mawbNo;
+            }
+        } catch {
             return mawbNo;
         }
+    }
+
+    isHiddenTab = function (selector) {
+        var id = $(selector).parentsUntil(".k-tabstrip-content.k-content").parent().eq(0).attr("aria-labelledby");
+        return $(`#${id}`).attr("style") == "display: none";
     }
 
     isExistingMawbNo = function (mawbNo) {

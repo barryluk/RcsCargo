@@ -34,28 +34,37 @@
             }
         });
 
+        //Save button click event
         $(`#${masterForm.id} button .k-i-save`).parent().bind("click", function () {
             if (!validator.validate()) {
                 return;
             } else {
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
-
+                //return;
                 $.ajax({
                     url: masterForm.updateUrl,
                     type: "post",
-                    data: model,
+                    data: { model: model, mode: masterForm.mode },
                     beforeSend: function () {
                         kendo.ui.progress($(".container-fluid"), true);
                     },
                     success: function (result) {
                         console.log(result);
-                        masterForm.mode = "edit";
-                        controls.setValuesToFormControls(masterForm, result);
+                        if (masterForm.mode == "edit") {
+                            controls.setValuesToFormControls(masterForm, result);
+                        } else {
+                            var controller = masterForm.id.split("_")[0];
+                            var newId = `${controller}_${result[masterForm.idField]}_${data.companyId}_${utils.getFrtMode()}`;
+                            controls.remove_tabStripMain(masterForm.id);
+                            controls.append_tabStripMain(`${masterForm.title} ${result[masterForm.idField]}`, newId, controller);
+                            //controls.activate_tabStripMain(newId);
+                        }
                         utils.showNotification("Save success", "success");
                     },
                     error: function (err) {
-                        utils.showNotification(err, "error");
+                        console.log(err);
+                        utils.showNotification("Save failed, please contact system administrator!", "error");
                     },
                     complete: function () {
                         kendo.ui.progress($(".container-fluid"), false);
@@ -114,7 +123,12 @@
         $(`#${masterForm.id} div[type=buttonGroup][dataType=jobType]`).each(function () {
             $(this).kendoButtonGroup({
                 items: data.masterRecords.jobType,
-                //index: 0
+                select: function (e) {
+                    try {
+                        eval(`controllers.airMawb.changedJobType(e.sender)`);
+                    } catch { }
+                },
+                index: 0
             });
         });
 
