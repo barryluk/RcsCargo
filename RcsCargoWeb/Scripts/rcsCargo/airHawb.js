@@ -40,19 +40,28 @@
             url: "../Air/Mawb/GetMawb",
             data: { id: filterValue, companyId: data.companyId, frtMode: utils.getFrtMode() },
             success: function (result) {
-                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result, true);
+                var mawbResult = {
+                    MAWB_NO: result.MAWB_NO,
+                    JOB_NO: result.JOB_NO,
+                    AIRLINE_CODE: result.AIRLINE_CODE,
+                    FLIGHT_NO: result.FLIGHT_NO,
+                    FLIGHT_DATE: result.FLIGHT_DATE,
+                };
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], mawbResult, true);
             }
         });
     }
 
     selectUnusedBooking = function (selector) {
+        console.log(selector);
         $.ajax({
             url: "../Air/Booking/GetBooking",
-            data: { id: "", companyId: data.companyId, frtMode: utils.getFrtMode() },
+            data: { id: selector.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
             success: function (result) {
                 if (result.BookingPos != null)
                     result.HawbPos = result.BookingPos;
 
+                result.HAWB_NO = result.BOOKING_NO;
                 result.PACKAGE2 = result.SEC_PACKAGE;
                 result.PACKAGE_UNIT2 = result.SEC_PACKAGE_UNIT;
                 controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result, true);

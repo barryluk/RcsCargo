@@ -79,15 +79,19 @@
     }
 
     getFrtMode = function (selector) {
-        //console.log("000", $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length);
-        //console.log("001", $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length);
         var frtMode = null;
         if (selector != null) {
             var values = selector.split("_");
             frtMode = values[values.length - 1];
         }
+        //Index page frtMode
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
             return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`)
+                .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
+        }
+        //Edit page frtMode
+        if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active span.toolbar-frtMode`).length == 1) {
+            return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active span.toolbar-frtMode`)
                 .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
         }
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
@@ -165,6 +169,21 @@
     isHiddenTab = function (selector) {
         var id = $(selector).parentsUntil(".k-tabstrip-content.k-content").parent().eq(0).attr("aria-labelledby");
         return $(`#${id}`).attr("style") == "display: none";
+    }
+
+    isExistingBookingNo = function (bookingNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Air/Booking/IsExistingBookingNo",
+            dataType: "text",
+            data: { id: bookingNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
     }
 
     isExistingMawbNo = function (mawbNo) {

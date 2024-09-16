@@ -3,6 +3,11 @@
         $.ajax({
             url: "../Home/GetSysModules",
             success: function (menuItems) {
+                if (utils.isEmptyString(data.user.DEFAULT_COMPANY))
+                    data.companyId = data.user.UserCompanies[0].COMPANY_ID;
+                else
+                    data.companyId = data.user.DEFAULT_COMPANY;
+
                 controls.initNavbar();
                 controls.initControlSidebar();
                 controls.initSidebar(menuItems);
@@ -65,6 +70,7 @@
 
         //Very important to init the treeview to ensure expand / collapse working
         $('[data-widget="treeview"]').Treeview('init');
+        $(".sidebar .user-name").text(data.user.NAME);
     }
 
     //ControlSidebar
@@ -187,7 +193,6 @@
     };
 
     append_tabStripMain = function (text, id, controller) {
-        kendo.ui.progress($(".container-fluid"), true);
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
         var originalId = id;    //keep the original id value, in case of special characters appears in the id and will be removed to prevent error in js.
@@ -203,6 +208,7 @@
                 encoded: false,
                 content: `<div id="${id}"></div>`
             });
+            kendo.ui.progress($(`#${id}`).parent(), true);
 
             $("#btnClose_" + id).click(function () {
                 try {
@@ -213,7 +219,7 @@
             });
 
             $("#btnRefresh_" + id).click(function () {
-                kendo.ui.progress($(".container-fluid"), true);
+                kendo.ui.progress($(`#${id}`).parent(), true);
                 if (id.indexOf("Index") != -1) {
                     pageSetting.id = id;
                     controls.index.initIndexPage(pageSetting);
@@ -235,7 +241,8 @@
             });
         }
 
-        tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
+        //tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
+        tabStrip.activateTab("li:last");
         if (id.indexOf("Index") != -1)
             controls.index.initIndexPage(pageSetting);
         else
@@ -250,12 +257,15 @@
 
     remove_tabStripMain = function (id) {
         id = utils.removeSpecialCharacters(id);
+        console.log(id);
         try {
             eval("remove_" + id + "_Objects();");
         } catch (err) { }
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         tabStrip.remove(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
-        tabStrip.activateTab("li:last");
+        try {
+            tabStrip.activateTab("li:last");
+        } catch { }
     }
 
     //Set the values to form controls
@@ -264,6 +274,16 @@
         if (masterForm.mode == "edit") {
             $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 
             Modify: ${model.MODIFY_USER} - ${kendo.toString(kendo.parseDate(model.MODIFY_DATE), data.dateTimeLongFormat)}`)
+        }
+
+        //Frt Mode buttonGroup control
+        if (model.FRT_MODE != null) {
+            var buttonGroup = $(`#${masterForm.id} .toolbar-frtMode`).data("kendoButtonGroup");
+            var buttonText = model.FRT_MODE == "AE" ? "Export" : "Import";
+            buttonGroup.select($(`#${masterForm.id} .toolbar-frtMode span:contains('${buttonText}')`).parent());
+
+            if (masterForm.mode == "edit")
+                buttonGroup.enable(false);
         }
 
         if (masterForm.schema.hiddenFields != null) {
@@ -292,11 +312,12 @@
         for (var i in masterForm.formGroups) {
             for (var j in masterForm.formGroups[i].formControls) {
                 var control = masterForm.formGroups[i].formControls[j];
-                //Check the existence of the control (name$: ends with value, speical case for grid_)
+                //Check the existence of the control (name$: ends with value, special case for grid_)
                 if ($(`#${masterForm.id} [name$=${control.name}]`).length == 0)
                     continue;
 
-                if (partialUpdate && model[`${control.name}`] == null)
+                //_CODE: special case for customers / shipper / consignee ... etc.
+                if (partialUpdate && model[`${control.name}`] == null && model[`${control.name}_CODE`] == null)
                     continue;
 
                 if (control.type == "date") {
@@ -422,8 +443,8 @@
                                 model[control.name.replace("_CODE", "_DESC")] = utils.formatText(text);
                             }
                         } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
-                            console.log(control.name, `#${masterForm.id} [name=${control.name}]`);
-                            console.log($(`#${masterForm.id} [name=${control.name}]`).val());
+                            //console.log(control.name, `#${masterForm.id} [name=${control.name}]`);
+                            //console.log($(`#${masterForm.id} [name=${control.name}]`).val());
 
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             if (!utils.isEmptyString(value)) {
@@ -446,6 +467,7 @@
                         } else if (control.type == "grid") {
                             if ($(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data().length > 0) {
                                 var dsData = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data();
+                                var gridRows = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").items();
                                 var gridData = [];
                                 var lineNo = 1;
 
@@ -461,12 +483,33 @@
                                         } else {
                                             if (utils.isEmptyString(item[field]) && control.fields[field].defaultValue != null)
                                                 rowData[field] = control.fields[field].defaultValue;
-                                            else
-                                                rowData[field] = utils.formatText(item[field]);
+                                            else {
+                                                if (control.fields[field].type == "date") {
+                                                    if (item[field] != null)
+                                                        rowData[field] = utils.convertDateToISOString(item[field]);
+                                                    else
+                                                        rowData[field] = "";
+                                                }
+                                                else
+                                                    rowData[field] = utils.formatText(item[field]);
+                                            }
                                         }
                                     }
-                                    gridData.push(rowData);
-                                    lineNo++;
+
+                                    if (masterForm.idField != null) {
+                                        if (masterForm.idField == "MAWB")
+                                            rowData["MAWB_NO"] = model[masterForm.idField];
+                                        else
+                                            rowData[masterForm.idField] = model[masterForm.idField];
+                                    }
+                                    rowData["COMPANY_ID"] = data.companyId;
+                                    rowData["FRT_MODE"] = utils.getFrtMode();
+
+                                    //If record is deleted from the grid, the <tr> element will have style: "display: none;"
+                                    if ($(gridRows[lineNo - 1]).attr("style") != "display: none;") {
+                                        gridData.push(rowData);
+                                        lineNo++;
+                                    }
                                 });
 
                                 model[control.name] = gridData;
@@ -501,8 +544,11 @@
         }
 
         if (masterForm.mode == "create") {
+            model["COMPANY_ID"] = data.companyId;
+            model["FRT_MODE"] = utils.getFrtMode();
             model.CREATE_USER = data.user.USER_ID;
             model.CREATE_DATE = utils.convertDateToISOString(new Date());
+            model["IS_VOIDED"] = "N";
         }
         model.MODIFY_USER = data.user.USER_ID;
         model.MODIFY_DATE = utils.convertDateToISOString(new Date());

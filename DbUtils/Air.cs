@@ -14,6 +14,8 @@ using System.Data.SqlTypes;
 using System.IO;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
+using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace DbUtils
 {
@@ -367,29 +369,6 @@ namespace DbUtils
             var result = Utils.GetSqlQueryResult<BookingView>(fromCmd, selectCmd, dbParas).Take(Utils.DefaultMaxQueryRows).ToList();
 
             return result;
-            //return db.Bookings.Where(a => 
-            //    (a.BOOKING_NO.StartsWith(searchValue) || a.SHIPPER_CODE.StartsWith(searchValue) || a.SHIPPER_DESC.StartsWith(searchValue)
-            //     || a.CONSIGNEE_CODE.StartsWith(searchValue) || a.CONSIGNEE_DESC.StartsWith(searchValue))
-            //    && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode
-            //    && a.CREATE_DATE >= startDate && a.CREATE_DATE <= endDate)
-            //    .Select(a => new BookingView
-            //    {
-            //        BOOKING_NO = a.BOOKING_NO,
-            //        COMPANY_ID = a.COMPANY_ID,
-            //        FRT_MODE = a.FRT_MODE,
-            //        SHIPPER_DESC = a.SHIPPER_DESC,
-            //        CONSIGNEE_DESC = a.CONSIGNEE_DESC,
-            //        ORIGIN_CODE = a.ORIGIN_CODE,
-            //        DEST_CODE = a.DEST_CODE,
-            //        PACKAGE = a.PACKAGE,
-            //        GWTS = a.GWTS,
-            //        VWTS = a.VWTS,
-            //        CARGO_READY_DATE = a.CARGO_READY_DATE,
-            //        CARGO_REC_DATE = a.CARGO_REC_DATE,
-            //        CBM = a.CBM,
-            //        CREATE_USER = a.CREATE_USER,
-            //        CREATE_DATE = a.CREATE_DATE,
-            //    }).Take(Utils.DefaultMaxQueryRows).ToList();
         }
          
         public Booking GetBooking(string bookingNo, string companyId, string frtMode)
@@ -405,6 +384,48 @@ namespace DbUtils
                 return new Booking();
             else
                 return booking;
+        }
+
+        public void AddBooking(Booking booking)
+        {
+            try
+            {
+                db.Bookings.Add(booking);
+                db.BookingPos.AddRange(booking.BookingPos);
+                db.WarehouseHistories.AddRange(booking.WarehouseHistories);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateBooking(Booking booking)
+        {
+            try
+            {
+                db.Entry(booking).State = EntityState.Modified;
+                var pos = db.BookingPos.Where(a => a.BOOKING_NO == booking.BOOKING_NO && a.COMPANY_ID == booking.COMPANY_ID && a.FRT_MODE == booking.FRT_MODE);
+                var whHist = db.WarehouseHistories.Where(a => a.BOOKING_NO == booking.BOOKING_NO && a.COMPANY_ID == booking.COMPANY_ID && a.FRT_MODE == booking.FRT_MODE);
+
+                if (pos != null)
+                {
+                    db.BookingPos.RemoveRange(pos);
+                    db.BookingPos.AddRange(booking.BookingPos);
+                }
+                if (whHist != null)
+                {
+                    db.WarehouseHistories.RemoveRange(whHist);
+                    db.WarehouseHistories.AddRange(booking.WarehouseHistories);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
         }
 
         public List<WarehouseHistory> GetWarehouseHistory(string bookingNo, string companyId, string frtMode)
@@ -486,6 +507,78 @@ namespace DbUtils
                 return new Hawb();
             else
                 return hawb;
+        }
+
+        public void AddHawb(Hawb hawb)
+        {
+            try
+            {
+                db.Hawbs.Add(hawb);
+                db.HawbPos.AddRange(hawb.HawbPos);
+                db.HawbLics.AddRange(hawb.HawbLics);
+                db.HawbDims.AddRange(hawb.HawbDims);
+                db.HawbCharges.AddRange(hawb.HawbChargesPrepaid);
+                db.HawbCharges.AddRange(hawb.HawbChargesCollect);
+                db.HawbDocs.AddRange(hawb.HawbDocs);
+                db.HawbStatuses.AddRange(hawb.HawbStatuses);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateHawb(Hawb hawb)
+        {
+            try
+            {
+                db.Entry(hawb).State = EntityState.Modified;
+                var pos = db.HawbPos.Where(a => a.HAWB_NO == hawb.HAWB_NO && a.COMPANY_ID == hawb.COMPANY_ID && a.FRT_MODE == hawb.FRT_MODE);
+                var lics = db.HawbLics.Where(a => a.HAWB_NO == hawb.HAWB_NO && a.COMPANY_ID == hawb.COMPANY_ID && a.FRT_MODE == hawb.FRT_MODE);
+                var dims = db.HawbDims.Where(a => a.HAWB_NO == hawb.HAWB_NO && a.COMPANY_ID == hawb.COMPANY_ID && a.FRT_MODE == hawb.FRT_MODE);
+                var charges = db.HawbCharges.Where(a => a.HAWB_NO == hawb.HAWB_NO && a.COMPANY_ID == hawb.COMPANY_ID && a.FRT_MODE == hawb.FRT_MODE);
+                var docs = db.HawbDocs.Where(a => a.HAWB_NO == hawb.HAWB_NO);
+                var statuses = db.HawbStatuses.Where(a => a.HAWB_NO == hawb.HAWB_NO);
+
+                if (pos != null)
+                {
+                    db.HawbPos.RemoveRange(pos);
+                    db.HawbPos.AddRange(hawb.HawbPos);
+                }
+                if (lics != null)
+                {
+                    db.HawbLics.RemoveRange(lics);
+                    db.HawbLics.AddRange(hawb.HawbLics);
+                }
+                if (dims != null)
+                {
+                    db.HawbDims.RemoveRange(dims);
+                    db.HawbDims.AddRange(hawb.HawbDims);
+                }
+                if (charges != null)
+                {
+                    db.HawbCharges.RemoveRange(charges);
+                    db.HawbCharges.AddRange(hawb.HawbChargesPrepaid);
+                    db.HawbCharges.AddRange(hawb.HawbChargesCollect);
+                }
+                if (docs != null)
+                {
+                    db.HawbDocs.RemoveRange(docs);
+                    db.HawbDocs.AddRange(hawb.HawbDocs);
+                }
+                if (statuses != null)
+                {
+                    db.HawbStatuses.RemoveRange(statuses);
+                    db.HawbStatuses.AddRange(hawb.HawbStatuses);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
         }
 
         public bool IsExisitingHawbNo(string hawbNo, string companyId, string frtMode)

@@ -16,7 +16,9 @@ namespace RcsCargoWeb.Air.Controllers
     [RoutePrefix("Air/Booking")]
     public class BookingController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridBooking_Read")]
         public ActionResult GridBooking_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -50,6 +52,29 @@ namespace RcsCargoWeb.Air.Controllers
         {
             var booking = air.GetBooking(id, companyId, frtMode);
             return Json(booking, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateBooking")]
+        public ActionResult UpdateBooking(Booking model, string mode)
+        {
+            if (string.IsNullOrEmpty(model.BOOKING_NO))
+            {
+                model.BOOKING_NO = admin.GetSequenceNumber("AE_HAWB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.CREATE_DATE);
+                foreach(var po in model.BookingPos)
+                    po.BOOKING_NO = model.BOOKING_NO;
+            }
+
+            if (string.IsNullOrEmpty(model.FRT_PAYMENT_PC))
+                model.FRT_PAYMENT_PC = "P";
+            if (string.IsNullOrEmpty(model.OTHER_PAYMENT_PC))
+                model.OTHER_PAYMENT_PC = "P";
+
+            if (mode == "edit")
+                air.UpdateBooking(model);
+            else if (mode == "create")
+                air.AddBooking(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("GetWarehouseHistory")]

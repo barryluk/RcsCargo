@@ -29,6 +29,24 @@
                 { name: "CompanyName", value: data.companyId },
                 { name: "filename", value: filename },]);
         });
+
+        //Manual input Booking #
+        if (masterForm.mode == "create") {
+            $(`#${masterForm.id} [name="BOOKING_NO"]`).removeClass("form-control");
+            $(`#${masterForm.id} [name="BOOKING_NO"]`).addClass("form-control-text k-input-inner readonlyInput");
+            $(`#${masterForm.id} [name="BOOKING_NO"]`).after(`<i class="k-icon k-i-change-manually handCursor" title="Manual input Booking#"></i>`);
+
+            $(`#${masterForm.id} .k-i-change-manually`).bind("click", function () {
+                if ($(`#${masterForm.id} [name="BOOKING_NO"]`).attr("readonly") == null) {
+                    $(`#${masterForm.id} [name="BOOKING_NO"]`).attr("readonly", "readonly");
+                    $(`#${masterForm.id} [name="BOOKING_NO"]`).addClass("readonlyInput");
+                }
+                else {
+                    $(`#${masterForm.id} [name="BOOKING_NO"]`).removeAttr("readonly", "readonly");
+                    $(`#${masterForm.id} [name="BOOKING_NO"]`).removeClass("readonlyInput");
+                }
+            });
+        }
     }
 
     printWarehouseReceipt = function () {

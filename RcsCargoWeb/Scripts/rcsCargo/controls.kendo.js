@@ -22,7 +22,7 @@
         });
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
 
-        $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
+        $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
 
         $(`#${masterForm.id} button .k-i-file-add`).parent().bind("click", function () {
             var formId = utils.getFormId($(this));
@@ -42,12 +42,13 @@
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
                 //return;
+
                 $.ajax({
                     url: masterForm.updateUrl,
                     type: "post",
                     data: { model: model, mode: masterForm.mode },
                     beforeSend: function () {
-                        kendo.ui.progress($(".container-fluid"), true);
+                        kendo.ui.progress($(`#${masterForm.id}`), true);
                     },
                     success: function (result) {
                         console.log(result);
@@ -56,9 +57,26 @@
                         } else {
                             var controller = masterForm.id.split("_")[0];
                             var newId = `${controller}_${result[masterForm.idField]}_${data.companyId}_${utils.getFrtMode()}`;
-                            controls.remove_tabStripMain(masterForm.id);
-                            controls.append_tabStripMain(`${masterForm.title} ${result[masterForm.idField]}`, newId, controller);
-                            //controls.activate_tabStripMain(newId);
+
+                            //Change the form control values
+                            var tabHtml = $(`#btnRefresh_${masterForm.id}`).parent().html();
+                            tabHtml = tabHtml.replaceAll("NEW", result[masterForm.idField]);
+                            $(`#btnRefresh_${masterForm.id}`).parent().html(tabHtml);
+                            $(`#${masterForm.id}`).attr("id", newId);
+                            $(`#${newId} h3`).text(`${masterForm.title} ${result[masterForm.idField]}`);
+
+                            $("#btnClose_" + newId).click(function () {
+                                var tabStrip = $("#tabStripMain").data("kendoTabStrip");
+                                tabStrip.remove(tabStrip.tabGroup.find("[id='btnClose_" + newId + "']").parent().parent());
+                                tabStrip.activateTab("li:last");
+                            });
+
+                            $("#btnRefresh_" + newId).click(function () {
+                                kendo.ui.progress($(`#${newId}`), true);
+                                controls.edit.initEditPage(newId, newId);
+                            });
+
+                            $("#btnRefresh_" + newId).trigger("click");
                         }
                         utils.showNotification("Save success", "success");
                     },
@@ -67,7 +85,7 @@
                         utils.showNotification("Save failed, please contact system administrator!", "error");
                     },
                     complete: function () {
-                        kendo.ui.progress($(".container-fluid"), false);
+                        kendo.ui.progress($(`#${masterForm.id}`), false);
                     }
                 });
             }
@@ -102,12 +120,16 @@
         });
 
         //kendoButtonGroup for frtMode
-        $(`#${masterForm.id} div[type=buttonGroup][dataType=frtMode]`).each(function () {
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=frtMode], #${masterForm.id} .toolbar-frtMode`).each(function () {
             $(this).kendoButtonGroup({
                 items: [
                     { text: "Export", iconClass: "fa fa-plane-departure", selected: true },
                     { text: "Import", iconClass: "fa fa-plane-arrival" },
-                ]
+                ],
+                select: function (e) {
+                    var frtMode = this.current().text() == "Export" ? "AE" : "AI";
+                    $(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
+                }
             });
         });
 

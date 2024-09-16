@@ -10,7 +10,8 @@
         this.companyId = id.split("_")[2];
         this.frtMode = id.split("_")[3];
 
-        if (!utils.isEmptyString(originalId))
+        //if (!utils.isEmptyString(originalId))
+        console.log(this.keyValue);
 
         if (this.keyValue == "NEW")
             mode = "create";
@@ -46,7 +47,7 @@
                         eval(`controllers.${masterForm.formName}.${masterForm.additionalScript}(masterForm);`);
                 },
                 complete: function () {
-                    kendo.ui.progress($(".container-fluid"), false);
+                    kendo.ui.progress($(`#${masterForm.id}`).parent(), false);
                 }
             });
         }

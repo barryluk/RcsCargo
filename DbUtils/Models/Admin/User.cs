@@ -21,6 +21,7 @@ namespace DbUtils.Models.Admin
         public string MODIFY_USER { get; set; }
         public DateTime MODIFY_DATE { get; set; }
         public string USER_TYPE { get; set; }
+        public string DEFAULT_COMPANY { get; set; }
         [NotMapped]
         public List<UserGroup> UserGroups { get; set; }
         [NotMapped]

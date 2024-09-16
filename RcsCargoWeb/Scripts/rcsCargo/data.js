@@ -4,7 +4,7 @@ var sessionId;
 var intervalId;
 var take = 40;
 var indexGridPageSize = 40;
-var companyId = "RCSHKG";
+var companyId = "";
 var dateFormat = "M/d/yyyy";
 var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
@@ -43,7 +43,7 @@ var frameworkHtmlElements = {
                             <img src="../Content/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                         </div>
                         <div class="info">
-                            <a href="#" class="d-block">Admin</a>
+                            <a href="#" class="d-block user-name"></a>
                         </div>
                     </div>
 
@@ -290,7 +290,8 @@ var htmlElements = {
         return `
                 <div>
                     <h3>${title}</h3>
-                    <div class="toolbar"></div>
+                    <div class="toolbar">
+                    </div>
                     <section class="content">
                         <div class="container-fluid">
                             <div class="row form_group">
@@ -620,7 +621,8 @@ var masterForms = [
         ],
         schema: {
             requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE"],
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE", "IS_PASSENGER_FLIGHT", "IS_X_RAY", "IS_SPLIT_SHIPMENT", "IS_CLOSED", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE", "IS_PASSENGER_FLIGHT", "IS_X_RAY", "IS_SPLIT_SHIPMENT",
+                "IS_CLOSED", "IS_VOIDED", "CREATE_USER", "CREATE_DATE", "FRT_PAYMENT_PC", "OTHER_PAYMENT_PC"],
             readonlyFields: [
                 { name: "MAWB", readonly: "edit" },
                 { name: "JOB", readonly: "always" }
@@ -994,9 +996,24 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
+            requiredFields: ["BOOKING_NO", "SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "VWTS_FACTOR"],
             readonlyFields: [
                 { name: "BOOKING_NO", readonly: "always" }],
+            validation: {
+                rules: {
+                    bookingNoExistsRule: function (input) {
+                        if (input.is("[name=BOOKING_NO]")) {
+                            return !utils.isExistingBookingNo(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: {
+                    bookingNoExistsRule: "Booking# already exists in the database!",
+                },
+            },
         },
         formGroups: [
             {
@@ -1202,10 +1219,10 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            requiredFields: ["SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "P_CURR_CODE", "C_CURR_CODE", "FRT_PAYMENT_PC", "OTHER_PAYMENT_PC"],
+            hiddenFields: ["COMPANY_ID", "FRT_MODE", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
             readonlyFields: [
                 { name: "HAWB_NO", readonly: "always" },
-                //{ name: "MAWB_NO", readonly: "edit" },
                 { name: "BOOKING_NO", readonly: "edit" },
                 { name: "JOB_NO", readonly: "always" },
                 { name: "CWTS", readonly: "always" },
@@ -1258,7 +1275,7 @@ var masterForms = [
                     { label: "Other Payment", type: "paymentTerms", name: "OTHER_PAYMENT_PC", colWidth: 6 },
                     { label: "Show Frt Charge", type: "showCharges", name: "SHOW_FRT_CHG", colWidth: 6 },
                     { label: "Show Other Charge", type: "showCharges", name: "SHOW_OTHER_CHG", colWidth: 6 },
-                    { label: "Selling Rate", type: "text", name: "SELLING_RATE", colWidth: 6 },
+                    { label: "Selling Rate", type: "number", name: "SELLING_RATE", colWidth: 6 },
                     { label: "Insurance Amount", type: "text", name: "AMOUNT_OF_INS", colWidth: 6 },
                     { label: "DV Custom", type: "text", name: "DV_CUSTOM", colWidth: 6 },
                     { label: "DV Carriage", type: "text", name: "DV_CARRIAGE", colWidth: 6 },
@@ -1270,7 +1287,7 @@ var masterForms = [
                     { label: "Ship Cancel Date", type: "date", name: "SHIP_CANCEL_DATE", colWidth: 6 },
                     { label: "Division Code", type: "text", name: "DIV_CODE", colWidth: 6 },
                     { label: "Flight Services Type", type: "fltServiceType", name: "FLT_SERVICE_TYPE", colWidth: 6 },
-                    { label: "Shipment Ref.#", type: "text", name: "DIV_CODE", colWidth: 6 },
+                    { label: "Shipment Ref.#", type: "text", name: "SHIPMENT_REF_NO", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
                     { label: "Incoterm", type: "incoterm", name: "INCOTERM_2012", colWidth: 6 },
                     { label: "Port", type: "port", name: "INCOTERM_2012_PORT", colWidth: 6 },

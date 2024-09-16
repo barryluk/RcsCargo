@@ -20,6 +20,7 @@ namespace RcsCargoWeb.Air.Controllers
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridHawb_Read")]
         public ActionResult GridHawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -99,6 +100,43 @@ namespace RcsCargoWeb.Air.Controllers
         {
             var hawb = air.GetHawb(id, companyId, frtMode);
             return Json(hawb, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateHawb")]
+        public ActionResult UpdateHawb(Hawb model, string mode)
+        {
+            if (string.IsNullOrEmpty(model.HAWB_NO))
+            {
+                model.HAWB_NO = admin.GetSequenceNumber("AE_HAWB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.CREATE_DATE);
+
+                foreach (var item in model.HawbPos)
+                    item.HAWB_NO = model.HAWB_NO;
+                foreach (var item in model.HawbDims)
+                    item.HAWB_NO = model.HAWB_NO;
+                foreach (var item in model.HawbLics)
+                    item.HAWB_NO = model.HAWB_NO;
+                foreach (var item in model.HawbChargesPrepaid)
+                    item.HAWB_NO = model.HAWB_NO;
+                foreach (var item in model.HawbChargesCollect)
+                    item.HAWB_NO = model.HAWB_NO;
+                foreach (var item in model.HawbStatuses)
+                    item.HAWB_NO = model.HAWB_NO;
+            }
+
+            model.IS_MASTER_HAWB = "N";
+            model.IS_SEA_AIR_JOB = "N";
+            model.IS_SEA_AIR_JOB = "N";
+            model.IS_SEA_AIR_JOB = "N";
+            model.IS_PICKUP = "N";
+            model.FRT_P_RATE = 0;
+            model.FRT_C_RATE = 100;
+
+            if (mode == "edit")
+                air.UpdateHawb(model);
+            else if (mode == "create")
+                air.AddHawb(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("IsExistingHawbNo")]

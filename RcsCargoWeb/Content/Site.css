@@ -178,17 +178,36 @@ div .row.form-group {
 }
 
 .form-control, .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
+    width: 100%;
     max-width: 270px;
     height: calc(1.8rem);
     font-size: 12px;
     margin: 2px;
 }
 
-.form-control-textArea {
-    max-width: 320px;
-    height: calc(6rem);
+.form-control-text {
+    width: 100%;
+    max-width: 270px;
+    height: calc(1.8rem);
+    font-size: 12px;
     margin: 2px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
 }
+
+    .form-control-text:focus {
+        border: 1px solid #80BDFF;
+    }
+
+    .readonlyInput {
+        background-color: #E9ECEF;
+    }
+
+    .form-control-textArea {
+        max-width: 320px;
+        height: calc(6rem);
+        margin: 2px;
+    }
 
 .k-input-md .k-input-inner, .k-picker-md .k-input-inner {
     height: calc(1.6rem);
@@ -304,4 +323,8 @@ td.k-edit-cell {
     position: absolute;
     right: 10px;
     font-size: 0.7rem;
+}
+
+.toolbar.k-toolbar .toolbar-frtMode {
+    margin-left: 100px;
 }
