@@ -5,6 +5,8 @@ using Oracle.ManagedDataAccess.Client;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DbUtils.Models.Air;
+using System.Data.Entity;
 
 namespace DbUtils
 {
@@ -16,6 +18,8 @@ namespace DbUtils
         {
             db = new RcsFreightDBContext();
         }
+
+        #region Port
 
         public List<PortView> GetPortsView()
         {
@@ -43,6 +47,10 @@ namespace DbUtils
                 return port;
         }
 
+        #endregion
+
+        #region Airline
+
         public List<AirlineView> GetAirlinesView()
         {
             var sqlCmd = @"select a.airline_code, b.airline_desc from
@@ -66,6 +74,10 @@ namespace DbUtils
             else
                 return airline;
         }
+
+        #endregion
+
+        #region Charges
 
         public List<ChargeView> GetChargesView()
         {
@@ -102,6 +114,10 @@ namespace DbUtils
             return db.ChargeTemplates.Where(a => a.COMPANY_ID.Equals(companyId) && a.TEMPLATE_NAME == templateName).ToList();
         }
 
+        #endregion
+
+        #region Currency
+
         public List<Currency> GetCurrencies(string companyId)
         {
             return db.Currencies.Where(a => a.COMPANY_ID == companyId).ToList();
@@ -116,19 +132,111 @@ namespace DbUtils
                 return currency;
         }
 
+        #endregion
+
+        #region Customer
+
+        public string GetNewCustomerCode(string customerName)
+        {
+            string sqlCmd = $"select get_customer_code('{customerName}') from dual";
+            return db.Database.SqlQuery<string>(sqlCmd).First();
+        }
+
         public List<CustomerView> GetCustomerViews(string searchValue)
         {
             searchValue = searchValue + "%";
             string sqlCmd = @"select customer.group_code, customer.type, n.customer_code, n.customer_desc, n.branch_code, n.short_desc, 
-                n.country_code, n.port_code, c.addr_type, c.addr1, c.addr2, c.addr3, c.addr4
+                n.country_code, n.port_code, c.addr_type, c.addr1, c.addr2, c.addr3, c.addr4, customer.CREATE_DATE, customer.MODIFY_DATE
                 from customer
                 left outer join customer_name n on customer.customer_code = n.customer_code
                 left outer join customer_contact c on n.customer_code = c.customer_code and n.branch_code = c.branch_code and c.addr_type = 'D'
                 where n.customer_code like :searchValue or n.customer_desc like :searchValue or n.short_desc like :searchValue";
 
             var customers = db.Database.SqlQuery<CustomerView>(sqlCmd, new[] { new OracleParameter("searchValue", searchValue) });
+            return customers.OrderByDescending(a => a.MODIFY_DATE).Take(Utils.DefaultMaxQueryRows).ToList();
+        }
+
+        public List<CustomerView> GetRecentCustomers()
+        {
+            string sqlCmd = @"select shipper_code customer_code, shipper_desc customer_desc, shipper_branch branch_code, shipper_short_desc short_desc,
+                shipper_addr1 addr1, shipper_addr2 addr2, shipper_addr3 addr3, shipper_addr4 addr4
+                from a_hawb
+                where create_date > sysdate - 60 and frt_mode = 'AE'
+                union
+                select consignee_code customer_code, consignee_desc customer_desc, consignee_branch branch_code, consignee_short_desc short_desc,
+                consignee_addr1 addr1, consignee_addr2 addr2, consignee_addr3 addr3, consignee_addr4 addr4
+                from a_hawb
+                where create_date > sysdate - 60 and frt_mode = 'AE'
+                union
+                select n.customer_code, n.customer_desc, n.branch_code, n.short_desc, 
+                c.addr1, c.addr2, c.addr3, c.addr4
+                from customer
+                left outer join customer_name n on customer.customer_code = n.customer_code
+                left outer join customer_contact c on n.customer_code = c.customer_code and n.branch_code = c.branch_code and c.addr_type = 'D'
+                where modify_date > sysdate - 30";
+
+            var customers = db.Database.SqlQuery<CustomerView>(sqlCmd);
             return customers.Take(Utils.DefaultMaxQueryRows).ToList();
         }
+
+        public Customer GetCustomer(string customerCode)
+        {
+            var customer = db.Customers.FirstOrDefault(a => a.CUSTOMER_CODE == customerCode);
+            if (customer != null)
+            {
+                customer.CustomerNames = db.CustomerNames.Where(a => a.CUSTOMER_CODE == customerCode).ToList();
+                customer.CustomerContacts = db.CustomerContacts.Where(a => a.CUSTOMER_CODE == customerCode).ToList();
+            }
+
+            if (customer == null)
+                return new Customer();
+            else
+                return customer;
+        }
+
+        public void AddCustomer(Customer customer)
+        {
+            try
+            {
+                db.Customers.Add(customer);
+                db.CustomerNames.AddRange(customer.CustomerNames);
+                db.CustomerContacts.AddRange(customer.CustomerContacts);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCustomer(Customer customer)
+        {
+            try
+            {
+                db.Entry(customer).State = EntityState.Modified;
+                var customerNames = db.CustomerNames.Where(a => a.CUSTOMER_CODE == customer.CUSTOMER_CODE);
+                var customerContacts = db.CustomerContacts.Where(a => a.CUSTOMER_CODE == customer.CUSTOMER_CODE);
+
+                if (customerNames != null)
+                {
+                    db.CustomerNames.RemoveRange(customerNames);
+                    db.CustomerNames.AddRange(customer.CustomerNames);
+                }
+                if (customerContacts != null)
+                {
+                    db.CustomerContacts.RemoveRange(customerContacts);
+                    db.CustomerContacts.AddRange(customer.CustomerContacts);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        #endregion
 
         public List<string> GetEquipCodes()
         {

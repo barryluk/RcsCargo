@@ -38,7 +38,7 @@ namespace RcsCargoWeb.Controllers.Admin
                 admin.AddUserLog(userLog);
 
                 //for security issue, should not expose the password to client side
-                user.PASSWORD = string.Empty;   
+                user.PASSWORD = string.Empty;
                 jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\", \"user\": " + JsonConvert.SerializeObject(user) + " }";
             }
             else
@@ -85,6 +85,7 @@ namespace RcsCargoWeb.Controllers.Admin
         {
             DbUtils.Admin admin = new DbUtils.Admin();
             var user = admin.GetUser(userId);
+            user.PASSWORD = string.Empty;
             return Json(user, JsonRequestBehavior.AllowGet);
         }
     }

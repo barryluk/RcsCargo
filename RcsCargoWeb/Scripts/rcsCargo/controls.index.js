@@ -85,16 +85,28 @@
                             pageSetting.id = utils.getFormId();
                         }
 
-                        var searchData = {
-                            searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
-                            dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
-                            dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
-                            companyId: data.companyId,
-                            frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
-                            take: data.indexGridPageSize,
-                            skip: options.data.skip,
-                            sort: options.data.sort,
-                        };
+                        var searchData = {};
+
+                        if (pageSetting.searchControls.length == 1) {
+                            searchData = {
+                                searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
+                                companyId: data.companyId,
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
+                        } else {
+                            searchData = {
+                                searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                companyId: data.companyId,
+                                frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
+                        }
 
                         $.ajax({
                             url: pageSetting.gridConfig.dataSourceUrl,
@@ -142,6 +154,14 @@
                 $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                     var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
                     controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
+                });
+
+                //override the column width after autoFitColumns function
+                pageSetting.gridConfig.columns.forEach(function (col) {
+                    if (col.width != null) {
+                        testObj = grid;
+                        grid.resizeColumn(grid.columns[pageSetting.gridConfig.columns.indexOf(col)], col.width);
+                    }
                 });
             },
             change: function (e) {

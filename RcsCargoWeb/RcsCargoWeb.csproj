@@ -168,6 +168,7 @@
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MasterRecord\CustomerController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -454,7 +455,6 @@
     <Content Include="Scripts\rcsCargo\controls.kendo.js" />
     <Content Include="Scripts\rcsCargo\controls.edit.js" />
     <Content Include="Scripts\rcsCargo\controls.index.js" />
-    <Content Include="Scripts\rcsCargo\message.js" />
     <Content Include="Scripts\rcsCargo\airMawb.js" />
     <Content Include="Scripts\rcsCargo\controls.js" />
     <Content Include="Scripts\rcsCargo\dashboard.js" />

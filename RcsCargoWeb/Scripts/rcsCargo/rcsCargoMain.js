@@ -33,15 +33,12 @@ $(document).ready(function () {
             //setTimeout(function () { controls.append_tabStripMain("MAWB", `airMawbIndex_${data.companyId}`, "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("MAWB# NEW", `airMawb_NEW_RCSHKG_AE`, "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("MAWB# 27274092196", "airMawb_27274092196_RCSHKG_AE", "airMawb"); }, 500);
-            //setTimeout(function () { controls.append_tabStripMain("MAWB# 17286649382", "airMawb_17286649382_RCSHKG_AE", "airMawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking", `airBookingIndex_${data.companyId}`, "airBooking"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Booking# HKG18124785", "airBooking_HKG18124785_RCSHKG_AE", "airBooking"); }, 500)
-            setTimeout(function () { controls.append_tabStripMain("Hawb", `airHawbIndex_${data.companyId}`, "airHawb"); }, 500);
+            //setTimeout(function () { controls.append_tabStripMain("Hawb", `airHawbIndex_${data.companyId}`, "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("HAWB# NEW", `airHawb_NEW_RCSHKG_AE`, "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124773", "airHawb_HKG18124773_RCSHKG_AE", "airHawb"); }, 500);
-            //setTimeout(function () { controls.append_tabStripMain("HAWB# HKG18124768", "airHawb_HKG18124768_RCSHKG_AE", "airHawb"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187325", "airInvoice_TD0187325_RCSHKG_AE", "airInvoice"); }, 500);
-            //setTimeout(function () { controls.append_tabStripMain("Invoice# TD0187274", "airInvoice_TD0187274_RCSHKG_AE", "airInvoice"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Invoice# CNHK121248", "airInvoice_CNHK121248_RCSHKG_AE", "airInvoice"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("PV# TAPV0150685", "airPv_TAPV0150685_RCSHKG_AE", "airPv"); }, 500);
             //setTimeout(function () { controls.append_tabStripMain("Other Job", `airOtherJobIndex_${data.companyId}`, "airOtherJob"); }, 500);
@@ -71,6 +68,11 @@ $(document).ready(function () {
                     }
                 }
             });
+
+            //run the prefetchGlobalVariables every 10 minutes
+            if (Math.floor((new Date - data.masterRecords.lastUpdateTime) / 60000) >= 10) {
+                data.prefetchGlobalVariables();
+            }
         }, 1000 * 60);
     }
 

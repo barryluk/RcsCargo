@@ -21,7 +21,7 @@ namespace DbUtils
         public DbSet<ChargeTemplate> ChargeTemplates { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CustomerName> CustomerNames { get; set; }
-        public DbSet<CustomerContact> CustomersContacts { get; set; }
+        public DbSet<CustomerContact> CustomerContacts { get; set; }
 
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }

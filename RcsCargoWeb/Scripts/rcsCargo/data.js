@@ -10,21 +10,23 @@ var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
 var lastActiveTabId = "";
 var masterRecords = {
+    lastUpdateTime: null,
     chargeQtyUnit: ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"],
     packageUnit: ["CTNS", "PLT", "PKG", "ROLLS", "PCS"],
     jobType: [{ text: "Consol", value: "C" }, { text: "Direct", value: "D" }],
     bookingType: [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }],
     vwtsFactor: [6000, 6500, 7000, 9000],
     incoterm: ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"],
+    customerType: [{ text: "Customer" }, { text: "Agent" }, { text: "Carrier" }, { text: "Vendor" }],
     paymentTerms: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }],
     showCharges: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }, { text: "Prepaid + Collect", value: "PC" }],
     invoiceType: [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }],
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
-    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, ports: {}, customers: {},
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {},
 };
-var dropdownlistControls = ["airline", "port", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
+var dropdownlistControls = ["airline", "port", "country", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot"];
 
@@ -324,6 +326,42 @@ var htmlElements = {
 
 var indexPages = [
     {
+        pageName: "customer",
+        id: "",
+        title: "Customer",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Customer Code / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridCustomerIndex",
+            dataSourceUrl: "../MasterRecord/Customer/GridCustomer_Read",
+            linkIdPrefix: "customer",
+            linkTabTitle: "Customer: ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CUSTOMER_CODE", title: "Customer Code", attributes: { "class": "link-cell" } },
+                { field: "CUSTOMER_DESC", title: "Name" },
+                { field: "BRANCH_CODE", title: "Branch Code" },
+                { field: "SHORT_DESC", title: "Short name" },
+                {
+                    title: "Address", template: function (dataItem) {
+                        return `${dataItem.ADDR1} 
+                        ${utils.isEmptyString(dataItem.ADDR2) ? "" : dataItem.ADDR2} 
+                        ${utils.isEmptyString(dataItem.ADDR3) ? "" : dataItem.ADDR3} 
+                        ${utils.isEmptyString(dataItem.ADDR4) ? "" : dataItem.ADDR4}`;
+                    }, width: 350,
+                },
+                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "MODIFY_DATE", title: "Modify Date" },
+            ],
+        },
+    },
+    {
         pageName: "airMawb",
         id: "",
         title: "MAWB",
@@ -580,6 +618,152 @@ var indexPages = [
 
 var masterForms = [
     {
+        formName: "customer",
+        mode: "edit",   //create / edit
+        title: "Customer:",
+        readUrl: "../MasterRecord/Customer/GetCustomer",
+        updateUrl: "../MasterRecord/Customer/UpdateCustomer",
+        //additionalScript: "initCustomer",
+        idField: "CUSTOMER_CODE",
+        id: "",
+        targetForm: {},
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+        ],
+        schema: {
+            requiredFields: ["TYPE", "CustomerNames", "CustomerContacts"],
+            hiddenFields: ["CREATE_USER", "CREATE_DATE"],
+            readonlyFields: [
+                { name: "CUSTOMER_CODE", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Customer",
+                name: "mainInfo",
+                formGroups: ["mainInfo", "address"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Customer Name",
+                colWidth: 10,
+                formControls: [
+                    { label: "Customer Code", type: "text", name: "CUSTOMER_CODE", colWidth: 6 },
+                    { label: "Group Code", type: "text", name: "GROUP_CODE", colWidth: 6 },
+                    { label: "Customer Type", type: "buttonGroup", dataType: "customerType", name: "TYPE", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    {
+                        label: "Customer Name", type: "grid", name: "CustomerNames", colWidth: 6,
+                        columns: [
+                            { title: "Country", field: "COUNTRY_CODE", width: 80 },
+                            {
+                                title: "Port", field: "PORT_CODE", width: 90,
+                                editor: function (container, options) { controls.kendo.renderGridEditorPort(container, options) }
+                            },
+                            { title: "Branch", field: "BRANCH_CODE", width: 90 },
+                            { title: "Name", field: "CUSTOMER_DESC", width: 280 },
+                            { title: "Short Name", field: "SHORT_DESC", width: 180 },
+                        ],
+                        fields: {
+                            //CUSTOMER_CODE: { type: "string" },
+                            COUNTRY_CODE: { validation: { required: true } },
+                            PORT_CODE: { validation: { required: true } },
+                            BRANCH_CODE: { validation: { required: true } },
+                            CUSTOMER_DESC: { validation: { required: true } },
+                            SHORT_DESC: { validation: { required: true } },
+                        },
+                    },
+                    { label: "Air Instruction ", type: "textArea", name: "AIR_INST", colWidth: 6 },
+                    { label: "Ocean Instruction ", type: "textArea", name: "OCEAN_INST", colWidth: 6 },
+                ]
+            },
+            {
+                name: "address",
+                title: "Address",
+                colWidth: 10,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "CustomerContacts",
+                        columns: [
+                            {
+                                title: "Branch", field: "BRANCH_CODE", width: 90,
+                                editor: function (container, options) { controls.kendo.renderGridEditorBranch(container, options) }
+                            },
+                            {
+                                title: "Short Name", field: "SHORT_DESC", width: 160,
+                                editor: function (container, options) { controls.kendo.renderGridEditorShortDesc(container, options) }
+                            },
+                            {
+                                title: "Contact/Email", field: "CONTACT",
+                                template: (dataItem) => utils.removeNullString(`${dataItem.CONTACT}<br>${dataItem.EMAIL}`),
+                                editor: function (container, options) {
+                                    $(`<b>Contact:</b><br><input name="CONTACT" class="form-control" style="width: 100%" />
+                                    <b>Email:</b><br><input name="EMAIL" class="form-control" style="width: 100%" />`).appendTo(container);
+                                },
+                                width: 120
+                            },
+                            {
+                                title: "Tel/Fax", field: "TEL", template: (dataItem) => utils.removeNullString(`${dataItem.TEL}<br>${dataItem.FAX}`),
+                                editor: function (container, options) {
+                                    $(`<b>Tel:</b><br><input name="TEL" class="form-control" style="width: 100%" />
+                                    <b>Fax:</b><br><input name="FAX" class="form-control" style="width: 100%" />`).appendTo(container);
+                                },
+                                width: 120
+                            },
+                            {
+                                title: "Address", field: "ADDR_TYPE",
+                                template: (dataItem) => utils.removeNullString(`<b>Address Type: ${dataItem.ADDR_TYPE == "D" ? "Delivery" : "Billing"}</b><br>${dataItem.ADDR1}<br>${dataItem.ADDR2}<br>${dataItem.ADDR3}<br>${dataItem.ADDR4}`),
+                                editor: function (container, options) {
+                                    $(`<b>Address Type:</b><input name="ADDR_TYPE" style="margin-left: 4px; width: 120px" /><br>
+                                    <input name="ADDR1" class="form-control" style="width: 100%" />
+                                    <input name="ADDR2" class="form-control" style="width: 100%" />
+                                    <input name="ADDR3" class="form-control" style="width: 100%" />
+                                    <input name="ADDR4" class="form-control" style="width: 100%" />`).appendTo(container);
+
+                                    $(`input[name="ADDR_TYPE"]`).kendoDropDownList({
+                                        dataTextField: "ADDR_TYPE_DESC",
+                                        dataValueField: "ADDR_TYPE",
+                                        dataSource: [{ ADDR_TYPE: "D", ADDR_TYPE_DESC: "Delivery" }, { ADDR_TYPE: "B", ADDR_TYPE_DESC: "Billing" }],
+                                    });
+                                },
+                                width: 350
+                            },
+                            {
+                                title: "City/State/Postal#", field: "CITY",
+                                template: (dataItem) => utils.removeNullString(`${dataItem.CITY}<br>${dataItem.STATE}<br>${dataItem.POSTAL_CODE}`),
+                                editor: function (container, options) {
+                                    $(`<b>City:</b><br><input name="CITY" class="form-control" style="width: 100%" />
+                                    <b>State:</b><br><input name="STATE" class="form-control" style="width: 100%" />
+                                    <b>Postal #:</b><br><input name="POSTAL_CODE" class="form-control" style="width: 100%" />`).appendTo(container);
+                                },
+                                width: 180
+                            },
+                        ],
+                        fields: {
+                            BRANCH_CODE: { validation: { required: true } },
+                            SHORT_DESC: { validation: { required: true } },
+                            CONTACT: { type: "string" },
+                            EMAIL: { type: "string" },
+                            TEL: { type: "string" },
+                            FAX: { type: "string" },
+                            ADDR1: { validation: { required: true } },
+                            ADDR2: { type: "string" },
+                            ADDR3: { type: "string" },
+                            ADDR4: { type: "string" },
+                            ADDR_TYPE: { type: "string", defaultValue: "D" },
+                            CITY: { type: "string" },
+                            STATE: { type: "string" },
+                            POSTAL_CODE: { type: "string" },
+                        },
+                    },
+                ]
+            },
+        ],
+    },
+    {
         formName: "airMawb",
         mode: "edit",   //create / edit
         title: "MAWB#",
@@ -722,7 +906,7 @@ var masterForms = [
                     { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
                     {
-                        label: "Prepaid Charges", type: "grid", name: "MawbChargesPrepaid",
+                        label: "", type: "grid", name: "MawbChargesPrepaid",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -773,7 +957,7 @@ var masterForms = [
                     { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
                     {
-                        label: "Prepaid Charges", type: "grid", name: "MawbChargesCollect",
+                        label: "", type: "grid", name: "MawbChargesCollect",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -824,7 +1008,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Dimension", type: "grid", name: "MawbDims",
+                        label: "", type: "grid", name: "MawbDims",
                         columns: [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
@@ -860,7 +1044,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Booking List", type: "grid", name: "LoadplanBookingListViews",
+                        label: "", type: "grid", name: "LoadplanBookingListViews",
                         toolbar: [
                             { name: "searchBooking", text: "Search Booking", iconClass: "k-icon k-i-search", callbackFunction: "controllers.airMawb.searchBookingClick" },
                         ],
@@ -896,7 +1080,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "HAWB List", type: "grid", name: "LoadplanHawbListViews",
+                        label: "", type: "grid", name: "LoadplanHawbListViews",
                         toolbar: [],
                         columns: [
                             { title: "HAWB #", field: "HAWB_NO", width: 90 },
@@ -924,7 +1108,7 @@ var masterForms = [
                 formControls: [
                     {
                         toolbar: ["create", "cancel", { name: "checkData", text: "Check Data", iconClass: "k-icon k-i-tick", callbackFunction: "controllers.airMawb.checkDataClick" },],
-                        label: "Equipment List", type: "grid", name: "LoadplanHawbEquips",
+                        label: "", type: "grid", name: "LoadplanHawbEquips",
                         columns: [
                             {
                                 title: "HAWB #", field: "HAWB_NO", width: 100,
@@ -1105,7 +1289,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Warehouse", type: "grid", name: "WarehouseHistories",
+                        label: "", type: "grid", name: "WarehouseHistories",
                         columns: [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
@@ -1323,7 +1507,7 @@ var masterForms = [
                     //example of adding buttons to the form
                     //{ label: "Update From Warehouse", type: "button", name: "updateFromWarehouse", icon: "refresh", callbackFunction: "controllers.airHawb.updateFromWarehouse", colWidth: 2 },
                     {
-                        label: "Dimension", type: "grid", name: "HawbDims",
+                        label: "", type: "grid", name: "HawbDims",
                         toolbar: ["create", "cancel", { name: "updateFromWarehouse", text: "Update From Warehouse", iconClass: "k-icon k-i-refresh", callbackFunction: "controllers.airHawb.updateFromWarehouse" },],
                         columns: [
                             { title: "Ctns", field: "CTNS", width: 90 },
@@ -1373,7 +1557,7 @@ var masterForms = [
                 colWidth: 8,
                 formControls: [
                     {
-                        label: "License No.", type: "grid", name: "HawbLics",
+                        label: "", type: "grid", name: "HawbLics",
                         columns: [
                             { title: "Issue Date", field: "ISSUE_DATE", width: 100, template: ({ ISSUE_DATE }) => `${kendo.toString(ISSUE_DATE, data.dateTimeFormat)}` },
                             { title: "License No.", field: "LIC_NO", width: 160 },
@@ -1411,7 +1595,7 @@ var masterForms = [
                     /*{ label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },*/
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesPrepaid" },
                     {
-                        label: "Prepaid Charges", type: "grid", name: "HawbChargesPrepaid",
+                        label: "", type: "grid", name: "HawbChargesPrepaid",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -1462,7 +1646,7 @@ var masterForms = [
                     /*{ label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },*/
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesCollect" },
                     {
-                        label: "Prepaid Charges", type: "grid", name: "HawbChargesCollect",
+                        label: "", type: "grid", name: "HawbChargesCollect",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -1511,7 +1695,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Invoice", type: "grid", name: "Invoices", editable: false,
+                        label: "", type: "grid", name: "Invoices", editable: false,
                         toolbar: [
                             { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add" },
                         ],
@@ -1531,7 +1715,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "PO Information", type: "grid", name: "HawbPos",
+                        label: "", type: "grid", name: "HawbPos",
                         columns: [
                             { title: "PO#", field: "PO_NO", width: 120 },
                             { title: "Style #", field: "STYLE_NO", width: 120 },
@@ -1571,7 +1755,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Documents",
+                        label: "",
                         type: "grid",
                         name: "HawbDocs",
                         deleteCallbackFunction: "controllers.airHawb.gridHawbDocsDelete",
@@ -1615,7 +1799,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Shipment Status", type: "grid", name: "HawbStatuses",
+                        label: "", type: "grid", name: "HawbStatuses",
                         columns: [
                             { title: "Status", field: "STATUS_CODE", width: 120 },
                             { title: "Date/Time", field: "STATUS_DATE", template: function (dataItem) { return `${kendo.toString(dataItem.STATUS_DATE, data.dateTimeFormat)}`; }, width: 100 },
@@ -1712,7 +1896,7 @@ var masterForms = [
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
                     {
-                        label: "Charges", type: "grid", name: "InvoiceItems",
+                        label: "", type: "grid", name: "InvoiceItems",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -1837,7 +2021,7 @@ var masterForms = [
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
                     {
-                        label: "Charges", type: "grid", name: "PvItems",
+                        label: "", type: "grid", name: "PvItems",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -2035,7 +2219,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "Invoice", type: "grid", name: "Invoices", editable: false,
+                        label: "", type: "grid", name: "Invoices", editable: false,
                         toolbar: [
                             { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add" },
                         ],
@@ -2118,7 +2302,15 @@ export default class {
     set indexPages(val) { indexPages = val; }
     set masterForms(val) { masterForms = val; }
 
-    prefetchGlobalVariables = function() {
+    prefetchGlobalVariables = function () {
+        $.ajax({
+            url: "../Admin/Account/GetUser",
+            data: { userId: user.USER_ID },
+            success: function (result) {
+                user = result;
+            }
+        });
+
         $.ajax({
             url: "../Home/GetCurrencies",
             data: { companyId: companyId },
@@ -2176,6 +2368,20 @@ export default class {
                     result[i].AIRLINE_DESC_DISPLAY = result[i].AIRLINE_CODE + " - " + result[i].AIRLINE_DESC;
                 }
                 masterRecords.airlines = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetRecentCustomers",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
+                    result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                }
+                masterRecords.customers = result;
+            },
+            complete: function () {
+                masterRecords.lastUpdateTime = new Date();
             }
         });
     }

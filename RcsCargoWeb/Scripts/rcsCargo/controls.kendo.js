@@ -7,13 +7,48 @@
         //kendoValidator
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
         if (validator == null && enableValidation) {
+            var rules = {
+                buttonGroupRequired: function (input) {
+                    if (input.is("[type=buttonGroup]")) {
+                        console.log(input);
+                        if (input.is("[required-checking='true']")) {
+                            if (input.data("kendoButtonGroup").current().length == 0)
+                                return false;
+                        }
+                    }
+                    return true;
+                },
+                gridRequired: function (input) {
+                    if (input.is("[type=grid]")) {
+                        if (input.is("[required-checking='true']")) {
+                            if (input.data("kendoGrid").dataSource.data().length == 0)
+                                return false;
+                        }
+                    }
+                    return true;
+                },
+            };
+
+            var messages = {
+                buttonGroupRequired: "At least 1 option must be selected.",
+                gridRequired: "At least 1 record must be added.",
+            };
+
+            if (masterForm.schema.validation != null) {
+                rules = Object.assign({}, rules, masterForm.schema.validation.rules);
+                messages = Object.assign({}, messages, masterForm.schema.validation.messages);
+            }
+
             validator = $(`#${masterForm.id}`).kendoValidator({
-                rules: masterForm.schema.validation == null ? {} : masterForm.schema.validation.rules,
-                messages: masterForm.schema.validation == null ? {} : masterForm.schema.validation.messages,
+                rules: rules,
+                messages: messages,
                 errorTemplate: ({ message }) => utils.validatorErrorTemplate(message)
             }).data("kendoValidator");
-        }
 
+            validator._inputSelector = "[type=grid],[type=buttonGroup],:input:not(:button,[type=submit],[type=reset],[disabled],[readonly])[data-validate!=false]";
+            testObj = validator;
+        }
+        
         //kendoToolBar
         $(`#${masterForm.id} div.toolbar`).each(function () {
             $(this).kendoToolBar({
@@ -22,7 +57,12 @@
         });
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
 
-        $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
+        if (masterForm.schema != null) {
+            if (masterForm.schema.hiddenFields.indexOf("FRT_MODE") == -1)
+                $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
+            else
+                $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
+        }
 
         $(`#${masterForm.id} button .k-i-file-add`).parent().bind("click", function () {
             var formId = utils.getFormId($(this));
@@ -117,6 +157,27 @@
             });
 
             $(this).find("span").eq(2).html(`<i class="fa-solid fa-arrows-left-right"></i>`)
+        });
+
+        //kendoButtonGroup for customerType
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=customerType]`).each(function () {
+            var control = $(this);
+            $(this).kendoButtonGroup({
+                selection: "multiple",
+                items: data.masterRecords.customerType,
+                select: function (e) {
+                    //var frtMode = this.current().text() == "Export" ? "AE" : "AI";
+                    //$(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
+                }
+            });
+
+            setTimeout(function () {
+                var type = control.val();
+                for (var i = 0; i < type.length; i++) {
+                    if (type.substr(i, 1) == "Y")
+                        control.data("kendoButtonGroup").select(i);
+                }
+            }, 100)
         });
 
         //kendoButtonGroup for frtMode
@@ -279,7 +340,7 @@
                                 } catch { }
                             }
                             if (filterValue == "")
-                                options.success([]);
+                                options.success(data.masterRecords.customers);
                             else {
                                 $.ajax({
                                     url: "../Home/GetCustomers",
@@ -314,6 +375,19 @@
                     $(`#${masterForm.id} input[name=${controlName}_ADDR2]`).val(item.ADDR2);
                     $(`#${masterForm.id} input[name=${controlName}_ADDR3]`).val(item.ADDR3);
                     $(`#${masterForm.id} input[name=${controlName}_ADDR4]`).val(item.ADDR4);
+
+                    if (data.masterRecords.customers.filter(a => a.CUSTOMER_CODE == item.CUSTOMER_CODE).length == 0) {
+                        data.masterRecords.customers.push({
+                            CUSTOMER_CODE: item.CUSTOMER_CODE,
+                            CUSTOMER_DESC: item.CUSTOMER_DESC,
+                            BRANCH_CODE: item.BRANCH_CODE,
+                            SHORT_DESC: item.SHORT_DESC,
+                            ADDR1: item.ADDR1,
+                            ADDR2: item.ADDR2,
+                            ADDR3: item.ADDR3,
+                            ADDR4: item.ADDR4,
+                        });
+                    }
                 },
                 open: function (e) {
                     var value = $(e.sender.element[0]).parent().next().val().split("-")[0];
@@ -904,28 +978,6 @@
             dataSource: {
                 type: "json",
                 data: data.masterRecords.charges,
-                //serverFiltering: true,
-                //transport: {
-                //    read: function (options) {
-                //        if (options.data.filter != null) {
-                //            try {
-                //                filterValue = options.data.filter.filters[0].value;
-                //            } catch { }
-                //        }
-                //        $.ajax({
-                //            url: "../Home/GetCharges",
-                //            data: { searchValue: filterValue, take: data.take },
-                //            dataType: "json",
-                //            type: "post",
-                //            success: function (result) {
-                //                for (var i in result) {
-                //                    result[i].CHARGE_DESC_DISPLAY = result[i].CHARGE_CODE + " - " + result[i].CHARGE_DESC;
-                //                }
-                //                options.success(result);
-                //            }
-                //        });
-                //    },
-                //}
             },
             open: function (e) {
                 $(e.sender.filterInput).val(filterValue);
@@ -953,6 +1005,19 @@
                     controls.kendo.gridSetCellValue(container, "EX_RATE", exRate);
                 }
             },
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Port
+    renderGridEditorPort = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+
+        ddl.kendoDropDownList({
+            filter: "startswith",
+            dataTextField: "PORT_CODE",
+            dataValueField: "PORT_CODE",
+            dataSource: data.masterRecords.ports,
         });
     }
 
@@ -1010,57 +1075,82 @@
         });
     }
 
-    gridAutoFitColumns = function (grid) {
-        setTimeout(function () {
-            var colMaxWidth = 280;
-            var row = [];
-            var colIndex = 0;
-            var tableWidth = 0;
-            var font = utils.getCanvasFont(grid.thead.find(".k-column-title")[0]);
+    renderGridEditorBranch = function (container, options) {
+        var formId = utils.getFormId($(container));
+        var gridCustomerName = $(`#${formId} [name="grid_CustomerNames"]`).data("kendoGrid");
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataTextField: "BRANCH_CODE",
+            dataValueField: "BRANCH_CODE",
+            dataSource: gridCustomerName.dataSource.data(),
+        });
+    }
 
-            //get the text width from table header
-            grid.thead.find("th").each(function () {
+    renderGridEditorShortDesc = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        var formId = utils.getFormId($(container));
+        var gridCustomerName = $(`#${formId} [name="grid_CustomerNames"]`).data("kendoGrid");
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataTextField: "SHORT_DESC",
+            dataValueField: "SHORT_DESC",
+            dataSource: gridCustomerName.dataSource.data(),
+        });
+    }
+
+    gridAutoFitColumns = function (grid) {
+        //kendoTabStrip animation issue, disable the animation of the tabStrip will not need the setTimeout anymore
+        //setTimeout(function () {
+        var colMaxWidth = 280;
+        var row = [];
+        var colIndex = 0;
+        var tableWidth = 0;
+        var font = utils.getCanvasFont(grid.thead.find(".k-column-title")[0]);
+
+        //get the text width from table header
+        grid.thead.find("th").each(function () {
+            if (this.style.display != "none") {
+                var width = utils.getTextWidth(this.innerText, font) + 18;
+                if (width > colMaxWidth) {
+                    width = colMaxWidth;
+                }
+                row.push({ colIndex: colIndex, width: width });
+                colIndex++;
+            }
+        });
+
+        //get the text width from table body
+        grid.tbody.find("tr").each(function () {
+            colIndex = 0;
+            $(this).find("td").each(function () {
                 if (this.style.display != "none") {
-                    var width = utils.getTextWidth(this.innerText, font) + 18;
-                    if (width > colMaxWidth) {
-                        width = colMaxWidth;
+                    if (!utils.isEmptyString(this.innerText)) {
+                        var width = utils.getTextWidth(this.innerText, font) + 15;
+                        if (width > colMaxWidth) {
+                            width = colMaxWidth;
+                        }
+                        if (width > row[colIndex].width) {
+                            row[colIndex].width = width;
+                        }
                     }
-                    row.push({ colIndex: colIndex, width: width });
                     colIndex++;
                 }
             });
+        });
 
-            //get the text width from table body
-            grid.tbody.find("tr").each(function () {
-                colIndex = 0;
-                $(this).find("td").each(function () {
-                    if (this.style.display != "none") {
-                        if (!utils.isEmptyString(this.innerText)) {
-                            var width = utils.getTextWidth(this.innerText, font) + 15;
-                            if (width > colMaxWidth) {
-                                width = colMaxWidth;
-                            }
-                            if (width > row[colIndex].width) {
-                                row[colIndex].width = width;
-                            }
-                        }
-                        colIndex++;
-                    }
-                });
-            });
+        for (var i in row) {
+            tableWidth += row[i].width;
+            //Set column width in table header
+            grid.wrapper.find("colgroup").eq(0).find("col")[i].style.width = `${row[i].width}px`;
+            //Set column width in table body
+            grid.wrapper.find("colgroup").eq(1).find("col")[i].style.width = `${row[i].width}px`;
+        }
 
-            for (var i in row) {
-                tableWidth += row[i].width;
-                //Set column width in table header
-                grid.wrapper.find("colgroup").eq(0).find("col")[i].style.width = `${row[i].width}px`;
-                //Set column width in table body
-                grid.wrapper.find("colgroup").eq(1).find("col")[i].style.width = `${row[i].width}px`;
-            }
+        grid.wrapper.find("table").each(function () {
+            this.style.width = `${tableWidth}px`;
+        });
 
-            grid.wrapper.find("table").each(function () {
-                this.style.width = `${tableWidth}px`;
-            })
-        }, 100);
-
+        //}, 100);
     }
 }

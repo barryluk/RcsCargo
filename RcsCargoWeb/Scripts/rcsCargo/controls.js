@@ -195,6 +195,11 @@
     append_tabStripMain = function (text, id, controller) {
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
+        if (pageSetting == null) {
+            utils.alertMessage("No settings found of the requested page, it may still under development, please try later.", "Page not found", "warning");
+            return;
+        }
+
         var originalId = id;    //keep the original id value, in case of special characters appears in the id and will be removed to prevent error in js.
         id = utils.removeSpecialCharacters(id);
         pageSetting.id = id;
@@ -408,14 +413,15 @@
                 } else if (control.type == "number" || control.type == "numberInt") {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoNumericTextBox").value(model[`${control.name}`]);
                 } else if (control.type == "buttonGroup") {
-                    var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup");
-                    //if (control.dataType == "jobType") {
-                    if (!utils.isEmptyString(model[`${control.name}`])) {
-                        var buttonText = data.masterRecords[`${control.dataType}`].filter(a => a.value == model[`${control.name}`])[0].text;
-                        //var jobType = model[`${control.name}`] == "C" ? "Consol" : "Direct";
-                        buttonGroup.select($(`div[type=buttonGroup][name="${control.name}"] span:contains('${buttonText}')`).parent());
+                    if (control.dataType == "customerType") {
+                        $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).val(model[`${control.name}`]);
+                    } else {
+                        var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup");
+                        if (!utils.isEmptyString(model[`${control.name}`])) {
+                            var buttonText = data.masterRecords[`${control.dataType}`].filter(a => a.value == model[`${control.name}`])[0].text;
+                            buttonGroup.select($(`div[type=buttonGroup][name="${control.name}"] span:contains('${buttonText}')`).parent());
+                        }
                     }
-                    //}
                 } else {
                     $(`#${masterForm.id} [name=${control.name}]`).val(model[`${control.name}`]);
                 }
@@ -456,8 +462,28 @@
                                 model[`${control.name}_DESC`] = utils.formatText(text);
                             }
                         } else if (control.type == "buttonGroup") {
-                            var text = $(`#${masterForm.id} .k-widget.k-button-group[name=${control.name}]`).data("kendoButtonGroup").current().text();
-                            model[control.name] = data.masterRecords[control.dataType].filter(a => a.text == text)[0].value;
+                            if (control.dataType == "customerType") {
+                                var selectedIndexes = [];
+                                var type = "";
+                                $(`#${masterForm.id} .k-widget.k-button-group[name=${control.name}]`).data("kendoButtonGroup").current().each(function () {
+                                    selectedIndexes.push($(this).index());
+                                });
+                                for (var i = 0; i < 4; i++) {
+                                    var selected = false;
+                                    selectedIndexes.forEach(function (index) {
+                                        if (index == i) {
+                                            selected = true;
+                                            type += "Y";
+                                        }
+                                    });
+                                    if (!selected)
+                                        type += "N";
+                                }
+                                model[control.name] = type;
+                            } else {
+                                var text = $(`#${masterForm.id} .k-widget.k-button-group[name=${control.name}]`).data("kendoButtonGroup").current().text();
+                                model[control.name] = data.masterRecords[control.dataType].filter(a => a.text == text)[0].value;
+                            }
                         } else if (control.type == "switch") {
                             var switchCtrl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoSwitch");
                             if (switchCtrl.check())

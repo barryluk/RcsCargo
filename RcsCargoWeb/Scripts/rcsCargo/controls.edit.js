@@ -92,9 +92,12 @@
                         var formControlClass = "form-control";
                         var formControlType = "input";
                         var required = "";
+                        if (control.name == null)   //skip for empty blocks
+                            continue;
 
-                        if (masterForm.schema.requiredFields != null)
+                        if (masterForm.schema.requiredFields != null) {
                             required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
+                        }
                         
                         if (control.type == "date" || control.type == "dateTime") {
                             formControlClass = "form-control-dateTime";
@@ -124,14 +127,30 @@
                                 <div class="row ${colWidth}">
                                     <label class="col-sm-3 col-form-label">${control.label}</label>
                                     <div class="col-sm-9">
-                                        <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
+                                        <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" ${!utils.isEmptyString(required) ? "required-checking='true'" : ""} />
                                     </div>
                                 </div>`;
                         } else if (control.type == "grid") {
-                            html += `
-                                <div class="row">
-                                    <div name="grid_${control.name}" type="${control.type}" />
-                                </div>`;
+                            var colWidth = "";
+                            if (control.colWidth != null)
+                                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+
+                            if (!utils.isEmptyString(control.label)) {
+                                html += `
+                                    <div class="row col-xl-12 col-lg-12">
+                                        <div class="row ${colWidth}">
+                                            <label class="col-sm-3 col-form-label">${control.label}</label>
+                                                <div class="col-sm-9">
+                                                <div name="grid_${control.name}" type="${control.type}" ${!utils.isEmptyString(required) ? "required-checking='true'" : ""} />
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                html += `
+                                    <div class="row">
+                                        <div name="grid_${control.name}" type="${control.type}" ${!utils.isEmptyString(required) ? "required-checking='true'" : ""} />
+                                    </div>`;
+                            }
                         } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                             var readonlyAttr = "";
                             if (control.type == "customerAddr" || control.type == "customerAddrEditable") {

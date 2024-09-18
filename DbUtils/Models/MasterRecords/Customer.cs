@@ -32,6 +32,11 @@ namespace DbUtils.Models.MasterRecords
         public List<CustomerName> CustomerNames { get; set; }
         [NotMapped]
         public List<CustomerContact> CustomerContacts { get; set; }
+        public Customer()
+        {
+            CustomerNames = new List<CustomerName>();
+            CustomerContacts = new List<CustomerContact>();
+        }
     }
 
     [Table("CUSTOMER_NAME")]
@@ -94,5 +99,7 @@ namespace DbUtils.Models.MasterRecords
         public string ADDR2 { get; set; }
         public string ADDR3 { get; set; }
         public string ADDR4 { get; set; }
+        public DateTime CREATE_DATE { get; set; }
+        public DateTime MODIFY_DATE { get; set; }
     }
 }

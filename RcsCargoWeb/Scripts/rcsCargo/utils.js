@@ -132,6 +132,20 @@
         return (!str || 0 === str.length);
     }
 
+    removeNullString = function (str) {
+        try {
+            str = str.replaceAll("null", "");
+            str = str.trim();
+            if (str.startsWith("<br>"))
+                str = str.substr(4);
+            if (str.endsWith("<br>"))
+                str = str.substr(0, str.length - 4);
+            return str.trim();
+        } catch {
+            return "";
+        }
+    }
+
     convertJsonToDate = function (str) {
         try {
             return new Date(parseInt(str.replace("/Date(", "").replace(")/", ""), 10));
