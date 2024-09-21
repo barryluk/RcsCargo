@@ -20,6 +20,10 @@ li {
     font-weight: bolder;
 }
 
+.k-disabled, [readonly="readonly"] {
+    opacity: .8 !important;
+}
+
 .k-tooltip.red-tooltip {
     background-color: crimson;
 }

@@ -10,7 +10,6 @@
             var rules = {
                 buttonGroupRequired: function (input) {
                     if (input.is("[type=buttonGroup]")) {
-                        console.log(input);
                         if (input.is("[required-checking='true']")) {
                             if (input.data("kendoButtonGroup").current().length == 0)
                                 return false;
@@ -58,12 +57,13 @@
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
 
         if (masterForm.schema != null) {
-            if (masterForm.schema.hiddenFields.indexOf("FRT_MODE") == -1)
+            if (masterForm.schema.hiddenFields.filter(a => a.name == "FRT_MODE").length == 0)
                 $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
             else
                 $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
         }
 
+        //New button click event
         $(`#${masterForm.id} button .k-i-file-add`).parent().bind("click", function () {
             var formId = utils.getFormId($(this));
             if (formId.split("_")[1] == "NEW") {
@@ -76,6 +76,8 @@
 
         //Save button click event
         $(`#${masterForm.id} button .k-i-save`).parent().bind("click", function () {
+            //Get the masterForm settings from id element
+            masterForm = utils.getMasterForm();
             if (!validator.validate()) {
                 return;
             } else {
@@ -93,17 +95,18 @@
                     success: function (result) {
                         console.log(result);
                         if (masterForm.mode == "edit") {
-                            controls.setValuesToFormControls(masterForm, result);
+                            $(`#btnRefresh_${masterForm.id}`).trigger("click");
                         } else {
                             var controller = masterForm.id.split("_")[0];
-                            var newId = `${controller}_${result[masterForm.idField]}_${data.companyId}_${utils.getFrtMode()}`;
+                            var newId = `${controller}_${utils.encodeId(result[masterForm.idField])}_${data.companyId}_${utils.getFrtMode()}`;
 
                             //Change the form control values
                             var tabHtml = $(`#btnRefresh_${masterForm.id}`).parent().html();
-                            tabHtml = tabHtml.replaceAll("NEW", result[masterForm.idField]);
+                            tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result[masterForm.idField]));
+                            tabHtml = tabHtml.replace(masterForm.title + " " + utils.encodeId(result[masterForm.idField]), masterForm.title + " " + result[masterForm.idField]);
                             $(`#btnRefresh_${masterForm.id}`).parent().html(tabHtml);
                             $(`#${masterForm.id}`).attr("id", newId);
-                            $(`#${newId} h3`).text(`${masterForm.title} ${result[masterForm.idField]}`);
+                            $(`#${newId} h3`).text(`${masterForm.title} ${utils.encodeId(result[masterForm.idField])}`);
 
                             $("#btnClose_" + newId).click(function () {
                                 var tabStrip = $("#tabStripMain").data("kendoTabStrip");
@@ -113,7 +116,7 @@
 
                             $("#btnRefresh_" + newId).click(function () {
                                 kendo.ui.progress($(`#${newId}`), true);
-                                controls.edit.initEditPage(newId, newId);
+                                controls.edit.initEditPage(newId);
                             });
 
                             $("#btnRefresh_" + newId).trigger("click");
@@ -125,7 +128,7 @@
                         utils.showNotification("Save failed, please contact system administrator!", "error");
                     },
                     complete: function () {
-                        kendo.ui.progress($(`#${masterForm.id}`), false);
+                        kendo.ui.progress($(`#${utils.getFormId()}`), false);
                     }
                 });
             }
@@ -170,14 +173,6 @@
                     //$(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
                 }
             });
-
-            setTimeout(function () {
-                var type = control.val();
-                for (var i = 0; i < type.length; i++) {
-                    if (type.substr(i, 1) == "Y")
-                        control.data("kendoButtonGroup").select(i);
-                }
-            }, 100)
         });
 
         //kendoButtonGroup for frtMode
@@ -211,6 +206,14 @@
                         eval(`controllers.airMawb.changedJobType(e.sender)`);
                     } catch { }
                 },
+                index: 0
+            });
+        });
+
+        //kendoButtonGroup for printDateType
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=printDateType]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.printDateType,
                 index: 0
             });
         });
@@ -460,20 +463,6 @@
                 dataSource: data.masterRecords.fltServiceType
             });
         });
-
-        //kendoDropDownList for invoice type
-        //$(`#${masterForm.id} input[type=invoiceType]`).each(function () {
-        //    $(this).kendoDropDownList({
-        //        dataSource: data.masterRecords.invoiceType
-        //    });
-        //});
-
-        //kendoDropDownList for invoice category
-        //$(`#${masterForm.id} input[type=invoiceCategory]`).each(function () {
-        //    $(this).kendoDropDownList({
-        //        dataSource: data.masterRecords.invoiceCategory
-        //    });
-        //});
 
         //kendoDropDownList for selectMawb
         $(`#${masterForm.id} input[type=selectMawb]`).each(function () {
@@ -777,9 +766,13 @@
                 cascade: function (e) {
                     //e.sender._cascadedValue => selected value
                     if (e.userTriggered == true) {
+                        testObj = e;
                         var exRate = e.sender.dataSource._data.filter(a => a.CURR_CODE == e.sender._cascadedValue)[0]["EX_RATE"];
-                        if (e.sender.element.parent().next("[name*=EX_RATE]").length == 1) {
-                            e.sender.element.parent().next("[name*=EX_RATE]").val(exRate);
+                        var formControl = utils.getFormControlByName(e.sender.element.attr("name"));
+                        if (formControl != null) {
+                            if (formControl.exRateName != null) {
+                                $(`[name="${formControl.exRateName}"]`).val(exRate);
+                            }
                         }
                     }
                 },
@@ -819,6 +812,8 @@
                                     dsItem.dirtyFields = { CHARGE_CODE: true, CURR_CODE: true, EX_RATE: true, QTY: true, QTY_UNIT: true, PRICE: true, MIN_CHARGE: true, AMOUNT: true, AMOUNT_HOME: true };
                                 });
                                 grid.dataSource.trigger("change");
+                                grid.editCell("[name=grid_InvoiceItems] td:eq(0)");
+                                grid.closeCell();
                             }
                         });
                     }
@@ -837,6 +832,7 @@
         $(`#${masterForm.id} div[type=grid]`).each(function () {
             var columns;
             var formulas;
+            var events;
             var toolbar;
             var deleteCallbackFunction;
             var editable = { mode: "incell", confirmation: false };
@@ -846,6 +842,7 @@
                     if (control.type == "grid" && control.name == controlName.replace("grid_", "")) {
                         columns = control.columns;
                         formulas = control.formulas;
+                        events = control.events;
                         toolbar = control.toolbar;
                         deleteCallbackFunction = control.deleteCallbackFunction;
                         if (control.editable == false)
@@ -871,9 +868,6 @@
                 resizable: true,
                 width: gridWidth,
                 dataBound: function (e) {
-                    //$(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).removeAttr("style");
-                    //$(`#${masterForm.id} div[type=grid] .btn-destroy.k-grid-delete`).attr("style", "width: 26px; height: 18px");
-
                     //Toolbar custom button events
                     if (toolbar != null) {
                         toolbar.forEach(function (button) {
@@ -888,6 +882,13 @@
                                 }
                             }
                         })
+                    }
+
+                    if (events != null) {
+                        if (events.filter(a => a.eventType == "dataBound").length == 1) {
+                            var event = events.filter(a => a.eventType == "dataBound")[0];
+                            eval(`${event.callbackFunction}(e)`);
+                        }
                     }
                 },
                 cellClose: function (e) {
@@ -918,24 +919,57 @@
 
     //kendoGrid related functions
     gridFormula = function (container, fieldName, formula) {
-        formula.split("{").forEach(function (field) {
-            if (field.length > 0) {
-                var field = field.substring(0, field.indexOf("}"));
-                formula = formula.replace(`{${field}}`, controls.kendo.gridGetCellValue(container, field));
-            }
-        });
+        if (fieldName.startsWith("master.")) {
+            if (formula.startsWith("SUM(")) {
+                formula = formula.replace("SUM(", "");
+                formula = formula.substr(0, formula.length - 1);
 
-        //console.log(formula);
-        if (formula.indexOf("*") != -1 || formula.indexOf("/") != -1)
-            controls.kendo.gridSetCellValue(container, fieldName, utils.roundUp(eval(formula), 2));
-        else {
-            try {
-                controls.kendo.gridSetCellValue(container, fieldName, eval(formula));
+                formula.split("{").forEach(function (field) {
+                    if (field.length > 0) {
+                        var field = field.substring(0, field.indexOf("}"));
+                        var sum = 0;
+                        if (field.startsWith("master.")) {
+                            sum = $(`#${utils.getFormId()} [name="${field.replace("master.", "")}"]`).val();
+                        } else {
+                            controls.kendo.gridGetCellValues(container, field).forEach(function (value) { sum += value });
+                        }
+                        formula = formula.replace(`{${field}}`, sum);
+                    }
+                });
+
+                $(`#${utils.getFormId()} [name="${fieldName.replace("master.", "")}"]`).val(utils.roundUp(eval(formula), 2));
+                //console.log(formula, eval(formula));
             }
-            catch {
-                controls.kendo.gridSetCellValue(container, fieldName, formula);
+        } else {
+            formula.split("{").forEach(function (field) {
+                if (field.length > 0) {
+                    var field = field.substring(0, field.indexOf("}"));
+                    formula = formula.replace(`{${field}}`, controls.kendo.gridGetCellValue(container, field));
+                }
+            });
+
+            //console.log(formula);
+
+            if (formula.indexOf("*") != -1 || formula.indexOf("/") != -1)
+                controls.kendo.gridSetCellValue(container, fieldName, utils.roundUp(eval(formula), 2));
+            else {
+                try {
+                    controls.kendo.gridSetCellValue(container, fieldName, eval(formula));
+                }
+                catch {
+                    controls.kendo.gridSetCellValue(container, fieldName, formula);
+                }
             }
         }
+    }
+
+    gridGetCellValues = function (container, fieldName) {
+        var grid = $(container).closest("div[type=grid]").data("kendoGrid");
+        var values = [];
+        grid.dataSource.data().forEach(function (dataItem) {
+            values.push(dataItem[fieldName]);
+        })
+        return values;
     }
 
     gridGetCellValue = function (container, fieldName) {
@@ -1005,6 +1039,19 @@
                     controls.kendo.gridSetCellValue(container, "EX_RATE", exRate);
                 }
             },
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Country
+    renderGridEditorCountry = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+
+        ddl.kendoDropDownList({
+            filter: "startswith",
+            dataTextField: "COUNTRY_CODE",
+            dataValueField: "COUNTRY_CODE",
+            dataSource: data.masterRecords.countries,
         });
     }
 

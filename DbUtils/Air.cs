@@ -699,6 +699,48 @@ namespace DbUtils
                 return invoice;
         }
 
+        public void AddInvoice(Invoice invoice)
+        {
+            try
+            {
+                db.Invoices.Add(invoice);
+                db.InvoiceHawbs.AddRange(invoice.InvoiceHawbs);
+                db.InvoiceItems.AddRange(invoice.InvoiceItems);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateInvoice(Invoice invoice)
+        {
+            try
+            {
+                db.Entry(invoice).State = EntityState.Modified;
+                var hawbs = db.InvoiceHawbs.Where(a => a.INV_NO == invoice.INV_NO && a.COMPANY_ID == invoice.COMPANY_ID && a.FRT_MODE == invoice.FRT_MODE);
+                var items = db.InvoiceItems.Where(a => a.INV_NO == invoice.INV_NO && a.COMPANY_ID == invoice.COMPANY_ID && a.FRT_MODE == invoice.FRT_MODE);
+
+                if (hawbs != null)
+                {
+                    db.InvoiceHawbs.RemoveRange(hawbs);
+                    db.InvoiceHawbs.AddRange(invoice.InvoiceHawbs);
+                }
+                if (items != null)
+                {
+                    db.InvoiceItems.RemoveRange(items);
+                    db.InvoiceItems.AddRange(invoice.InvoiceItems);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
         public bool IsExistingInvNo(string invNo, string companyId, string frtMode)
         {
             return db.Invoices.Count(a => a.INV_NO == invNo &&
@@ -747,6 +789,41 @@ namespace DbUtils
                 return new Pv();
             else
                 return pv;
+        }
+
+        public void AddPv(Pv pv)
+        {
+            try
+            {
+                db.Pvs.Add(pv);
+                db.PvItems.AddRange(pv.PvItems);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdatePv(Pv pv)
+        {
+            try
+            {
+                db.Entry(pv).State = EntityState.Modified;
+                var items = db.PvItems.Where(a => a.PV_NO == pv.PV_NO && a.COMPANY_ID == pv.COMPANY_ID && a.FRT_MODE == pv.FRT_MODE);
+
+                if (items != null)
+                {
+                    db.PvItems.RemoveRange(items);
+                    db.PvItems.AddRange(pv.PvItems);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
         }
 
         public bool IsExistingPvNo(string pvNo, string companyId, string frtMode)
@@ -803,6 +880,43 @@ namespace DbUtils
                 return new OtherJob();
             else
                 return otherJob;
+        }
+
+        public void AddOtherJob(OtherJob otherJob)
+        {
+            try
+            {
+                db.OtherJobs.Add(otherJob);
+                db.OtherJobCharges.AddRange(otherJob.OtherJobChargesPrepaid);
+                db.OtherJobCharges.AddRange(otherJob.OtherJobChargesCollect);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateOtherJob(OtherJob otherJob)
+        {
+            try
+            {
+                db.Entry(otherJob).State = EntityState.Modified;
+                var charges = db.OtherJobCharges.Where(a => a.JOB_NO == otherJob.JOB_NO && a.COMPANY_ID == otherJob.COMPANY_ID);
+
+                if (charges != null)
+                {
+                    db.OtherJobCharges.RemoveRange(charges);
+                    db.OtherJobCharges.AddRange(otherJob.OtherJobChargesPrepaid);
+                    db.OtherJobCharges.AddRange(otherJob.OtherJobChargesCollect);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
         }
 
         public bool IsExistingOtherJobNo(string jobNo, string companyId, string frtMode)

@@ -49,6 +49,7 @@ $(document).ready(function () {
             clearInterval(data.intervalId);
             data.intervalId = null;
         }
+
         data.intervalId = setInterval(function () {
             $.ajax({
                 url: "/Admin/Account/GetSessionStatus",

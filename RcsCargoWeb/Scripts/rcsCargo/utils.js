@@ -114,6 +114,32 @@
         return exRate;
     }
 
+    getMasterForm = function (selector) {
+        var formId = utils.getFormId(selector);
+        if (formId.indexOf("Index") == -1) {
+            var masterForm = data.masterForms.filter(a => a.formName == formId.split("_")[0])[0];
+            masterForm.id = formId;
+            masterForm.mode = utils.getEditMode(selector);
+            return masterForm;
+        } else {
+            var indexPage = data.indexPages.filter(a => a.pageName == formId.split("_")[0].replace("Index", ""))[0];
+            indexPage.id = formId;
+            return indexPage;
+        }
+    }
+
+    getFormControlByName = function (name) {
+        var masterForm = data.masterForms.filter(a => a.formName == utils.getFormId().split("_")[0])[0];
+        var formControl = {};
+        if (masterForm != null) {
+            masterForm.formGroups.forEach(function (group) {
+                if (group.formControls.filter(a => a.name == name).length == 1)
+                    formControl = group.formControls.filter(a => a.name == name)[0];
+            });
+        }
+        return formControl;
+    }
+
     calcVwts = function (length, width, height, ctns) {
         var vwtsFactor = utils.getFormValue("VWTS_FACTOR") == null ? 6000 : utils.getFormValue("VWTS_FACTOR");
         var vwts = utils.roundUp(((length * width * height * ctns) / vwtsFactor), 3);
@@ -166,6 +192,18 @@
         value = value * Math.pow(10, decimals);
         value = Math.round(value);
         return (value / Math.pow(10, decimals));
+    }
+
+    encodeId = function (id) {
+        id = id.replaceAll("/", "-slash-");
+        id = id.replaceAll("\\", "-backslash-");
+        return id;
+    }
+
+    decodeId = function (id) {
+        id = id.replaceAll("-slash-", "/");
+        id = id.replaceAll("-backslash-", "\\");
+        return id;
     }
 
     formatMawbNo = function (mawbNo) {

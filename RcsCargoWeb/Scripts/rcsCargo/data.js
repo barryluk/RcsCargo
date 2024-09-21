@@ -19,6 +19,7 @@ var masterRecords = {
     incoterm: ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"],
     customerType: [{ text: "Customer" }, { text: "Agent" }, { text: "Carrier" }, { text: "Vendor" }],
     paymentTerms: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }],
+    printDateType: [{ text: "Flight Date", value: "F" }, { text: "Invoice Date", value: "I" }],
     showCharges: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }, { text: "Prepaid + Collect", value: "PC" }],
     invoiceType: [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }],
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
@@ -86,11 +87,11 @@ var frameworkHtmlElements = {
                         <ul class="nav nav-treeview" style="display: none;">`;
                         
                 menuItems.forEach(function (item) {
-                    if (item.TYPE == "menu" && item.PARENT_ID == folder.MODULE_ID && !utils.isEmptyString(item.CONTROLLER) && item.ENABLE == "Y") {
+                    if (item.TYPE == "menu" && item.PARENT_ID == folder.MODULE_ID && !data.isEmptyString(item.CONTROLLER) && item.ENABLE == "Y") {
                         html += `
                             <li class="nav-item">
                                 <a href="javascript:void(0)" data-controller="${item.CONTROLLER}" data-action="${item.ACTION}" data-id="${item.DATA_ID}" class="nav-link">
-                                    <i class="far ${(utils.isEmptyString(item.ICON) ? defaultIcon : item.ICON)} nav-icon"></i>
+                                    <i class="far ${(data.isEmptyString(item.ICON) ? defaultIcon : item.ICON)} nav-icon"></i>
                                     <p>${item.DISPLAY_NAME}</p>
                                 </a>
                             </li>`;
@@ -351,9 +352,9 @@ var indexPages = [
                 {
                     title: "Address", template: function (dataItem) {
                         return `${dataItem.ADDR1} 
-                        ${utils.isEmptyString(dataItem.ADDR2) ? "" : dataItem.ADDR2} 
-                        ${utils.isEmptyString(dataItem.ADDR3) ? "" : dataItem.ADDR3} 
-                        ${utils.isEmptyString(dataItem.ADDR4) ? "" : dataItem.ADDR4}`;
+                        ${data.isEmptyString(dataItem.ADDR2) ? "" : dataItem.ADDR2} 
+                        ${data.isEmptyString(dataItem.ADDR3) ? "" : dataItem.ADDR3} 
+                        ${data.isEmptyString(dataItem.ADDR4) ? "" : dataItem.ADDR4}`;
                     }, width: 350,
                 },
                 { field: "CREATE_DATE", title: "Create Date" },
@@ -387,7 +388,7 @@ var indexPages = [
                 {
                     field: "JOB_TYPE", title: "Type",
                     template: function (dataItem) {
-                        if (!utils.isEmptyString(dataItem.JOB_TYPE)) {
+                        if (!data.isEmptyString(dataItem.JOB_TYPE)) {
                             return dataItem.JOB_TYPE == "C" ? "Consol" : "Direct";
                         } else {
                             return "";
@@ -626,7 +627,6 @@ var masterForms = [
         //additionalScript: "initCustomer",
         idField: "CUSTOMER_CODE",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -658,7 +658,10 @@ var masterForms = [
                     {
                         label: "Customer Name", type: "grid", name: "CustomerNames", colWidth: 6,
                         columns: [
-                            { title: "Country", field: "COUNTRY_CODE", width: 80 },
+                            {
+                                title: "Country", field: "COUNTRY_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCountry(container, options) }
+                            },
                             {
                                 title: "Port", field: "PORT_CODE", width: 90,
                                 editor: function (container, options) { controls.kendo.renderGridEditorPort(container, options) }
@@ -772,7 +775,6 @@ var masterForms = [
         additionalScript: "initAirMawb",
         idField: "MAWB",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -804,9 +806,19 @@ var masterForms = [
             },
         ],
         schema: {
-            requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE"],
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "JOB_TYPE", "IS_PASSENGER_FLIGHT", "IS_X_RAY", "IS_SPLIT_SHIPMENT",
-                "IS_CLOSED", "IS_VOIDED", "CREATE_USER", "CREATE_DATE", "FRT_PAYMENT_PC", "OTHER_PAYMENT_PC"],
+            requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE", "VWTS_FACTOR"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" },
+                { name: "JOB_TYPE", defaultValue: "C" },
+                { name: "IS_PASSENGER_FLIGHT", defaultValue: "N" },
+                { name: "IS_X_RAY", defaultValue: "N" },
+                { name: "IS_SPLIT_SHIPMENT", defaultValue: "N" },
+                { name: "IS_CLOSED", defaultValue: "N" },
+                { name: "IS_VOIDED", defaultValue: "N" },
+                { name: "FRT_PAYMENT_PC", defaultValue: "P" },
+                { name: "OTHER_PAYMENT_PC", defaultValue: "P" },
+            ],
             readonlyFields: [
                 { name: "MAWB", readonly: "edit" },
                 { name: "JOB", readonly: "always" }
@@ -904,7 +916,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
                     {
                         label: "", type: "grid", name: "MawbChargesPrepaid",
                         columns: [
@@ -955,7 +967,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
                     {
                         label: "", type: "grid", name: "MawbChargesCollect",
                         columns: [
@@ -1149,7 +1161,6 @@ var masterForms = [
         additionalScript: "initAirBooking",
         idField: "BOOKING_NO",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -1180,7 +1191,10 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" },
+                { name: "IS_VOIDED", defaultValue: "N" }],
             requiredFields: ["BOOKING_NO", "SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "VWTS_FACTOR"],
             readonlyFields: [
                 { name: "BOOKING_NO", readonly: "always" }],
@@ -1368,7 +1382,6 @@ var masterForms = [
         additionalScript: "initAirHawb",
         idField: "HAWB_NO",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -1404,7 +1417,15 @@ var masterForms = [
         ],
         schema: {
             requiredFields: ["SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "P_CURR_CODE", "C_CURR_CODE", "FRT_PAYMENT_PC", "OTHER_PAYMENT_PC"],
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "IS_VOIDED", "CREATE_USER", "CREATE_DATE"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" },
+                { name: "IS_MASTER_HAWB", defaultValue: "N" },
+                { name: "IS_SEA_AIR_JOB", defaultValue: "N" },
+                { name: "IS_PICKUP", defaultValue: "N" },
+                { name: "FRT_P_RATE", defaultValue: 0 },
+                { name: "FRT_C_RATE", defaultValue: 100 },
+                { name: "IS_VOIDED", defaultValue: "N" }],
             readonlyFields: [
                 { name: "HAWB_NO", readonly: "always" },
                 { name: "BOOKING_NO", readonly: "edit" },
@@ -1586,14 +1607,13 @@ var masterForms = [
                     { label: "Remarks", type: "textArea", name: "MAN_REMARKS", colWidth: 6 },
                 ]
             },
-            ,
             {
                 name: "prepaidCharges",
                 title: "Prepaid Charges",
                 colWidth: 12,
                 formControls: [
                     /*{ label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },*/
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesPrepaid" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_HawbChargesPrepaid" },
                     {
                         label: "", type: "grid", name: "HawbChargesPrepaid",
                         columns: [
@@ -1644,7 +1664,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     /*{ label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },*/
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_HawbChargesCollect" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_HawbChargesCollect" },
                     {
                         label: "", type: "grid", name: "HawbChargesCollect",
                         columns: [
@@ -1825,7 +1845,6 @@ var masterForms = [
         additionalScript: "initAirInvoice",
         idField: "INV_NO",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -1838,7 +1857,15 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE", "InvoiceHawbs"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" },
+                { name: "IS_VOIDED", defaultValue: "N" },
+                { name: "IS_PRINTED", defaultValue: "N" },
+                { name: "IS_POSTED", defaultValue: "N" },
+                { name: "IS_TRANSFERRED", defaultValue: "N" },
+                { name: "InvoiceHawbs" }],
+            requiredFields: ["INV_DATE", "INV_TYPE", "INV_CATEGORY", "SHOW_DATE_TYPE", "FLIGHT_DATE", "CURR_CODE", "CUSTOMER_CODE", "PACKAGE_UNIT", "FRT_PAYMENT_PC"],
             readonlyFields: [
                 { name: "INV_NO", readonly: "always" },
                 { name: "INV_DATE", readonly: "edit" },
@@ -1862,8 +1889,9 @@ var masterForms = [
                 formControls: [
                     { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 6 },
                     { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 6 },
-                    { label: "Invoice Type", type: "buttonGroup", name: "INV_TYPE", dataType: "invoiceType", colWidth: 6 },
-                    { label: "Category", type: "buttonGroup", name: "INV_CATEGORY", dataType: "invoiceCategory", colWidth: 6 },
+                    { label: "Invoice Type", type: "buttonGroup", name: "INV_TYPE", dataType: "invoiceType", colWidth: 4 },
+                    { label: "Category", type: "buttonGroup", name: "INV_CATEGORY", dataType: "invoiceCategory", colWidth: 4 },
+                    { label: "Print Date", type: "buttonGroup", name: "SHOW_DATE_TYPE", dataType: "printDateType", colWidth: 4 },
                     { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airInvoice.selectHawb", colWidth: 3 },
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
@@ -1883,8 +1911,8 @@ var masterForms = [
                     { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
                     { label: "Cr Invoice#", type: "text", name: "CR_INVOICE", colWidth: 4 },
                     { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
-                    { label: "Amount", type: "number", name: "AMOUNT", colWidth: 4 },
-                    { label: "Amount Home", type: "number", name: "AMOUNT_HOME", colWidth: 4 },
+                    { label: "Amount", type: "text", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "text", name: "AMOUNT_HOME", colWidth: 4 },
                     { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
                     { label: "Payment Terms", type: "text", name: "PAYMENT_TERMS", colWidth: 4 },
                 ]
@@ -1894,7 +1922,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 10,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "InvoiceItems",
                         columns: [
@@ -1934,7 +1962,12 @@ var masterForms = [
                         formulas: [
                             { fieldName: "AMOUNT", formula: "({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE}" },
                             { fieldName: "AMOUNT_HOME", formula: "(({PRICE}*{QTY})>{MIN_CHARGE}?({PRICE}*{QTY}):{MIN_CHARGE})*{EX_RATE}" },
+                            { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
+                            { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
                         ],
+                        //events: [
+                        //    { eventType: "dataBound", callbackFunction: "controllers.airInvoice.grid_InvoiceItemsDataBound" },
+                        //],
                     },
                 ]
             },
@@ -1949,7 +1982,6 @@ var masterForms = [
         additionalScript: "initAirPv",
         idField: "PV_NO",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
@@ -1962,7 +1994,13 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" },
+                { name: "IS_VOIDED", defaultValue: "N" },
+                { name: "IS_PRINTED", defaultValue: "N" },
+                { name: "IS_POSTED", defaultValue: "N" },],
+            requiredFields: ["PV_DATE", "PV_TYPE", "PV_CATEGORY", "FLIGHT_DATE", "CURR_CODE", "CUSTOMER_CODE", "PACKAGE_UNIT", "FRT_PAYMENT_PC"],
             readonlyFields: [
                 { name: "PV_NO", readonly: "always" },
                 { name: "PV_DATE", readonly: "edit" },
@@ -2009,8 +2047,8 @@ var masterForms = [
                     { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
                     { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
-                    { label: "Amount", type: "number", name: "AMOUNT", colWidth: 4 },
-                    { label: "Amount Home", type: "number", name: "AMOUNT_HOME", colWidth: 4 },
+                    { label: "Amount", type: "text", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "text", name: "AMOUNT_HOME", colWidth: 4 },
                     { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
                 ]
             },
@@ -2019,7 +2057,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 10,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "PvItems",
                         columns: [
@@ -2057,6 +2095,8 @@ var masterForms = [
                         formulas: [
                             { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
                             { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                            { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
+                            { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
                         ],
                     },
                 ]
@@ -2072,14 +2112,16 @@ var masterForms = [
         //additionalScript: "initAirOtherJob",
         idField: "JOB_NO",
         id: "",
-        targetForm: {},
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
         ],
         schema: {
-            hiddenFields: ["COMPANY_ID", "FRT_MODE"],
+            hiddenFields: [
+                { name: "COMPANY_ID" },
+                { name: "FRT_MODE" }],
+            requiredFields: ["FLIGHT_DATE", "CURR_CODE", "SHIPPER_CODE", "CONSIGNEE_CODE", "PACKAGE_UNIT"],
             readonlyFields: [
                 { name: "JOB_NO", readonly: "always" },
             ],
@@ -2120,7 +2162,7 @@ var masterForms = [
                 title: "Prepaid Charges",
                 colWidth: 10,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "OtherJobChargesPrepaid",
                         columns: [
@@ -2169,7 +2211,7 @@ var masterForms = [
                 title: "Collect Charges",
                 colWidth: 10,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "OtherJobChargesCollect",
                         columns: [
@@ -2260,11 +2302,16 @@ export default class {
                         localStorage.removeItem("sessionId");
                         window.open("../Home/Login", "_self");
                     }
+
+                    if (data.isEmptyString(user.DEFAULT_COMPANY))
+                        companyId = user.UserCompanies[0].COMPANY_ID;
+                    else
+                        companyId = user.DEFAULT_COMPANY;
+
+                    data.prefetchGlobalVariables();
                 }
             });
         }
-
-        this.prefetchGlobalVariables();
     }
 
     //getters
@@ -2302,6 +2349,17 @@ export default class {
     set indexPages(val) { indexPages = val; }
     set masterForms(val) { masterForms = val; }
 
+    isEmptyString = function (str) {
+        if (str == null)
+            return true;
+        if (typeof str != "string")
+            return true;
+        if (str.trim().length == 0)
+            return true;
+
+        return (!str || 0 === str.length);
+    }
+
     prefetchGlobalVariables = function () {
         $.ajax({
             url: "../Admin/Account/GetUser",
@@ -2313,7 +2371,7 @@ export default class {
 
         $.ajax({
             url: "../Home/GetCurrencies",
-            data: { companyId: companyId },
+            data: { companyId: this.companyId },
             success: function (result) {
                 masterRecords.currencies = result;
             }
@@ -2328,7 +2386,7 @@ export default class {
 
         $.ajax({
             url: "../Home/GetChargeTemplates",
-            data: { companyId: companyId },
+            data: { companyId: this.companyId },
             success: function (result) {
                 masterRecords.chargeTemplates = result;
             }
@@ -2348,6 +2406,16 @@ export default class {
             url: "../Home/GetEquipCodes",
             success: function (result) {
                 masterRecords.equipCodes = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetCountriesView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].COUNTRY_DESC_DISPLAY = result[i].COUNTRY_CODE + " - " + result[i].COUNTRY_DESC;
+                }
+                masterRecords.countries = result;
             }
         });
 

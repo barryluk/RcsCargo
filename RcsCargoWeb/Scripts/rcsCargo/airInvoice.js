@@ -81,7 +81,8 @@
             success: function (result) {
                 result[0].ORIGIN = result[0].ORIGIN_CODE;
                 result[0].DEST = result[0].DEST_CODE;
-                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airInvoice")[0], result[0], true);
+                var masterForm = JSON.parse($(`#${utils.getFormId()}`).attr("masterForm"));
+                controls.setValuesToFormControls(masterForm, result[0], true);
             }
         });
     }
@@ -156,4 +157,8 @@
             },
         });
     }
+
+    //grid_InvoiceItemsDataBound = function (e) {
+    //    console.log("grid dataBound", e);
+    //}
 }

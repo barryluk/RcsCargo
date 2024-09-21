@@ -457,7 +457,6 @@
     <Content Include="Scripts\rcsCargo\controls.index.js" />
     <Content Include="Scripts\rcsCargo\airMawb.js" />
     <Content Include="Scripts\rcsCargo\controls.js" />
-    <Content Include="Scripts\rcsCargo\dashboard.js" />
     <Content Include="Scripts\rcsCargo\data.js" />
     <Content Include="Scripts\rcsCargo\rcsCargoMain.js" />
     <Content Include="Scripts\rcsCargo\utils.js" />

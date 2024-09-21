@@ -16,7 +16,9 @@ namespace RcsCargoWeb.Air.Controllers
     [RoutePrefix("Air/Pv")]
     public class PvController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridPv_Read")]
         public ActionResult GridPv_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -50,6 +52,24 @@ namespace RcsCargoWeb.Air.Controllers
         {
             var pv = air.GetPv(id, companyId, frtMode);
             return Json(pv, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdatePv")]
+        public ActionResult UpdatePv(Pv model, string mode)
+        {
+            if (string.IsNullOrEmpty(model.PV_NO))
+            {
+                model.PV_NO = admin.GetSequenceNumber("AE_PV", model.COMPANY_ID, model.ORIGIN, model.DEST, model.CREATE_DATE);
+                foreach (var item in model.PvItems)
+                    item.PV_NO = model.PV_NO;
+            }
+
+            if (mode == "edit")
+                air.UpdatePv(model);
+            else if (mode == "create")
+                air.AddPv(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("IsExistingPvNo")]

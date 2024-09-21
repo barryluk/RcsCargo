@@ -16,7 +16,9 @@ namespace RcsCargoWeb.Air.Controllers
     [RoutePrefix("Air/OtherJob")]
     public class OtherJobController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridOtherJob_Read")]
         public ActionResult GridOtherJob_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -48,8 +50,28 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetOtherJob")]
         public ActionResult GetOtherJob(string id, string companyId, string frtMode)
         {
-            var pv = air.GetOtherJob(id, companyId, frtMode);
-            return Json(pv, JsonRequestBehavior.AllowGet);
+            var job = air.GetOtherJob(id, companyId, frtMode);
+            return Json(job, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateOtherJob")]
+        public ActionResult UpdateOtherJob(OtherJob model, string mode)
+        {
+            if (string.IsNullOrEmpty(model.JOB_NO))
+            {
+                model.JOB_NO = admin.GetSequenceNumber("AE_OTHER_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.CREATE_DATE);
+                foreach (var item in model.OtherJobChargesPrepaid)
+                    item.JOB_NO = model.JOB_NO; 
+                foreach (var item in model.OtherJobChargesCollect)
+                    item.JOB_NO = model.JOB_NO;
+            }
+
+            if (mode == "edit")
+                air.UpdateOtherJob(model);
+            else if (mode == "create")
+                air.AddOtherJob(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("IsExistingOtherJobNo")]

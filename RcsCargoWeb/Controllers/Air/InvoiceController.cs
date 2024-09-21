@@ -16,7 +16,9 @@ namespace RcsCargoWeb.Air.Controllers
     [RoutePrefix("Air/Invoice")]
     public class InvoiceController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Air air = new DbUtils.Air();
+        DbUtils.Admin admin = new DbUtils.Admin();
 
         [Route("GridInvoice_Read")]
         public ActionResult GridInvoice_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
@@ -50,6 +52,26 @@ namespace RcsCargoWeb.Air.Controllers
         {
             var invoice = air.GetInvoice(id, companyId, frtMode);
             return Json(invoice, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateInvoice")]
+        public ActionResult UpdateInvoice(Invoice model, string mode)
+        {
+            if (string.IsNullOrEmpty(model.INV_NO))
+            {
+                model.INV_NO = admin.GetSequenceNumber("AE_INVOICE", model.COMPANY_ID, model.ORIGIN, model.DEST, model.CREATE_DATE);
+                foreach (var item in model.InvoiceHawbs)
+                    item.INV_NO = model.INV_NO;
+                foreach (var item in model.InvoiceItems)
+                    item.INV_NO = model.INV_NO;
+            }
+
+            if (mode == "edit")
+                air.UpdateInvoice(model);
+            else if (mode == "create")
+                air.AddInvoice(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
         }
 
         [Route("IsExistingInvNo")]

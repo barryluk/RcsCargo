@@ -82,6 +82,7 @@
     <Compile Include="Models\MasterRecords\Customer.cs" />
     <Compile Include="Models\MasterRecords\Charge.cs" />
     <Compile Include="Models\MasterRecords\Currency.cs" />
+    <Compile Include="Models\MasterRecords\Country.cs" />
     <Compile Include="Models\MasterRecords\Port.cs" />
     <Compile Include="RcsFreightDBContext.cs" />
     <Compile Include="Models\Admin\SysModule.cs" />

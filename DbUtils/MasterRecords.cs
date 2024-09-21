@@ -19,6 +19,31 @@ namespace DbUtils
             db = new RcsFreightDBContext();
         }
 
+        #region Country
+
+        public List<CountryView> GetCountriesView()
+        {
+            var sqlCmd = @"select country_code, country_desc from country";
+            return db.Database.SqlQuery<CountryView>(sqlCmd).ToList();
+        }
+
+        public List<Country> GetCountries(string searchValue)
+        {
+            return db.Countries.Where(a => a.COUNTRY_CODE.StartsWith(searchValue) || a.COUNTRY_DESC.StartsWith(searchValue))
+                    .Take(Utils.DefaultMaxQueryRows).ToList();
+        }
+
+        public Country GetCountry(string countryCode)
+        {
+            var country = db.Countries.FirstOrDefault(a => a.COUNTRY_CODE == countryCode);
+            if (country == null)
+                return new Country();
+            else
+                return country;
+        }
+
+        #endregion
+
         #region Port
 
         public List<PortView> GetPortsView()

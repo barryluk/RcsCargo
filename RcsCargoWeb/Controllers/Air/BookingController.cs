@@ -64,11 +64,6 @@ namespace RcsCargoWeb.Air.Controllers
                     po.BOOKING_NO = model.BOOKING_NO;
             }
 
-            if (string.IsNullOrEmpty(model.FRT_PAYMENT_PC))
-                model.FRT_PAYMENT_PC = "P";
-            if (string.IsNullOrEmpty(model.OTHER_PAYMENT_PC))
-                model.OTHER_PAYMENT_PC = "P";
-
             if (mode == "edit")
                 air.UpdateBooking(model);
             else if (mode == "create")

@@ -3,11 +3,6 @@
         $.ajax({
             url: "../Home/GetSysModules",
             success: function (menuItems) {
-                if (utils.isEmptyString(data.user.DEFAULT_COMPANY))
-                    data.companyId = data.user.UserCompanies[0].COMPANY_ID;
-                else
-                    data.companyId = data.user.DEFAULT_COMPANY;
-
                 controls.initNavbar();
                 controls.initControlSidebar();
                 controls.initSidebar(menuItems);
@@ -48,7 +43,23 @@
 
     //Navbar
     initNavbar = function () {
-        $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
+        function timeout() {
+            setTimeout(function () {
+                //if the sysCompanies is not loaded, then recall the parent function to create a recursive loop.
+                console.log("waiting sysCompanies...");
+                if (!$.isEmptyObject(data.masterRecords.sysCompanies)) {
+                    $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
+                    return;
+                }
+                timeout();
+            }, 50);
+        }
+
+        if ($.isEmptyObject(data.masterRecords.sysCompanies)) {
+            timeout();
+        } else {
+            $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
+        }
     }
 
     //Sidebar
@@ -200,8 +211,8 @@
             return;
         }
 
-        var originalId = id;    //keep the original id value, in case of special characters appears in the id and will be removed to prevent error in js.
-        id = utils.removeSpecialCharacters(id);
+        //var originalId = id;    //keep the original id value, in case of special characters appears in the id and will be removed to prevent error in js.
+        id = utils.encodeId(id);
         pageSetting.id = id;
 
         if (tabStrip.tabGroup.find("[id='btnClose_" + id + "']").length == 0) {
@@ -230,7 +241,7 @@
                     controls.index.initIndexPage(pageSetting);
                 }
                 else
-                    controls.edit.initEditPage(id, originalId);
+                    controls.edit.initEditPage(id);
             });
 
             $(".btnPin").unbind("click");
@@ -251,7 +262,7 @@
         if (id.indexOf("Index") != -1)
             controls.index.initIndexPage(pageSetting);
         else
-            controls.edit.initEditPage(id, originalId);
+            controls.edit.initEditPage(id);
     }
 
     activate_tabStripMain = function (id) {
@@ -291,28 +302,28 @@
                 buttonGroup.enable(false);
         }
 
-        if (masterForm.schema.hiddenFields != null) {
-            masterForm.schema.hiddenFields.forEach(function (field) {
-                var value;
-                if (field.endsWith("_DATE")) {
-                    value = utils.convertDateToISOString(kendo.parseDate(model[`${field}`]));
-                } else {
-                    if (model[`${field}`] != null) {
-                        if (typeof model[`${field}`] == "object")
-                            value = JSON.stringify(model[`${field}`]);
-                        else
-                            value = model[`${field}`];
-                    }
-                }
+        //if (masterForm.schema.hiddenFields != null) {
+        //    masterForm.schema.hiddenFields.forEach(function (field) {
+        //        var value;
+        //        if (field.endsWith("_DATE")) {
+        //            value = utils.convertDateToISOString(kendo.parseDate(model[`${field}`]));
+        //        } else {
+        //            if (model[`${field}`] != null) {
+        //                if (typeof model[`${field}`] == "object")
+        //                    value = JSON.stringify(model[`${field}`]);
+        //                else
+        //                    value = model[`${field}`];
+        //            }
+        //        }
 
-                if (!partialUpdate)
-                    $(`#${masterForm.id} [name=${field}]`).val(value);
-                else {
-                    if (model[`${field}`] != null)
-                        $(`#${masterForm.id} [name=${field}]`).val(value);
-                }
-            });
-        }
+        //        if (!partialUpdate)
+        //            $(`#${masterForm.id} [name=${field}]`).val(value);
+        //        else {
+        //            if (model[`${field}`] != null)
+        //                $(`#${masterForm.id} [name=${field}]`).val(value);
+        //        }
+        //    });
+        //}
 
         for (var i in masterForm.formGroups) {
             for (var j in masterForm.formGroups[i].formControls) {
@@ -336,15 +347,15 @@
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
                     if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO" || control.name == "LOT_NO") {
                         var controlName = control.name;
-                        if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
+                        //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
                             var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
-                            if (!utils.isEmptyString(model[`${controlName}`])) {
+                            if (!controls.isEmptyString(model[`${controlName}`])) {
                                 ddl.filterInput.val(model[`${controlName}`]);
                                 ddl.dataSource.data([{ [controlName]: model[`${controlName}`] }]);
                                 ddl.value(model[`${controlName}`]);
                                 ddl.search(model[`${controlName}`]);
                             }
-                        }
+                        //}
                     } else if (control.name == "BOOKING_NO") {
                         var controlName = control.name;
                         if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
@@ -414,10 +425,16 @@
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoNumericTextBox").value(model[`${control.name}`]);
                 } else if (control.type == "buttonGroup") {
                     if (control.dataType == "customerType") {
-                        $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).val(model[`${control.name}`]);
+                        if (model[`${control.name}`] != null) {
+                            $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).val(model[`${control.name}`]);
+                            for (var index = 0; index < model[`${control.name}`].length; index++) {
+                                if (model[`${control.name}`].substr(index, 1) == "Y")
+                                    $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup").select(index);
+                            }
+                        }
                     } else {
                         var buttonGroup = $(`#${masterForm.id} div[type=buttonGroup][name=${control.name}]`).data("kendoButtonGroup");
-                        if (!utils.isEmptyString(model[`${control.name}`])) {
+                        if (!controls.isEmptyString(model[`${control.name}`])) {
                             var buttonText = data.masterRecords[`${control.dataType}`].filter(a => a.value == model[`${control.name}`])[0].text;
                             buttonGroup.select($(`div[type=buttonGroup][name="${control.name}"] span:contains('${buttonText}')`).parent());
                         }
@@ -433,8 +450,16 @@
     //Get values from form controls
     getValuesFromFormControls = function (masterForm) {
         var model = {};
+        var modelData = JSON.parse($(`#${masterForm.id}`).attr("modelData"));
         masterForm.schema.hiddenFields.forEach(function (field) {
-            model[field] = $(`#${masterForm.id} [name=${field}]`).val();
+            if (masterForm.mode == "edit")
+                model[field.name] = modelData[field.name];
+            else {
+                if (field.defaultValue != null)
+                    model[field.name] = field.defaultValue;
+                else
+                    model[field.name] = modelData[field.name];
+            }
         });
 
         masterForm.formGroups.forEach(function (formGroup) {
@@ -444,7 +469,7 @@
                         if (control.type == "customer") {
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
-                            if (!utils.isEmptyString(value)) {
+                            if (!controls.isEmptyString(value)) {
                                 model[control.name] = utils.formatText(value);
                                 model[control.name.replace("_CODE", "_DESC")] = utils.formatText(text);
                             }
@@ -453,7 +478,7 @@
                             //console.log($(`#${masterForm.id} [name=${control.name}]`).val());
 
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
-                            if (!utils.isEmptyString(value)) {
+                            if (!controls.isEmptyString(value)) {
                                 var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
 
                                 model[`${control.name}_CODE`] = utils.formatText(value);
@@ -507,7 +532,7 @@
                                             else
                                                 rowData[field] = "N";
                                         } else {
-                                            if (utils.isEmptyString(item[field]) && control.fields[field].defaultValue != null)
+                                            if (controls.isEmptyString(item[field]) && control.fields[field].defaultValue != null)
                                                 rowData[field] = control.fields[field].defaultValue;
                                             else {
                                                 if (control.fields[field].type == "date") {
@@ -572,12 +597,18 @@
         if (masterForm.mode == "create") {
             model["COMPANY_ID"] = data.companyId;
             model["FRT_MODE"] = utils.getFrtMode();
-            model.CREATE_USER = data.user.USER_ID;
-            model.CREATE_DATE = utils.convertDateToISOString(new Date());
-            model["IS_VOIDED"] = "N";
+            model["CREATE_USER"] = data.user.USER_ID;
+            model["CREATE_DATE"] = utils.convertDateToISOString(new Date());
+            model["MODIFY_USER"] = data.user.USER_ID;
+            model["MODIFY_DATE"] = utils.convertDateToISOString(new Date());
+        } else {
+            model["COMPANY_ID"] = modelData.COMPANY_ID;
+            model["FRT_MODE"] = modelData.FRT_MODE;
+            model["CREATE_USER"] = modelData.CREATE_USER;
+            model["CREATE_DATE"] = utils.convertDateToISOString(kendo.parseDate(modelData.CREATE_DATE));
+            model["MODIFY_USER"] = data.user.USER_ID;
+            model["MODIFY_DATE"] = utils.convertDateToISOString(new Date());
         }
-        model.MODIFY_USER = data.user.USER_ID;
-        model.MODIFY_DATE = utils.convertDateToISOString(new Date());
         return model;
     }
 
@@ -616,5 +647,16 @@
                 kendo.ui.progress(win.element, true);
             }
         });
+    }
+
+    isEmptyString = function (str) {
+        if (str == null)
+            return true;
+        if (typeof str != "string")
+            return true;
+        if (str.trim().length == 0)
+            return true;
+
+        return (!str || 0 === str.length);
     }
 }

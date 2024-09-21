@@ -123,14 +123,6 @@ namespace RcsCargoWeb.Air.Controllers
                     item.HAWB_NO = model.HAWB_NO;
             }
 
-            model.IS_MASTER_HAWB = "N";
-            model.IS_SEA_AIR_JOB = "N";
-            model.IS_SEA_AIR_JOB = "N";
-            model.IS_SEA_AIR_JOB = "N";
-            model.IS_PICKUP = "N";
-            model.FRT_P_RATE = 0;
-            model.FRT_C_RATE = 100;
-
             if (mode == "edit")
                 air.UpdateHawb(model);
             else if (mode == "create")

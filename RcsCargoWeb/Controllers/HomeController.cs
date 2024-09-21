@@ -117,6 +117,12 @@ namespace RcsCargoWeb.Controllers
             return Json(admin.GetSysModules(), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetCountriesView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetCountriesView(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetPortsView()
         {
             var masterRecords = new MasterRecords();

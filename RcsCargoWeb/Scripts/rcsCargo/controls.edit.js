@@ -2,26 +2,18 @@
     constructor() {
     }
 
-    initEditPage = function (id, originalId, mode = "edit", para) {
+    initEditPage = function (id, para) {
         //linkIdPrefix: airMawb / airBooking
         //id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         var formName = id.split("_")[0];
-        this.keyValue = utils.isEmptyString(originalId) ? id.split("_")[1] : originalId.split("_")[1];
+        this.keyValue = id.split("_")[1];
         this.companyId = id.split("_")[2];
         this.frtMode = id.split("_")[3];
 
-        //if (!utils.isEmptyString(originalId))
-        console.log(this.keyValue);
+        console.log(id);
 
-        if (this.keyValue == "NEW")
-            mode = "create";
-
-        var masterForm = data.masterForms.filter(a => a.formName == formName)[0];
-        masterForm.id = id;
-        masterForm.mode = mode;
-        masterForm.targetForm = `#${id} .container-fluid .row.form_group`;
-        $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : this.keyValue}`));
-        //console.log("form ID:", id);
+        var masterForm = utils.getMasterForm();
+        $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : utils.decodeId(this.keyValue)}`));
         this.renderFormControls(masterForm);
         this.getModelData(masterForm, para);
     }
@@ -29,7 +21,7 @@
     //Get model data
     getModelData = function (masterForm, para) {
         var requestParas = {
-            id: this.keyValue,
+            id: utils.decodeId(this.keyValue),
             companyId: this.companyId,
             frtMode: this.frtMode
         };
@@ -41,7 +33,8 @@
                 url: masterForm.readUrl,
                 data: requestParas,
                 success: function (result) {
-                    masterForm.modelData = result;
+                    $(`#${masterForm.id}`).attr("modelData", JSON.stringify(result));
+                    //masterForm.modelData = result;
                     controls.setValuesToFormControls(masterForm, result);
                     if (masterForm.additionalScript != null)
                         eval(`controllers.${masterForm.formName}.${masterForm.additionalScript}(masterForm);`);
@@ -58,12 +51,12 @@
         var html = "";
 
         //Hidden fields
-        if (masterForm.schema.hiddenFields != null) {
-            masterForm.schema.hiddenFields.forEach(function (item) {
-                html += ` <input type="hidden" name="${item}" />`;
-            });
-            $(masterForm.targetForm).append(html);
-        }
+        //if (masterForm.schema.hiddenFields != null) {
+        //    masterForm.schema.hiddenFields.forEach(function (item) {
+        //        html += ` <input type="hidden" name="${item}" />`;
+        //    });
+        //    $(masterForm.targetForm).append(html);
+        //}
 
         //Form tabStrip
         if (masterForm.formTabs != null) {
@@ -92,8 +85,19 @@
                         var formControlClass = "form-control";
                         var formControlType = "input";
                         var required = "";
-                        if (control.name == null)   //skip for empty blocks
+
+                        //skip for empty blocks
+                        if (control.name == null) {
+                            if (control.type == "emptyBlock") {
+                                html += `
+                                    <div class="row ${control.colWidth}">
+                                        <label class="col-sm-3 col-form-label">${control.label}</label>
+                                        <div class="col-sm-9">
+                                        </div>
+                                    </div>`;
+                            }
                             continue;
+                        }
 
                         if (masterForm.schema.requiredFields != null) {
                             required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
@@ -108,7 +112,7 @@
                         } else if (control.type == "textArea") {
                             formControlClass = "form-control-textArea";
                             formControlType = "textarea";
-                        } else if (control.type == "dateRange" || control.type == "buttonGroup" || control.type == "emptyBlock") {
+                        } else if (control.type == "dateRange" || control.type == "buttonGroup") {
                             formControlType = "div";
                         } else if (control.type == "switch") {
                             formControlClass = "";

@@ -52,27 +52,6 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetMawb")]
         public ActionResult GetMawb(string id, string companyId, string frtMode)
         {
-            if (id == "NEW")
-            {
-                return Json(new Mawb 
-                {
-                    COMPANY_ID = companyId,
-                    FRT_MODE = frtMode,
-                    JOB_TYPE = "C",
-                    VWTS_FACTOR = 6000,
-                    FLIGHT_DATE = DateTime.Now,
-                    FRT_PAYMENT_PC = "P",
-                    OTHER_PAYMENT_PC = "P",
-                    IS_PASSENGER_FLIGHT = "N",
-                    IS_X_RAY = "N",
-                    IS_SPLIT_SHIPMENT = "N",
-                    IS_CLOSED = "N",
-                    IS_VOIDED = "N",
-                    CREATE_DATE = DateTime.Now,
-                    MODIFY_DATE = DateTime.Now,
-                }, JsonRequestBehavior.AllowGet);
-            }
-
             var mawb = air.GetMawb(id, companyId, frtMode);
             if (!string.IsNullOrEmpty(mawb.JOB))
             {
