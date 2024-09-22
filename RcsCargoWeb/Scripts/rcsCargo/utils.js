@@ -128,6 +128,11 @@
         }
     }
 
+    getMasterFormByName = function (name) {
+        var masterForm = data.masterForms.filter(a => a.formName == name)[0];
+        return masterForm;
+    }
+
     getFormControlByName = function (name) {
         var masterForm = data.masterForms.filter(a => a.formName == utils.getFormId().split("_")[0])[0];
         var formControl = {};
@@ -216,6 +221,56 @@
         } catch {
             return mawbNo;
         }
+    }
+
+    formatGridData = function (grid, gridConfig, idField, idValue) {
+        var dsData = grid.dataSource.data();
+        var gridRows = grid.items();
+        var gridData = [];
+        var lineNo = 1;
+
+        dsData.forEach(function (item) {
+            var rowData = {};
+            rowData["LINE_NO"] = lineNo;
+            for (var field in gridConfig.fields) {
+                if (gridConfig.fields[field].controlType == "checkBox") {
+                    if (item[field] == "true" || item[field] == "Y")
+                        rowData[field] = "Y";
+                    else
+                        rowData[field] = "N";
+                } else {
+                    if (utils.isEmptyString(item[field]) && gridConfig.fields[field].defaultValue != null)
+                        rowData[field] = gridConfig.fields[field].defaultValue;
+                    else {
+                        if (gridConfig.fields[field].type == "date") {
+                            if (item[field] != null)
+                                rowData[field] = utils.convertDateToISOString(item[field]);
+                            else
+                                rowData[field] = "";
+                        }
+                        else
+                            rowData[field] = utils.formatText(item[field]);
+                    }
+                }
+            }
+
+            if (idField != null) {
+                if (idField == "MAWB")
+                    rowData["MAWB_NO"] = idValue;
+                else
+                    rowData[idField] = idValue;
+            }
+            rowData["COMPANY_ID"] = data.companyId;
+            rowData["FRT_MODE"] = utils.getFrtMode();
+
+            //If record is deleted from the grid, the <tr> element will have style: "display: none;"
+            if ($(gridRows[lineNo - 1]).attr("style") != "display: none;") {
+                gridData.push(rowData);
+                lineNo++;
+            }
+        });
+
+        return gridData;
     }
 
     isHiddenTab = function (selector) {
@@ -314,7 +369,7 @@
 
     validatorErrorTemplate = function (message) {
         return `
-            <div class="k-widget k-tooltip k-tootip-error red-tooltip">
+            <div class="k-widget k-tooltip k-tootip-error red-tooltip" style="margin-top: 4px">
                 <span class="k-icon k-i-warning">&nbsp;</span>${message}
                 <div class="k-callout k-callout-n"></div>
             </div>`;
@@ -326,15 +381,19 @@
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"
-    alertMessage = function (msg, title, type = "info", size = "small", showCloseButtons = false) {
+    alertMessage = function (msg, title, type = "info", size = "small", showCloseButtons = true, callbackFunction) {
         var contentHeight = "100%";
         if (showCloseButtons)
             contentHeight = "calc(100% - 35px)";
         var closeButtons = "";
         if (showCloseButtons)
+            var cancelButton = ``;
+            if (callbackFunction != null) {
+                cancelButton = `<button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>`;
+            }
             closeButtons = `<div style="text-align: center;">
                     <button type="button" class="customButton button-icon-check-outline" style="width: 80px; margin: 4px;">Ok</button>
-                    <button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>
+                    ${cancelButton}
                 </div>`;
         var html = `<div class='kendo-window-alertMessage'>
                 <div name="kendo-window-alertMessage-content" style="height: ${contentHeight};">${msg}</div>
@@ -378,8 +437,19 @@
         $(`.kendo-window-alertMessage button[type=button].customButton`).each(function () {
             var icon = $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1).length == 1 ?
                 $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1)[0].replace("button-icon-", "") : "";
-            $(this).kendoButton({ icon: icon });
 
+            $(this).kendoButton({ icon: icon });
+            if (icon == "check-outline") {
+                if (callbackFunction != null) {
+                    $(this).bind("click", function () {
+                        eval(`${callbackFunction}(alertWin)`);
+                    });
+                } else {
+                    $(this).bind("click", function () {
+                        alertWin.destroy();
+                    });
+                }
+            }
             if (icon == "x-outline") {
                 $(this).bind("click", function () {
                     alertWin.destroy();

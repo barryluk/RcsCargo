@@ -65,6 +65,13 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(mawb, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetMawbInvoices")]
+        public ActionResult GetMawbInvoices(string id, string companyId, string frtMode)
+        {
+            var result = air.GetMawbInvoices(id, companyId, frtMode);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("UpdateMawb")]
         public ActionResult UpdateMawb(Mawb model, string mode)
         {

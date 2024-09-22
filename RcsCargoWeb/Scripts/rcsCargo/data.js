@@ -632,10 +632,11 @@ var masterForms = [
             { type: "button", text: "Save", icon: "save" },
         ],
         schema: {
-            requiredFields: ["TYPE", "CustomerNames", "CustomerContacts"],
-            hiddenFields: ["CREATE_USER", "CREATE_DATE"],
-            readonlyFields: [
+            fields: [
                 { name: "CUSTOMER_CODE", readonly: "always" },
+                { name: "TYPE", required: "true" },
+                { name: "CustomerNames", required: "true" },
+                { name: "CustomerContacts", required: "true" },
             ],
         },
         formTabs: [
@@ -802,26 +803,30 @@ var masterForms = [
             {
                 title: "Direct Job",
                 name: "directJob",
-                formGroups: ["prepaidCharges", "collectCharges", "dims"]
+                formGroups: ["prepaidCharges", "collectCharges", "invoice", "dims"]
             },
         ],
         schema: {
-            requiredFields: ["MAWB", "AIRLINE_CODE", "FLIGHT_NO", "FLIGHT_DATE", "ORIGIN_CODE", "DEST_CODE", "VWTS_FACTOR"],
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" },
-                { name: "JOB_TYPE", defaultValue: "C" },
-                { name: "IS_PASSENGER_FLIGHT", defaultValue: "N" },
-                { name: "IS_X_RAY", defaultValue: "N" },
-                { name: "IS_SPLIT_SHIPMENT", defaultValue: "N" },
-                { name: "IS_CLOSED", defaultValue: "N" },
-                { name: "IS_VOIDED", defaultValue: "N" },
-                { name: "FRT_PAYMENT_PC", defaultValue: "P" },
-                { name: "OTHER_PAYMENT_PC", defaultValue: "P" },
-            ],
-            readonlyFields: [
-                { name: "MAWB", readonly: "edit" },
-                { name: "JOB", readonly: "always" }
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "JOB", readonly: "always" },
+                { name: "JOB_TYPE", hidden: "true", defaultValue: "C" },
+                { name: "IS_PASSENGER_FLIGHT", hidden: "true", defaultValue: "N" },
+                { name: "IS_X_RAY", hidden: "true", defaultValue: "N" },
+                { name: "IS_SPLIT_SHIPMENT", hidden: "true", defaultValue: "N" },
+                { name: "IS_CLOSED", hidden: "true", defaultValue: "N" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "FRT_PAYMENT_PC", hidden: "true", defaultValue: "P" },
+                { name: "OTHER_PAYMENT_PC", hidden: "true", defaultValue: "P" },
+                { name: "JOB_TYPE", hidden: "true" },
+                { name: "MAWB", required: "true", readonly: "edit" },
+                { name: "AIRLINE_CODE", required: "true" },
+                { name: "FLIGHT_NO", required: "true" },
+                { name: "FLIGHT_DATE", required: "true" },
+                { name: "ORIGIN_CODE", required: "true" },
+                { name: "DEST_CODE", required: "true" },
+                { name: "VWTS_FACTOR", required: "true" },
             ],
             validation: {
                 rules: {
@@ -1015,6 +1020,28 @@ var masterForms = [
                 ]
             },
             {
+                name: "invoice",
+                title: "Invoice",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "Invoices", editable: false,
+                        linkIdPrefix: "airInvoice",
+                        linkTabTitle: "Invoice#",
+                        toolbar: [
+                            { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add", callbackFunction: "controllers.airMawb.createInvoiceClick" },
+                        ],
+                        columns: [
+                            { title: "Invoice #", field: "INV_NO", attributes: { "class": "link-cell" }, width: 80 },
+                            { title: "Customer", field: "CUSTOMER_DESC", width: 260 },
+                            { title: "Curr.", field: "CURR_CODE", width: 60 },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                        ],
+                    },
+                ]
+            },
+            {
                 name: "dims",
                 title: "Dimension",
                 colWidth: 12,
@@ -1191,13 +1218,17 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" },
-                { name: "IS_VOIDED", defaultValue: "N" }],
-            requiredFields: ["BOOKING_NO", "SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "VWTS_FACTOR"],
-            readonlyFields: [
-                { name: "BOOKING_NO", readonly: "always" }],
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "BOOKING_NO", readonly: "always", required: "true" },
+                { name: "SHIPPER", required: "true" },
+                { name: "CONSIGNEE", required: "true" },
+                { name: "ORIGIN_CODE", required: "true" },
+                { name: "DEST_CODE", required: "true" },
+                { name: "VWTS_FACTOR", required: "true" },
+            ],
             validation: {
                 rules: {
                     bookingNoExistsRule: function (input) {
@@ -1416,23 +1447,30 @@ var masterForms = [
             },
         ],
         schema: {
-            requiredFields: ["SHIPPER", "CONSIGNEE", "ORIGIN_CODE", "DEST_CODE", "P_CURR_CODE", "C_CURR_CODE", "FRT_PAYMENT_PC", "OTHER_PAYMENT_PC"],
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" },
-                { name: "IS_MASTER_HAWB", defaultValue: "N" },
-                { name: "IS_SEA_AIR_JOB", defaultValue: "N" },
-                { name: "IS_PICKUP", defaultValue: "N" },
-                { name: "FRT_P_RATE", defaultValue: 0 },
-                { name: "FRT_C_RATE", defaultValue: 100 },
-                { name: "IS_VOIDED", defaultValue: "N" }],
-            readonlyFields: [
+            fields: [
                 { name: "HAWB_NO", readonly: "always" },
                 { name: "BOOKING_NO", readonly: "edit" },
                 { name: "JOB_NO", readonly: "always" },
                 { name: "CWTS", readonly: "always" },
                 { name: "FLIGHT_NO", readonly: "always" },
-                { name: "FLIGHT_DATE", readonly: "always" }],
+                { name: "FLIGHT_DATE", readonly: "always" },
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_MASTER_HAWB", hidden: "true", defaultValue: "N" },
+                { name: "IS_SEA_AIR_JOB", hidden: "true", defaultValue: "N" },
+                { name: "IS_PICKUP", hidden: "true", defaultValue: "N" },
+                { name: "FRT_P_RATE", hidden: "true", defaultValue: 0 },
+                { name: "FRT_C_RATE", hidden: "true", defaultValue: 100 },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "SHIPPER", required: "true" },
+                { name: "CONSIGNEE", required: "true" },
+                { name: "ORIGIN_CODE", required: "true" },
+                { name: "DEST_CODE", required: "true" },
+                { name: "P_CURR_CODE", required: "true" },
+                { name: "C_CURR_CODE", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true" },
+                { name: "OTHER_PAYMENT_PC", required: "true" },
+            ],
         },
         formGroups: [
             {
@@ -1857,19 +1895,24 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" },
-                { name: "IS_VOIDED", defaultValue: "N" },
-                { name: "IS_PRINTED", defaultValue: "N" },
-                { name: "IS_POSTED", defaultValue: "N" },
-                { name: "IS_TRANSFERRED", defaultValue: "N" },
-                { name: "InvoiceHawbs" }],
-            requiredFields: ["INV_DATE", "INV_TYPE", "INV_CATEGORY", "SHOW_DATE_TYPE", "FLIGHT_DATE", "CURR_CODE", "CUSTOMER_CODE", "PACKAGE_UNIT", "FRT_PAYMENT_PC"],
-            readonlyFields: [
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_TRANSFERRED", hidden: "true", defaultValue: "N" },
+                { name: "InvoiceHawbs", hidden: "true" },
+                { name: "INV_DATE", required: "true", readonly: "edit" },
+                { name: "INV_TYPE", required: "true", readonly: "edit" },
+                { name: "INV_CATEGORY", required: "true" },
+                { name: "SHOW_DATE_TYPE", required: "true" },
+                { name: "FLIGHT_DATE", required: "true" },
+                { name: "CURR_CODE", required: "true" },
+                { name: "CUSTOMER_CODE", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "INV_NO", readonly: "always" },
-                { name: "INV_DATE", readonly: "edit" },
-                { name: "INV_TYPE", readonly: "edit" },
                 { name: "AMOUNT", readonly: "always" },
                 { name: "AMOUNT_HOME", readonly: "always" },
             ],
@@ -1994,17 +2037,21 @@ var masterForms = [
             },
         ],
         schema: {
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" },
-                { name: "IS_VOIDED", defaultValue: "N" },
-                { name: "IS_PRINTED", defaultValue: "N" },
-                { name: "IS_POSTED", defaultValue: "N" },],
-            requiredFields: ["PV_DATE", "PV_TYPE", "PV_CATEGORY", "FLIGHT_DATE", "CURR_CODE", "CUSTOMER_CODE", "PACKAGE_UNIT", "FRT_PAYMENT_PC"],
-            readonlyFields: [
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
+                { name: "PV_DATE", required: "true", readonly: "edit" },
+                { name: "PV_TYPE", required: "true", readonly: "edit" },
+                { name: "PV_CATEGORY", required: "true" },
+                { name: "FLIGHT_DATE", required: "true" },
+                { name: "CURR_CODE", required: "true" },
+                { name: "CUSTOMER_CODE", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "PV_NO", readonly: "always" },
-                { name: "PV_DATE", readonly: "edit" },
-                { name: "PV_TYPE", readonly: "edit" },
                 { name: "AMOUNT", readonly: "always" },
                 { name: "AMOUNT_HOME", readonly: "always" },
             ],
@@ -2118,11 +2165,14 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
         ],
         schema: {
-            hiddenFields: [
-                { name: "COMPANY_ID" },
-                { name: "FRT_MODE" }],
-            requiredFields: ["FLIGHT_DATE", "CURR_CODE", "SHIPPER_CODE", "CONSIGNEE_CODE", "PACKAGE_UNIT"],
-            readonlyFields: [
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "FLIGHT_DATE", required: "true" },
+                { name: "CURR_CODE", required: "true" },
+                { name: "SHIPPER_CODE", required: "true" },
+                { name: "CONSIGNEE_CODE", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true" },
                 { name: "JOB_NO", readonly: "always" },
             ],
         },

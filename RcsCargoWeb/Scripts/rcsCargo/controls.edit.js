@@ -50,14 +50,6 @@
     renderFormControls = function (masterForm) {
         var html = "";
 
-        //Hidden fields
-        //if (masterForm.schema.hiddenFields != null) {
-        //    masterForm.schema.hiddenFields.forEach(function (item) {
-        //        html += ` <input type="hidden" name="${item}" />`;
-        //    });
-        //    $(masterForm.targetForm).append(html);
-        //}
-
         //Form tabStrip
         if (masterForm.formTabs != null) {
             $(`#${masterForm.id} .row.form_group`).append(`<div class="formGroupTab"></div>`);
@@ -82,6 +74,7 @@
 
                     for (var j in formGroup.formControls) {
                         var control = formGroup.formControls[j];
+                        var field = masterForm.schema.fields.filter(a => a.name == control.name)[0];
                         var formControlClass = "form-control";
                         var formControlType = "input";
                         var required = "";
@@ -99,9 +92,11 @@
                             continue;
                         }
 
-                        if (masterForm.schema.requiredFields != null) {
-                            required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
-                        }
+                        //if (masterForm.schema.requiredFields != null) {
+                        //    required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
+                        //}
+                        if (field != null)
+                            required = field["required"] == null ? "" : "required";
                         
                         if (control.type == "date" || control.type == "dateTime") {
                             formControlClass = "form-control-dateTime";
@@ -238,15 +233,15 @@
         controls.kendo.renderFormControl_kendoUI(masterForm, true);
 
         //readonly fields
-        if (masterForm.schema.readonlyFields != null) {
-            masterForm.schema.readonlyFields.forEach(function (item) {
-                if (item.readonly == "always") {
-                    $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
-                } else if (item.readonly == "edit" && masterForm.mode == "edit") {
-                    $(`#${masterForm.id} [name=${item.name}]`).attr("readonly", "readonly");
+        masterForm.schema.fields.forEach(function (field) {
+            if (field.readonly != null) {
+                if (field.readonly == "always") {
+                    $(`#${masterForm.id} [name=${field.name}]`).attr("readonly", "readonly");
+                } else if (field.readonly == "edit" && masterForm.mode == "edit") {
+                    $(`#${masterForm.id} [name=${field.name}]`).attr("readonly", "readonly");
                 }
-            });
-        }
+            };
+        });
 
         //Readonly kendo controls
         $(`#${masterForm.id} input[readonly=readonly], div[readonly=readonly]`).each(function () {

@@ -171,13 +171,7 @@
                     //var data = this.dataItem(selectedCell.parentNode);
                     var id = $(selectedCell).text();
                     id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
-
-                    //special format display for MAWB#
-                    //if (pageSetting.pageName == "airMawb") {
-                    //    controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${utils.formatMawbNo($(selectedCell).text())}`, id, pageSetting.pageName);
-                    //} else {
-                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
-                    //}
+                    controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
                     grid.clearSelection();
                 }
             },

@@ -57,7 +57,7 @@
         $(`#${masterForm.id} [data-role=dropdownbutton]`).append(`<span class="k-icon k-i-arrow-s k-button-icon"></span>`);
 
         if (masterForm.schema != null) {
-            if (masterForm.schema.hiddenFields.filter(a => a.name == "FRT_MODE").length == 0)
+            if (masterForm.schema.fields.filter(a => a.name == "FRT_MODE").length == 0)
                 $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
             else
                 $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
@@ -363,7 +363,9 @@
                     }
                 },
                 select: function (e) {
-                    masterForm.id = utils.getFormId(this.element);
+                    //console.log(masterForm.id);
+                    if (!masterForm.id.endsWith("_createInvoice"))
+                        masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
                     if (item == null) {
                         item = e.sender.dataSource.data()[e.sender.selectedIndex - 1];
@@ -812,7 +814,8 @@
                                     dsItem.dirtyFields = { CHARGE_CODE: true, CURR_CODE: true, EX_RATE: true, QTY: true, QTY_UNIT: true, PRICE: true, MIN_CHARGE: true, AMOUNT: true, AMOUNT_HOME: true };
                                 });
                                 grid.dataSource.trigger("change");
-                                grid.editCell("[name=grid_InvoiceItems] td:eq(0)");
+                                //trigger the formula event
+                                grid.editCell(`#${utils.getFormId()} [name="${$(grid.element[0]).attr("name")}"] tr:last td:first`);
                                 grid.closeCell();
                             }
                         });
@@ -830,47 +833,33 @@
 
         //kendoGrid
         $(`#${masterForm.id} div[type=grid]`).each(function () {
-            var columns;
-            var formulas;
-            var events;
-            var toolbar;
-            var deleteCallbackFunction;
             var editable = { mode: "incell", confirmation: false };
             var controlName = $(this).attr("name");
-            masterForm.formGroups.forEach(function (formGroup) {
-                formGroup.formControls.forEach(function (control) {
-                    if (control.type == "grid" && control.name == controlName.replace("grid_", "")) {
-                        columns = control.columns;
-                        formulas = control.formulas;
-                        events = control.events;
-                        toolbar = control.toolbar;
-                        deleteCallbackFunction = control.deleteCallbackFunction;
-                        if (control.editable == false)
-                            editable = false;
-                    }
-                })
-            })
+            var gridConfig = utils.getFormControlByName(controlName.replace("grid_", ""));
+            if (gridConfig.editable == false)
+                editable = false;
 
-            if (toolbar == null)
-                toolbar = ["create", "cancel"];     //default buttons
-            else if (toolbar.length == 0)
-                toolbar = null;                     //disable the toolbar if don't want to show (toolbar: [] in the setting js)
+            if (gridConfig.toolbar == null)
+                gridConfig.toolbar = ["create", "cancel"];     //default buttons
+            else if (gridConfig.toolbar.length == 0)
+                gridConfig.toolbar = null;                     //disable the toolbar if don't want to show (toolbar: [] in the setting js)
 
             //Calculate the grid width, 
             var gridWidth = 25;     //initial width
-            columns.forEach(function (col) {
+            gridConfig.columns.forEach(function (col) {
                 gridWidth += col.width == null ? 70 : col.width;
             });
             $(this).kendoGrid({
-                toolbar: toolbar,
-                columns: columns,
+                toolbar: gridConfig.toolbar,
+                columns: gridConfig.columns,
                 editable: editable,
                 resizable: true,
                 width: gridWidth,
+                selectable: "cell",
                 dataBound: function (e) {
                     //Toolbar custom button events
-                    if (toolbar != null) {
-                        toolbar.forEach(function (button) {
+                    if (gridConfig.toolbar != null) {
+                        gridConfig.toolbar.forEach(function (button) {
                             if (button != "create" && button != "cancel") {
                                 if (button.callbackFunction != null) {
                                     var formId = utils.getFormId($(e.sender.element));
@@ -884,33 +873,43 @@
                         })
                     }
 
-                    if (events != null) {
-                        if (events.filter(a => a.eventType == "dataBound").length == 1) {
+                    if (gridConfig.events != null) {
+                        if (gridConfig.events.filter(a => a.eventType == "dataBound").length == 1) {
                             var event = events.filter(a => a.eventType == "dataBound")[0];
                             eval(`${event.callbackFunction}(e)`);
                         }
                     }
                 },
                 cellClose: function (e) {
-                    if (formulas != null) {
-                        formulas.forEach(function (formula) {
+                    if (gridConfig.formulas != null) {
+                        gridConfig.formulas.forEach(function (formula) {
                             controls.kendo.gridFormula(e.container, formula.fieldName, formula.formula);
                         });
                     }
                 },
                 saveChanges: function (e) {
                     e.preventDefault();
-                    if (toolbar != null) {
-                        if (toolbar.filter(a => a.name == "save").length == 1) {
-                            if (toolbar.filter(a => a.name == "save")[0].callbackFunction != null)
-                                eval(`${toolbar.filter(a => a.name == "save")[0].callbackFunction}(e)`);
+                    if (gridConfig.toolbar != null) {
+                        if (gridConfig.toolbar.filter(a => a.name == "save").length == 1) {
+                            if (gridConfig.toolbar.filter(a => a.name == "save")[0].callbackFunction != null)
+                                eval(`${gridConfig.toolbar.filter(a => a.name == "save")[0].callbackFunction}(e)`);
                         }
                     }
                 },
                 remove: function (e) {
                     e.preventDefault();
-                    if (deleteCallbackFunction != null) {
-                        eval(`${deleteCallbackFunction}(e)`);
+                    if (gridConfig.deleteCallbackFunction != null) {
+                        eval(`${gridConfig.deleteCallbackFunction}(e)`);
+                    }
+                },
+                change: function (e) {
+                    var grid = this;
+                    var selectedCell = this.select()[0];
+                    if ($(selectedCell).hasClass("link-cell")) {
+                        var id = $(selectedCell).text();
+                        id = `${gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
+                        controls.append_tabStripMain(`${gridConfig.linkTabTitle} ${$(selectedCell).text()}`, id, gridConfig.linkIdPrefix);
+                        grid.clearSelection();
                     }
                 },
             });

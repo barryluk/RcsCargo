@@ -207,7 +207,7 @@
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
         if (pageSetting == null) {
-            utils.alertMessage("No settings found of the requested page, it may still under development, please try later.", "Page not found", "warning");
+            utils.alertMessage("No settings found of the requested page, it may still under development, please try later.", "Page not found", "warning", null, true);
             return;
         }
 
@@ -301,29 +301,6 @@
             if (masterForm.mode == "edit")
                 buttonGroup.enable(false);
         }
-
-        //if (masterForm.schema.hiddenFields != null) {
-        //    masterForm.schema.hiddenFields.forEach(function (field) {
-        //        var value;
-        //        if (field.endsWith("_DATE")) {
-        //            value = utils.convertDateToISOString(kendo.parseDate(model[`${field}`]));
-        //        } else {
-        //            if (model[`${field}`] != null) {
-        //                if (typeof model[`${field}`] == "object")
-        //                    value = JSON.stringify(model[`${field}`]);
-        //                else
-        //                    value = model[`${field}`];
-        //            }
-        //        }
-
-        //        if (!partialUpdate)
-        //            $(`#${masterForm.id} [name=${field}]`).val(value);
-        //        else {
-        //            if (model[`${field}`] != null)
-        //                $(`#${masterForm.id} [name=${field}]`).val(value);
-        //        }
-        //    });
-        //}
 
         for (var i in masterForm.formGroups) {
             for (var j in masterForm.formGroups[i].formControls) {
@@ -451,14 +428,16 @@
     getValuesFromFormControls = function (masterForm) {
         var model = {};
         var modelData = JSON.parse($(`#${masterForm.id}`).attr("modelData"));
-        masterForm.schema.hiddenFields.forEach(function (field) {
-            if (masterForm.mode == "edit")
-                model[field.name] = modelData[field.name];
-            else {
-                if (field.defaultValue != null)
-                    model[field.name] = field.defaultValue;
-                else
+        masterForm.schema.fields.forEach(function (field) {
+            if (field.hidden != null) {
+                if (masterForm.mode == "edit")
                     model[field.name] = modelData[field.name];
+                else {
+                    if (field.defaultValue != null)
+                        model[field.name] = field.defaultValue;
+                    else
+                        model[field.name] = modelData[field.name];
+                }
             }
         });
 
@@ -479,7 +458,8 @@
 
                             var value = $(`#${masterForm.id} [name=${control.name}]`).val().split("-")[0];
                             if (!controls.isEmptyString(value)) {
-                                var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``);
+                                var text = $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").text().replace(`${value} - `, ``)
+                                    .replace(` - ${$(`#${masterForm.id} [name=${control.name}_BRANCH]`).val()}`, ``);
 
                                 model[`${control.name}_CODE`] = utils.formatText(value);
                                 model[`${control.name}_BRANCH`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_BRANCH]`).val());
@@ -517,53 +497,8 @@
                                 model[`${control.name}`] = "N";
                         } else if (control.type == "grid") {
                             if ($(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data().length > 0) {
-                                var dsData = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").dataSource.data();
-                                var gridRows = $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid").items();
-                                var gridData = [];
-                                var lineNo = 1;
-
-                                dsData.forEach(function (item) {
-                                    var rowData = {};
-                                    rowData["LINE_NO"] = lineNo;
-                                    for (var field in control.fields) {
-                                        if (control.fields[field].controlType == "checkBox") {
-                                            if (item[field] == "true" || item[field] == "Y")
-                                                rowData[field] = "Y";
-                                            else
-                                                rowData[field] = "N";
-                                        } else {
-                                            if (controls.isEmptyString(item[field]) && control.fields[field].defaultValue != null)
-                                                rowData[field] = control.fields[field].defaultValue;
-                                            else {
-                                                if (control.fields[field].type == "date") {
-                                                    if (item[field] != null)
-                                                        rowData[field] = utils.convertDateToISOString(item[field]);
-                                                    else
-                                                        rowData[field] = "";
-                                                }
-                                                else
-                                                    rowData[field] = utils.formatText(item[field]);
-                                            }
-                                        }
-                                    }
-
-                                    if (masterForm.idField != null) {
-                                        if (masterForm.idField == "MAWB")
-                                            rowData["MAWB_NO"] = model[masterForm.idField];
-                                        else
-                                            rowData[masterForm.idField] = model[masterForm.idField];
-                                    }
-                                    rowData["COMPANY_ID"] = data.companyId;
-                                    rowData["FRT_MODE"] = utils.getFrtMode();
-
-                                    //If record is deleted from the grid, the <tr> element will have style: "display: none;"
-                                    if ($(gridRows[lineNo - 1]).attr("style") != "display: none;") {
-                                        gridData.push(rowData);
-                                        lineNo++;
-                                    }
-                                });
-
-                                model[control.name] = gridData;
+                                model[control.name] = utils.formatGridData(
+                                    $(`#${masterForm.id} [name=grid_${control.name}]`).data("kendoGrid"), control, masterForm.idField, model[masterForm.idField]);
                             }
                         } else {
                             //for all default input values

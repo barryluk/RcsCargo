@@ -110,6 +110,7 @@ namespace DbUtils
                 mawb.MawbChargesPrepaid = charges.Where(a => a.PAYMENT_TYPE == "P").ToList();
                 mawb.MawbChargesCollect = charges.Where(a => a.PAYMENT_TYPE == "C").ToList();
                 mawb.MawbDims = Utils.GetSqlQueryResult<MawbDim>("a_mawb_dim", "mawb_no", mawbNo, companyId, frtMode);
+                mawb.Invoices = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "mawb_no", mawbNo, companyId, frtMode);
             }
 
             if (mawb == null)
@@ -657,6 +658,19 @@ namespace DbUtils
             var dbParas = new List<DbParameter> 
             {
                 new DbParameter { FieldName = "hawb_no", ParaName = "hawb_no", ParaCompareType = DbParameter.CompareType.equals, Value = hawbNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
+
+            return result;
+        }
+
+        public List<InvoiceView> GetMawbInvoices(string mawbNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "mawb_no", ParaName = "mawb_no", ParaCompareType = DbParameter.CompareType.equals, Value = mawbNo },
                 new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
                 new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };

@@ -20,6 +20,11 @@ li {
     font-weight: bolder;
 }
 
+.kendo-window-alertMessage.k-window-content {
+    padding-top: 6px;
+    padding-bottom: 4px;
+}
+
 .k-disabled, [readonly="readonly"] {
     opacity: .8 !important;
 }
