@@ -47,6 +47,18 @@ namespace RcsCargoWeb.Air.Controllers
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
+        [Route("GetJobNos")]
+        public ActionResult GetJobNos(string searchValue, string companyId, string frtMode, DateTime? startDate, DateTime? endDate)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!startDate.HasValue)
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+            if (!endDate.HasValue)
+                endDate = DateTime.Now;
+
+            return Json(air.GetJobNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetInvoice")]
         public ActionResult GetInvoice(string id, string companyId, string frtMode)
         {

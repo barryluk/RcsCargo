@@ -15,24 +15,21 @@
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
             var reportName = "";
-            var filename = `MAWB# ${utils.formatMawbNo(hawbNo)}`;
-            if (e.id == "printMawb") {
-                reportName = "AirMawb";
-            } else if (e.id == "previewMawb") {
-                reportName = "AirMawbPreview";
-            } else if (e.id == "loadplan") {
-                reportName = "AirLoadPlan";
-                filename = `Loadplan ${utils.formatMawbNo(hawbNo)}`;
-            } else if (e.id == "manifest") {
-                reportName = "AirCargoManifest";
-                filename = `CargoManifest ${utils.formatMawbNo(hawbNo)}`;
+            var filename = `Invoice# ${invNo}`;
+            if (e.id == "printInvoice") {
+                reportName = "AirInvoice";
+            } else if (e.id == "previewInvoice") {
+                reportName = "AirInvoicePreview";
             }
+
             controls.openReportViewer(reportName, [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
-                { name: "HawbNo", value: hawbNo },
-                { name: "JobNo", value: utils.getFormValue("JOB_NO") },
-                { name: "CompanyName", value: data.companyId },
+                { name: "InvNo", value: invNo },
+                { name: "IsPreview", value: "N" },
+                { name: "IsEmail", value: "N" },
+                { name: "ShowFlightDate", value: utils.isEmptyString($(`#${masterForm.id} [name="FLIGHT_DATE"]`).val()) ? "N" : "Y" },
+                { name: "AddressCode", value: "" },
                 { name: "filename", value: filename },]);
         });
 

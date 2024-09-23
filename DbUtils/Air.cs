@@ -29,6 +29,25 @@ namespace DbUtils
         }
 
         #region MAWB, Loadplan
+        public List<MawbView> GetJobNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var selectCmd = "a.*";
+            var fromCmd = @"(select job as job_no, mawb as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, company_id, frt_mode from a_mawb
+                    union select job_no, '' as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, company_id, frt_mode from a_other_job) a";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "a.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "a.origin_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "a.dest_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "a.flight_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "a.flight_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "a.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "a.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<MawbView>(fromCmd, selectCmd, dbParas);
+
+            return result.OrderByDescending(a => a.FLIGHT_DATE).ToList();
+        }
 
         public List<MawbView> GetLotNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue) 
         {
@@ -458,7 +477,9 @@ namespace DbUtils
                 h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc, h.frt_payment_pc,
                 case when h.gwts > h.vwts then h.gwts else h.vwts end as cwts,
                 h.package, h.gwts, h.vwts, h.cbm, h.create_user, h.create_date";
-            var fromCmd = "a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode";
+            var fromCmd = $@"a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode
+                where h.create_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
+                and h.create_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD') ";
             var dbParas = new List<DbParameter>
             {
                 new DbParameter { FieldName = "h.hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
@@ -468,8 +489,8 @@ namespace DbUtils
                 new DbParameter { FieldName = "h.shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
                 new DbParameter { FieldName = "h.consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
                 new DbParameter { FieldName = "h.consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "nvl(m.flight_date, h.create_date)", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
-                new DbParameter { FieldName = "nvl(m.flight_date, h.create_date)", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                //new DbParameter { FieldName = "create_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                //new DbParameter { FieldName = "create_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
                 new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
                 new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };

@@ -9,28 +9,94 @@
         if (validator == null && enableValidation) {
             var rules = {
                 buttonGroupRequired: function (input) {
+                    var result = true;
                     if (input.is("[type=buttonGroup]")) {
                         if (input.is("[required-checking='true']")) {
                             if (input.data("kendoButtonGroup").current().length == 0)
-                                return false;
+                                result = false;
                         }
                     }
-                    return true;
+                    return result;
                 },
                 gridRequired: function (input) {
+                    var result = true;
                     if (input.is("[type=grid]")) {
                         if (input.is("[required-checking='true']")) {
                             if (input.data("kendoGrid").dataSource.data().length == 0)
-                                return false;
+                                result = false;
+                            else {
+                                var rowsCount = 0;
+                                input.data("kendoGrid").dataSource.data().forEach(function (row) {
+                                    if (!utils.isGridRowDeleted(input.data("kendoGrid"),
+                                        input.data("kendoGrid").dataSource.data().indexOf(row))) {
+                                        rowsCount++;
+                                    }
+                                });
+                                if (rowsCount == 0)
+                                    result = false;
+                            }
                         }
                     }
-                    return true;
+                    return result;
+                },
+                gridDataValidate: function (input) {
+                    var result = true;
+                    if (input.is("[type=grid]")) {
+                        var grid = input.data("kendoGrid");
+                        var gridConfig = utils.getFormControlByName(input.attr("name").replace("grid_", ""));
+
+                        grid.dataSource.data().forEach(function (item) {
+                            for (var i in gridConfig.fields) {
+                                if (gridConfig.fields[i].validation != null) {
+                                    if (gridConfig.fields[i].validation.required == true) {
+                                        try {
+                                            if (utils.isEmptyString(item[i].trim())) {
+                                                result = false;
+                                            }
+                                        } catch {
+                                            console.log("err", i);
+                                            //result = false;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    return result;
                 },
             };
+
+            function getGridDataValidateMessage(input) {
+                var result = "The following field(s) are required: ";
+                if (input.is("[type=grid]")) {
+                    var grid = input.data("kendoGrid");
+                    var gridConfig = utils.getFormControlByName(input.attr("name").replace("grid_", ""));
+
+                    grid.dataSource.data().forEach(function (item) {
+                        for (var i in gridConfig.fields) {
+                            if (gridConfig.fields[i].validation != null) {
+                                if (gridConfig.fields[i].validation.required == true) {
+                                    try {
+                                        if (utils.isEmptyString(item[i].trim())) {
+                                            result += i + ", ";
+                                        }
+                                    } catch {
+                                        result += i + ", ";
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                return result.substring(0, result.length - 2);
+            }
 
             var messages = {
                 buttonGroupRequired: "At least 1 option must be selected.",
                 gridRequired: "At least 1 record must be added.",
+                gridDataValidate: function (input) {
+                    return getGridDataValidateMessage(input);
+                },
             };
 
             if (masterForm.schema.validation != null) {
@@ -41,7 +107,14 @@
             validator = $(`#${masterForm.id}`).kendoValidator({
                 rules: rules,
                 messages: messages,
-                errorTemplate: ({ message }) => utils.validatorErrorTemplate(message)
+                errorTemplate: ({ message }) => utils.validatorErrorTemplate(message),
+                validate: function (e) {
+                    if (!e.valid) {
+                        setTimeout(function () {
+                            validator.hideMessages();
+                        }, 1000 * 10);
+                    }
+                }
             }).data("kendoValidator");
 
             validator._inputSelector = "[type=grid],[type=buttonGroup],:input:not(:button,[type=submit],[type=reset],[disabled],[readonly])[data-validate!=false]";
@@ -531,8 +604,15 @@
                 dataTextField: "JOB_NO",
                 dataValueField: "JOB_NO",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
-                template: (dataItem) => `${dataItem.JOB_NO} / ${dataItem.MAWB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
-                    ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
+                template: function (dataItem) {
+                    if (dataItem.MAWB_NO == null) {
+                        if (dataItem.DEST_CODE == null)
+                            dataItem.DEST_CODE = "-";
+                        return `${dataItem.JOB_NO}, ${dataItem.DEST_CODE}, ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`;
+                    } else {
+                        return `${dataItem.JOB_NO}, ${dataItem.MAWB_NO}, ${dataItem.DEST_CODE}, ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`;
+                    }
+                },
                 dataSource: {
                     type: "json",
                     serverFiltering: true,
@@ -548,7 +628,7 @@
                                 options.success([]);
                             else {
                                 $.ajax({
-                                    url: "../Air/Hawb/GetMawbs",
+                                    url: "../Air/Invoice/GetJobNos",
                                     data: {
                                         searchValue: utils.formatText(filterValue),
                                         companyId: data.companyId,
@@ -786,10 +866,9 @@
             $(this).kendoDropDownList({
                 optionLabel: "Select for charge template...",
                 dataSource: { data: data.masterRecords.chargeTemplates },
-                cascade: function (e) {
-                    //e.sender._cascadedValue => selected value
-                    if (e.userTriggered == true) {
-                        var templateName = e.sender._cascadedValue;
+                select: function (e) {
+                    if (e.dataItem != null) {
+                        var templateName = e.dataItem;
                         var grid = $(`#${masterForm.id} [name=${e.sender.element.attr("targetControl")}]`).data("kendoGrid");
                         var cwts = utils.getFormValue("CWTS", e.sender.element);
 
@@ -857,6 +936,7 @@
                 width: gridWidth,
                 selectable: "cell",
                 dataBound: function (e) {
+
                     //Toolbar custom button events
                     if (gridConfig.toolbar != null) {
                         gridConfig.toolbar.forEach(function (button) {
@@ -879,6 +959,16 @@
                             eval(`${event.callbackFunction}(e)`);
                         }
                     }
+
+                    //Cancel edit will trigger dataBound event, calculate the total amount
+                    if (gridConfig.formulas != null) {
+                        gridConfig.formulas.forEach(function (formula) {
+                            if (formula.fieldName.startsWith("master.")) {
+                                var gridCell = $(`#${utils.getFormId()} [name="${controlName}"] tr:last td:first`);
+                                controls.kendo.gridFormula(gridCell, formula.fieldName, formula.formula);
+                            }
+                        });
+                    }
                 },
                 cellClose: function (e) {
                     if (gridConfig.formulas != null) {
@@ -898,6 +988,17 @@
                 },
                 remove: function (e) {
                     e.preventDefault();
+
+                    //calculate the total amount when row deleted
+                    if (gridConfig.formulas != null) {
+                        gridConfig.formulas.forEach(function (formula) {
+                            if (formula.fieldName.startsWith("master.")) {
+                                var gridCell = $(`#${utils.getFormId()} [name="${controlName}"] tr:last td:first`);
+                                controls.kendo.gridFormula(gridCell, formula.fieldName, formula.formula);
+                            }
+                        });
+                    }
+
                     if (gridConfig.deleteCallbackFunction != null) {
                         eval(`${gridConfig.deleteCallbackFunction}(e)`);
                     }
@@ -918,6 +1019,7 @@
 
     //kendoGrid related functions
     gridFormula = function (container, fieldName, formula) {
+        //console.log(container, fieldName, formula);
         if (fieldName.startsWith("master.")) {
             if (formula.startsWith("SUM(")) {
                 formula = formula.replace("SUM(", "");
@@ -936,7 +1038,8 @@
                     }
                 });
 
-                $(`#${utils.getFormId()} [name="${fieldName.replace("master.", "")}"]`).val(utils.roundUp(eval(formula), 2));
+                try { $(`#${utils.getFormId()} [name="${fieldName.replace("master.", "")}"]`).val(utils.roundUp(eval(formula), 2)); }
+                catch { }
                 //console.log(formula, eval(formula));
             }
         } else {
@@ -965,9 +1068,14 @@
     gridGetCellValues = function (container, fieldName) {
         var grid = $(container).closest("div[type=grid]").data("kendoGrid");
         var values = [];
-        grid.dataSource.data().forEach(function (dataItem) {
-            values.push(dataItem[fieldName]);
-        })
+
+        if (grid != null) {
+            grid.dataSource.data().forEach(function (dataItem) {
+                if (!utils.isGridRowDeleted(grid, (grid.dataSource.data().indexOf(dataItem)))) {
+                    values.push(dataItem[fieldName]);
+                }
+            })
+        }
         return values;
     }
 
@@ -1127,6 +1235,7 @@
         var ddl = $(`<input name="${options.field}" />`);
         ddl.appendTo(container);
         ddl.kendoDropDownList({
+            optionLabel: " ",
             dataTextField: "BRANCH_CODE",
             dataValueField: "BRANCH_CODE",
             dataSource: gridCustomerName.dataSource.data(),
@@ -1139,6 +1248,7 @@
         var gridCustomerName = $(`#${formId} [name="grid_CustomerNames"]`).data("kendoGrid");
         ddl.appendTo(container);
         ddl.kendoDropDownList({
+            optionLabel: " ",
             dataTextField: "SHORT_DESC",
             dataValueField: "SHORT_DESC",
             dataSource: gridCustomerName.dataSource.data(),

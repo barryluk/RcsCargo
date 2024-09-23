@@ -745,6 +745,7 @@ var masterForms = [
                                 },
                                 width: 180
                             },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
                         ],
                         fields: {
                             BRANCH_CODE: { validation: { required: true } },
@@ -1294,7 +1295,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     {
-                        label: "PO Information", type: "grid", name: "BookingPos",
+                        label: "", type: "grid", name: "BookingPos",
                         columns: [
                             { title: "PO#", field: "PO_NO", width: 120 },
                             { title: "Style #", field: "STYLE_NO", width: 120 },
@@ -2054,6 +2055,7 @@ var masterForms = [
                 { name: "PV_NO", readonly: "always" },
                 { name: "AMOUNT", readonly: "always" },
                 { name: "AMOUNT_HOME", readonly: "always" },
+                { name: "PvItems", required: "true" },
             ],
         },
         formTabs: [
@@ -2137,7 +2139,7 @@ var masterForms = [
                             QTY_UNIT: { validation: { required: true } },
                             EX_RATE: { type: "number", editable: false },
                             AMOUNT: { type: "number", editable: false },
-                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                            AMOUNT_HOME: { type: "number", editable: false },
                         },
                         formulas: [
                             { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },

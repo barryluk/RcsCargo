@@ -29,12 +29,23 @@ li {
     opacity: .8 !important;
 }
 
+.k-tooltip.red-tooltip[data-for^="grid_"] {
+    margin-top: 40px;
+}
+
 .k-tooltip.red-tooltip {
     background-color: crimson;
+    width: fit-content;
+    margin-top: 5px;
 }
 
     .k-tooltip.red-tooltip .k-callout.k-callout-n {
         color: crimson;
+    }
+
+    .k-tooltip.red-tooltip .k-callout.k-callout-s {
+        color: crimson;
+        margin-bottom: 20px;
     }
 
 .k-input{

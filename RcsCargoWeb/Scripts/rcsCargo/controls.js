@@ -52,7 +52,7 @@
                     return;
                 }
                 timeout();
-            }, 50);
+            }, 100);
         }
 
         if ($.isEmptyObject(data.masterRecords.sysCompanies)) {

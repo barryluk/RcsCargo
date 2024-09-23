@@ -263,14 +263,24 @@
             rowData["COMPANY_ID"] = data.companyId;
             rowData["FRT_MODE"] = utils.getFrtMode();
 
-            //If record is deleted from the grid, the <tr> element will have style: "display: none;"
-            if ($(gridRows[lineNo - 1]).attr("style") != "display: none;") {
+            console.log(dsData.indexOf(item), utils.isGridRowDeleted(grid, dsData.indexOf(item)));
+            if (!utils.isGridRowDeleted(grid, dsData.indexOf(item))) {
                 gridData.push(rowData);
                 lineNo++;
             }
         });
 
+        console.log(gridData);
         return gridData;
+    }
+
+    //If record is deleted from the grid, the <tr> element will have style: "display: none;"
+    isGridRowDeleted = function (grid, rowIndex) {
+        var gridRow = grid.items()[rowIndex];
+        if ($(gridRow).attr("style") == "display: none;")
+            return true;
+        else
+            return false;
     }
 
     isHiddenTab = function (selector) {
@@ -369,7 +379,7 @@
 
     validatorErrorTemplate = function (message) {
         return `
-            <div class="k-widget k-tooltip k-tootip-error red-tooltip" style="margin-top: 4px">
+            <div class="k-widget k-tooltip k-tootip-error red-tooltip">
                 <span class="k-icon k-i-warning">&nbsp;</span>${message}
                 <div class="k-callout k-callout-n"></div>
             </div>`;
