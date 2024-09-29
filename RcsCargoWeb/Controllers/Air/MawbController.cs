@@ -26,7 +26,7 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GridMawb_Read(string searchValue, string companyId, string frtMode, DateTime dateFrom, DateTime dateTo,
             [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
-            searchValue = searchValue.Trim().ToUpper();
+            searchValue = searchValue.Trim().ToUpper() + "%";
             var sortField = "FLIGHT_DATE";
             var sortDir = "desc";
 
@@ -65,11 +65,28 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(mawb, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetJob")]
+        public ActionResult GetJob(string id, string companyId, string frtMode)
+        {
+            var job = air.GetJob(id, companyId, frtMode);
+            return Json(job, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetMawbInvoices")]
         public ActionResult GetMawbInvoices(string id, string companyId, string frtMode)
         {
             var result = air.GetMawbInvoices(id, companyId, frtMode);
             return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateLotNo")]
+        public ActionResult UpdateLotNo(string lotNo, string companyId, string frtMode, string[] mawbNos)
+        {
+            if (string.IsNullOrEmpty(lotNo))
+                lotNo = admin.GetSequenceNumber("AE_LOT", companyId, "", "", DateTime.Now);
+
+            air.UpdateLotNo(lotNo, companyId, frtMode, mawbNos.ToList());
+            return Content(lotNo, "text/plain");
         }
 
         [Route("UpdateMawb")]
@@ -199,11 +216,17 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!startDate.HasValue)
-                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!endDate.HasValue)
-                endDate = DateTime.Now;
+                endDate = DateTime.Now.AddMonths(3);
 
             return Json(air.GetLotNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetMawbNosByLot")]
+        public ActionResult GetMawbNosByLot(string lotNo, string companyId, string frtMode)
+        {
+            return Json(air.GetMawbNosByLot(lotNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetLotDetail")]

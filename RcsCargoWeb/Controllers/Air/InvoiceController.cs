@@ -52,9 +52,9 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!startDate.HasValue)
-                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!endDate.HasValue)
-                endDate = DateTime.Now;
+                endDate = DateTime.Now.AddMonths(3);
 
             return Json(air.GetJobNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
         }

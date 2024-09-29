@@ -211,9 +211,33 @@ namespace DbUtils.Models.Air
         public string DEST_CODE { get; set; }
         public string SHIPPER_DESC { get; set; }
         public string AGENT_DESC { get; set; }
+        public string PACKAGE_UNIT { get; set; }
+        public decimal? PACKAGE { get; set; }
+        public decimal? GWTS { get; set; }
+        public decimal? VWTS { get; set; }
+        public decimal? CWTS { get; set; }
         public DateTime? ETA { get; set; }
         public string CREATE_USER { get; set; }
         public DateTime CREATE_DATE { get; set; }
+    }
+
+    public class JobDetailView
+    {
+        public string JOB_NO { get; set; }
+        public string MAWB_NO { get; set; }
+        public string COMPANY_ID { get; set; }
+        public string FRT_MODE { get; set; }
+        public string AIRLINE_CODE { get; set; }
+        public string FLIGHT_NO { get; set; }
+        public DateTime FLIGHT_DATE { get; set; }
+        public string ORIGIN_CODE { get; set; }
+        public string DEST_CODE { get; set; }
+        public string FRT_PAYMENT_PC { get; set; }
+        public string PACKAGE_UNIT { get; set; }
+        public decimal? PACKAGE { get; set; }
+        public decimal? GWTS { get; set; }
+        public decimal? VWTS { get; set; }
+        public decimal? CWTS { get; set; }
     }
 
     public class LotDetailView
@@ -228,10 +252,10 @@ namespace DbUtils.Models.Air
         public string DEST_CODE { get; set; }
         public string FRT_PAYMENT_PC { get; set; }
         public string PACKAGE_UNIT { get; set; }
-        public decimal PACKAGE { get; set; }
-        public decimal GWTS { get; set; }
-        public decimal VWTS { get; set; }
-        public decimal CWTS { get; set; }
+        public decimal? PACKAGE { get; set; }
+        public decimal? GWTS { get; set; }
+        public decimal? VWTS { get; set; }
+        public decimal? CWTS { get; set; }
     }
 
     [Table("A_LOADPLAN_BOOKING_LIST")]

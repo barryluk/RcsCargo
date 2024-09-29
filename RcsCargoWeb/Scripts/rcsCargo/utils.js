@@ -69,7 +69,8 @@
     getFormId = function (selector) {
         if (selector != null) {
             var els = $(selector).parentsUntil("#tabStripMain");
-            return els.eq(els.length - 2).attr("id");
+            //return els.eq(els.length - 2).attr("id");
+            return els.children().closest("div").not(".k-loading-mask").attr("id");
         } else {
             if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length > 0)
                 return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).first().attr("id");
@@ -129,8 +130,25 @@
     }
 
     getMasterFormByName = function (name) {
-        var masterForm = data.masterForms.filter(a => a.formName == name)[0];
+        var masterForm = {}
+        if (name.endsWith("Index"))
+            masterForm = data.indexPages.filter(a => a.pageName == name.replace("Index", ""))[0];
+        else
+            masterForm = data.masterForms.filter(a => a.formName == name)[0];
+
         return masterForm;
+    }
+
+    getIndexFormControlByName = function (name) {
+        var indexForm = data.indexPages.filter(a => a.pageName == utils.getFormId().split("_")[0].replace("Index", ""))[0];
+        var formControl = {};
+        if (indexForm != null) {
+            for (var attr in indexForm) {
+                if (attr == name)
+                    formControl = indexForm[attr];
+            }
+        }
+        return formControl;
     }
 
     getFormControlByName = function (name) {
@@ -155,12 +173,11 @@
     isEmptyString = function (str) {
         if (str == null)
             return true;
-        if (typeof str != "string")
-            return true;
-        if (str.trim().length == 0)
-            return true;
 
-        return (!str || 0 === str.length);
+        if (str.toString().trim().length == 0)
+            return true;
+        else
+            return false;
     }
 
     removeNullString = function (str) {
@@ -209,6 +226,17 @@
         id = id.replaceAll("-slash-", "/");
         id = id.replaceAll("-backslash-", "\\");
         return id;
+    }
+
+    formatDateTime = function (dataItem, format = "date") {
+        if (format == "date")
+            format = data.dateFormat;
+        else if (format == "dateTime")
+            format = data.dateTimeFormat;
+        else if (format == "dateTimeLong")
+            format = data.dateTimeLongFormat;
+
+        return utils.isEmptyString(dataItem) ? "" : kendo.toString(kendo.parseDate(dataItem), format);
     }
 
     formatMawbNo = function (mawbNo) {
@@ -263,14 +291,14 @@
             rowData["COMPANY_ID"] = data.companyId;
             rowData["FRT_MODE"] = utils.getFrtMode();
 
-            console.log(dsData.indexOf(item), utils.isGridRowDeleted(grid, dsData.indexOf(item)));
+            //console.log(dsData.indexOf(item), utils.isGridRowDeleted(grid, dsData.indexOf(item)));
             if (!utils.isGridRowDeleted(grid, dsData.indexOf(item))) {
                 gridData.push(rowData);
                 lineNo++;
             }
         });
 
-        console.log(gridData);
+        //console.log(gridData);
         return gridData;
     }
 
@@ -385,13 +413,29 @@
             </div>`;
     }
 
+    showValidateNotification = function (msg, element) {
+        if (element != null) {
+            var top = $(element).offset().top - 15;
+            var left = $(element).offset().left + 20;
+            $("#notification").data("kendoNotification").options.position.top = top;
+            $("#notification").data("kendoNotification").options.position.left = left;
+        }
+        $("#notification").data("kendoNotification").show(msg, "error");
+    }
+
     //type: "info", "success", "warning", "error"
-    showNotification = function (msg, type = "info") {
+    showNotification = function (msg, type = "info", element) {
+        if (element != null) {
+            var top = $(element).offset().top + 35;
+            var left = $(element).offset().left - (18 + msg.length * 5);
+            $("#notification").data("kendoNotification").options.position.top = top;
+            $("#notification").data("kendoNotification").options.position.left = left;
+        }
         $("#notification").data("kendoNotification").show(msg, type);
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"
-    alertMessage = function (msg, title, type = "info", size = "small", showCloseButtons = true, callbackFunction) {
+    alertMessage = function (msg, title, type = "info", size, showCloseButtons = true, callbackFunction) {
         var contentHeight = "100%";
         if (showCloseButtons)
             contentHeight = "calc(100% - 35px)";
@@ -409,8 +453,8 @@
                 <div name="kendo-window-alertMessage-content" style="height: ${contentHeight};">${msg}</div>
                 ${closeButtons}
             </div>`;
-        var width = "25%";
-        var height = "25%";
+        var width = null;
+        var height = null;
         var icon = "<i class='k-icon k-i-info-circle' style='margin-left: 5px; margin-right: 5px; margin-top: 2px;'></i>";
 
         if (type == "warning")
@@ -423,7 +467,10 @@
 
         title = `${icon} <b>${title}</b>`;
 
-        if (size == "medium") {
+        if (size == "small") {
+            width = "25%";
+            height = "25%";
+        } else if (size == "medium") {
             width = "45%";
             height = "45%";
         } else if (size == "large") {
@@ -437,6 +484,10 @@
             modal: true,
             width: width,
             height: height,
+            open: function () {
+                //var contentHeight = $("[name=kendo-window-alertMessage-content]").height();
+                //$(".k-widget.k-window").height(contentHeight + 75);
+            },
             close: function (e) {
                 alertWin.destroy();
             },
@@ -516,6 +567,30 @@
                         eval(`${cancelCallback}(eventObj)`);
                     }
                 });
+            }
+        });
+    }
+
+    getExcelReport = function (reportName, paras, downloadFileName) {
+        if (utils.isEmptyString(downloadFileName))
+            downloadFileName = reportName;
+
+        $.ajax({
+            url: "../Report/GetExcelReport",
+            data: {
+                paras: paras,
+                reportName: reportName,
+                companyId: data.companyId
+            },
+            dataType: "text",
+            beforeSend: function () {
+                kendo.ui.progress($(`#${utils.getFormId()}`), true);
+            },
+            success: function (id) {
+                window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
+            },
+            complete: function () {
+                kendo.ui.progress($(`#${utils.getFormId()}`), false);
             }
         });
     }

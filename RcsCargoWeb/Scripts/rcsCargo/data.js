@@ -1,6 +1,7 @@
 ﻿//Global variables
 var user;
 var sessionId;
+var scriptVersion;
 var intervalId;
 var take = 40;
 var indexGridPageSize = 40;
@@ -29,7 +30,7 @@ var masterRecords = {
 };
 var dropdownlistControls = ["airline", "port", "country", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
-    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot"];
+    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -167,7 +168,7 @@ var frameworkHtmlElements = {
                         </div>
                     </li>
 
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown hidden">
                         <a class="nav-link" data-toggle="dropdown" href="#">
                             <i class="far fa-comments"></i>
                             <span class="badge badge-danger navbar-badge">3</span>
@@ -218,7 +219,7 @@ var frameworkHtmlElements = {
                             <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
                         </div>
                     </li>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown hidden">
                         <a class="nav-link" data-toggle="dropdown" href="#">
                             <i class="far fa-bell"></i>
                             <span class="badge badge-warning navbar-badge">15</span>
@@ -357,8 +358,8 @@ var indexPages = [
                         ${data.isEmptyString(dataItem.ADDR4) ? "" : dataItem.ADDR4}`;
                     }, width: 350,
                 },
-                { field: "CREATE_DATE", title: "Create Date" },
-                { field: "MODIFY_DATE", title: "Modify Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
             ],
         },
     },
@@ -381,10 +382,12 @@ var indexPages = [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+                { name: "lotAssignment", text: "Lot Assignment", iconClass: "k-icon k-i-inherited", callbackFunction: "controllers.airMawb.lotAssignment" },
             ],
             columns: [
                 { field: "MAWB", title: "MAWB#", attributes: { "class": "link-cell" } },
                 { field: "JOB", title: "Job#" },
+                { field: "LOT_NO", title: "Lot#", attributes: { "class": "link-cell", callbackFunction: "controllers.airMawb.lotAssignment" } },
                 {
                     field: "JOB_TYPE", title: "Type",
                     template: function (dataItem) {
@@ -397,15 +400,20 @@ var indexPages = [
                 },
                 { field: "AIRLINE_CODE", title: "Airline" },
                 { field: "FLIGHT_NO", title: "Flight#" },
-                { field: "FLIGHT_DATE", title: "Flight Date" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN_CODE", title: "Origin" },
                 { field: "DEST_CODE", title: "Destination" },
-                { field: "ETA", title: "ETA" },
+                { field: "ETA", title: "ETA", template: ({ ETA }) => data.formatDateTime(ETA, "dateTime") },
                 { field: "SHIPPER_DESC", title: "Shipper" },
                 { field: "AGENT_DESC", title: "Agent" },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
+            fields: {
+                FLIGHT_DATE: { type: "date" },
+                ETA: { type: "date" },
+                CREATE_DATE: { type: "date" },
+            },
         },
     },
     {
@@ -438,10 +446,10 @@ var indexPages = [
                 { field: "GWTS", title: "G/Wts" },
                 { field: "VWTS", title: "V/Wts" },
                 { field: "CBM", title: "CBM" },
-                { field: "CARGO_READY_DATE", title: "Cargo Ready Date" },
-                { field: "CARGO_REC_DATE", title: "Cargo Rcvd Date" },
+                { field: "CARGO_READY_DATE", title: "Cargo Ready Date", template: ({ CARGO_READY_DATE }) => data.formatDateTime(CARGO_READY_DATE, "dateTime") },
+                { field: "CARGO_REC_DATE", title: "Cargo Rcvd Date", template: ({ CARGO_REC_DATE }) => data.formatDateTime(CARGO_REC_DATE, "dateTime") },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
     },
@@ -471,7 +479,7 @@ var indexPages = [
                 { field: "MAWB_NO", title: "MAWB#" },
                 { field: "AIRLINE_CODE", title: "Airline" },
                 { field: "FLIGHT_NO", title: "Flight#" },
-                { field: "FLIGHT_DATE", title: "Flight Date" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN_CODE", title: "Origin" },
                 { field: "DEST_CODE", title: "Destination" },
                 { field: "SHIPPER_DESC", title: "Shipper" },
@@ -480,7 +488,7 @@ var indexPages = [
                 { field: "GWTS", title: "G/Wts" },
                 { field: "CWTS", title: "C/Wts" },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
     },
@@ -523,14 +531,14 @@ var indexPages = [
                 { field: "MAWB_NO", title: "MAWB#" },
                 { field: "HAWB_NO", title: "HAWB#" },
                 { field: "FLIGHT_NO", title: "Flight#" },
-                { template: function (dataItem) { return kendo.toString(new Date(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN", title: "Origin" },
                 { field: "DEST", title: "Destination" },
                 { field: "CUSTOMER_DESC", title: "Customer" },
                 { field: "CURR_CODE", title: "Curr." },
                 { field: "AMOUNT", title: "Amount" },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
     },
@@ -571,14 +579,14 @@ var indexPages = [
                 { field: "MAWB_NO", title: "MAWB#" },
                 { field: "HAWB_NO", title: "HAWB#" },
                 { field: "FLIGHT_NO", title: "Flight#" },
-                { template: function (dataItem) { return kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN", title: "Origin" },
                 { field: "DEST", title: "Destination" },
                 { field: "CUSTOMER_DESC", title: "Customer" },
                 { field: "CURR_CODE", title: "Curr." },
                 { field: "AMOUNT", title: "Amount" },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
     },
@@ -605,15 +613,25 @@ var indexPages = [
             columns: [
                 { field: "JOB_NO", title: "Job#", attributes: { "class": "link-cell" } },
                 { field: "LOT_NO", title: "Lot#" },
-                { template: function (dataItem) { return kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat); }, title: "Flight Date" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN", title: "Origin" },
                 { field: "DEST", title: "Destination" },
                 { field: "SHIPPER_DESC", title: "Shipper" },
                 { field: "CONSIGNEE_DESC", title: "Consignee" },
                 { field: "CREATE_USER", title: "Create User" },
-                { field: "CREATE_DATE", title: "Create Date" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
+    },
+    {
+        pageName: "log",
+        id: "",
+        title: "System Log",
+        additionalScript: "initLog",
+        controls: [
+            { label: "Log file", type: "logFiles", name: "logFiles", colWidth: 4 },
+            { type: "emptyBlock", name: "logContent", colWidth: 12 },
+        ],
     },
 ];
 
@@ -824,7 +842,8 @@ var masterForms = [
                 { name: "MAWB", required: "true", readonly: "edit" },
                 { name: "AIRLINE_CODE", required: "true" },
                 { name: "FLIGHT_NO", required: "true" },
-                { name: "FLIGHT_DATE", required: "true" },
+                { name: "FLIGHT_DATE", required: "true", defaultValue: new Date() },
+                { name: "ISSUE_DATE", required: "true" },
                 { name: "ORIGIN_CODE", required: "true" },
                 { name: "DEST_CODE", required: "true" },
                 { name: "VWTS_FACTOR", required: "true" },
@@ -1420,8 +1439,14 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "printHawb", text: "Print HAWB", icon: "file-txt" },
-                    { id: "previewHawb", text: "Preview HAWB", icon: "file-report" },
+                    { id: "AirHawb", text: "Print HAWB", icon: "file-pdf", type: "pdf" },
+                    { id: "AirHawbPreview", text: "Preview HAWB", icon: "file-report", type: "pdf" },
+                    { id: "AirHawbAttachList_RCSLON", text: "Attached List", icon: "file-pdf", type: "pdf" },
+                    { id: "AirFcr", text: "Forwarder Cargo Receipt", icon: "file-pdf", type: "pdf" },
+                    { id: "CargoShippingInstructions", text: "Cargo Shipping Instructions", icon: "file-pdf", type: "pdf" },
+                    { id: "SecurityScreeningReceipt", text: "Security Screening Receipt", icon: "file-excel", type: "xlsx" },
+                    { id: "K4securityletter", text: "K4 security letter", icon: "file-pdf", type: "pdf" },
+                    { id: "BatteryDeclaration", text: "Battery Declaration", icon: "file-pdf", type: "pdf" },
                 ]
             },
         ],
@@ -1890,8 +1915,8 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "printInvoice", text: "Print Invoice", icon: "file-txt" },
-                    { id: "previewInvoice", text: "Preview Invoice", icon: "file-report" },
+                    { id: "AirInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
+                    { id: "AirInvoice", text: "Preview Invoice", icon: "file-report", type: "pdf" },
                 ]
             },
         ],
@@ -1904,13 +1929,13 @@ var masterForms = [
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_TRANSFERRED", hidden: "true", defaultValue: "N" },
                 { name: "InvoiceHawbs", hidden: "true" },
-                { name: "INV_DATE", required: "true", readonly: "edit" },
+                { name: "INV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
                 { name: "INV_TYPE", required: "true", readonly: "edit" },
                 { name: "INV_CATEGORY", required: "true" },
                 { name: "SHOW_DATE_TYPE", required: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
                 { name: "CURR_CODE", required: "true" },
-                { name: "CUSTOMER_CODE", required: "true" },
+                { name: "CUSTOMER", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "INV_NO", readonly: "always" },
@@ -1929,7 +1954,7 @@ var masterForms = [
             {
                 name: "mainInfo",
                 title: "Invoice Information",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 6 },
                     { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 6 },
@@ -1938,7 +1963,7 @@ var masterForms = [
                     { label: "Print Date", type: "buttonGroup", name: "SHOW_DATE_TYPE", dataType: "printDateType", colWidth: 4 },
                     { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airInvoice.selectHawb", colWidth: 3 },
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
-                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
+                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airInvoice.selectLot", colWidth: 3 },
                     { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
@@ -1964,7 +1989,7 @@ var masterForms = [
             {
                 name: "charges",
                 title: "Charge Items",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
                     {
@@ -2032,8 +2057,8 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "printPv", text: "Print PV", icon: "file-txt" },
-                    { id: "previewPv", text: "Preview PV", icon: "file-report" },
+                    { id: "AirPaymentVoucherPreview", text: "Print PV", icon: "file-txt", type: "pdf" },
+                    { id: "AirPaymentVoucherPreview1", text: "Preview PV", icon: "file-report", type: "pdf" },
                 ]
             },
         ],
@@ -2044,12 +2069,12 @@ var masterForms = [
                 { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
                 { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
-                { name: "PV_DATE", required: "true", readonly: "edit" },
+                { name: "PV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
                 { name: "PV_TYPE", required: "true", readonly: "edit" },
                 { name: "PV_CATEGORY", required: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
                 { name: "CURR_CODE", required: "true" },
-                { name: "CUSTOMER_CODE", required: "true" },
+                { name: "CUSTOMER", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "PV_NO", readonly: "always" },
@@ -2069,7 +2094,7 @@ var masterForms = [
             {
                 name: "mainInfo",
                 title: "PV Information",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Pv #", type: "text", name: "PV_NO", colWidth: 4 },
                     { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 4 },
@@ -2079,7 +2104,7 @@ var masterForms = [
                     { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
                     { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airPv.selectHawb", colWidth: 3 },
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
-                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
+                    { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airPv.selectLot", colWidth: 3 },
                     { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
@@ -2104,7 +2129,7 @@ var masterForms = [
             {
                 name: "charges",
                 title: "Charge Items",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
                     {
@@ -2189,7 +2214,7 @@ var masterForms = [
             {
                 name: "mainInfo",
                 title: "Other Job Information",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airOtherJob.selectLot", colWidth: 6 },
@@ -2212,7 +2237,7 @@ var masterForms = [
             {
                 name: "prepaidCharges",
                 title: "Prepaid Charges",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
                     {
@@ -2261,7 +2286,7 @@ var masterForms = [
             {
                 name: "collectCharges",
                 title: "Collect Charges",
-                colWidth: 10,
+                colWidth: 12,
                 formControls: [
                     { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
                     {
@@ -2410,6 +2435,17 @@ export default class {
             return true;
 
         return (!str || 0 === str.length);
+    }
+
+    formatDateTime = function (dataItem, format = "date") {
+        if (format == "date")
+            format = data.dateFormat;
+        else if (format == "dateTime")
+            format = data.dateTimeFormat;
+        else if (format == "dateTimeLong")
+            format = data.dateTimeLongFormat;
+
+        return data.isEmptyString(dataItem) ? "" : kendo.toString(kendo.parseDate(dataItem), format);
     }
 
     prefetchGlobalVariables = function () {

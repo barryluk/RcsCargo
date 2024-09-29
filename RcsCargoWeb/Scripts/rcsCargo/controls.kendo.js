@@ -8,6 +8,16 @@
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
         if (validator == null && enableValidation) {
             var rules = {
+                chipListRequired: function (input) {
+                    var result = true;
+                    if (input.is("[type=chipList]")) {
+                        if (input.is("[required-checking='true']")) {
+                            if (input.data("kendoButtonGroup").data("kendoChipList").items().length == 0)
+                                result = false;
+                        }
+                    }
+                    return result;
+                },
                 buttonGroupRequired: function (input) {
                     var result = true;
                     if (input.is("[type=buttonGroup]")) {
@@ -50,7 +60,7 @@
                                 if (gridConfig.fields[i].validation != null) {
                                     if (gridConfig.fields[i].validation.required == true) {
                                         try {
-                                            if (utils.isEmptyString(item[i].trim())) {
+                                            if (utils.isEmptyString(item[i])) {
                                                 result = false;
                                             }
                                         } catch {
@@ -77,11 +87,15 @@
                             if (gridConfig.fields[i].validation != null) {
                                 if (gridConfig.fields[i].validation.required == true) {
                                     try {
-                                        if (utils.isEmptyString(item[i].trim())) {
-                                            result += i + ", ";
+                                        if (utils.isEmptyString(item[i])) {
+                                            console.log(item, i);
+                                            if (result.indexOf(i) == -1)
+                                                result += i + ", ";
                                         }
                                     } catch {
-                                        result += i + ", ";
+                                        console.log("err", item, i);
+                                        if (result.indexOf(i) == -1)
+                                            result += i + ", ";
                                     }
                                 }
                             }
@@ -92,6 +106,7 @@
             }
 
             var messages = {
+                chipListRequired: "At least 1 record must be added.",
                 buttonGroupRequired: "At least 1 option must be selected.",
                 gridRequired: "At least 1 record must be added.",
                 gridDataValidate: function (input) {
@@ -112,12 +127,12 @@
                     if (!e.valid) {
                         setTimeout(function () {
                             validator.hideMessages();
-                        }, 1000 * 10);
+                        }, 1000 * 6);
                     }
                 }
             }).data("kendoValidator");
 
-            validator._inputSelector = "[type=grid],[type=buttonGroup],:input:not(:button,[type=submit],[type=reset],[disabled],[readonly])[data-validate!=false]";
+            validator._inputSelector = "[type=grid],[type=buttonGroup],[type=chipList],:input:not(:button,[type=submit],[type=reset],[disabled],[readonly])[data-validate!=false]";
             testObj = validator;
         }
         
@@ -758,9 +773,6 @@
                     }
                 },
                 open: function (e) {
-                    //if (!utils.isEmptyString(e.sender.filterInput.val()) && e.sender.dataItems().length == 0) {
-                    //    e.sender.search(e.sender.filterInput.val());
-                    //}
                 },
                 select: function (e) {
                     filterValue = e.dataItem.HAWB_NO;
@@ -770,10 +782,6 @@
                     }
                 },
                 dataBound: function (e) {
-                    //if (!utils.isEmptyString(filterValue) && e.sender.dataItems().length > 0) {
-                    //    e.sender.filterInput.val(utils.formatText(filterValue));
-                    //    ddl.value(utils.formatText(filterValue));
-                    //}
                 }
             }).data("kendoDropDownList");
         });
@@ -830,6 +838,36 @@
             }).data("kendoDropDownList");
         });
 
+        //kendoDropDownList for log files
+        $(`#${masterForm.id} input[type=logFiles]`).each(function () {
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                optionLabel: "Select log file",
+                dataSource: {
+                    type: "json",
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                url: "../Admin/System/GetLogFiles",
+                                success: function (result) {
+                                    options.success(result);
+                                }
+                            });
+                        },
+                    }
+                },
+                select: function (e) {
+                    $.ajax({
+                        url: "../Admin/System/GetLog",
+                        dataType: "text",
+                        data: { fileName: e.dataItem },
+                        success: function (result) {
+                            $(`#${utils.getFormId()} [name="logContent"]`).html(result.replaceAll("\r\n", "<br>"));
+                        }
+                    });
+                },
+            }).data("kendoDropDownList");
+        });
 
         //kendoButton
         $(`#${masterForm.id} button[type=button].customButton`).each(function () {
@@ -865,6 +903,7 @@
         $(`#${masterForm.id} input[type=chargeTemplate]`).each(function () {
             $(this).kendoDropDownList({
                 optionLabel: "Select for charge template...",
+                filter: "startswith",
                 dataSource: { data: data.masterRecords.chargeTemplates },
                 select: function (e) {
                     if (e.dataItem != null) {
@@ -933,6 +972,7 @@
                 columns: gridConfig.columns,
                 editable: editable,
                 resizable: true,
+                navigatable: true,
                 width: gridWidth,
                 selectable: "cell",
                 dataBound: function (e) {

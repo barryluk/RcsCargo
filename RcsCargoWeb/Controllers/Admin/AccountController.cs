@@ -10,6 +10,8 @@ namespace RcsCargoWeb.Controllers.Admin
     [RoutePrefix("Admin/Account")]
     public class AccountController : Controller
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [Route("VerifyLogin")]
         public ActionResult VerifyLogin(string userId, string password)
         {
@@ -25,17 +27,18 @@ namespace RcsCargoWeb.Controllers.Admin
 
                 //Add record to USER_LOG table
                 var userLog = new DbUtils.Models.Admin.UserLog
-                { 
+                {
                     SESSION_ID = Session.SessionID,
                     USER_ID = user.USER_ID,
-                    COMPANY_ID = "RCSHKG",
+                    COMPANY_ID = user.DEFAULT_COMPANY,
                     LOGIN_TIME = DateTime.Now,
                     LAST_REQUEST = DateTime.Now,
                     USER_HOST_ADDRESS = Request.UserHostAddress,
                     BROWSER_INFO = HttpContext.Request.UserAgent,
                     APP_NAME = "RCS Cargo"
                 };
-                admin.AddUserLog(userLog);
+                try { admin.AddUserLog(userLog); }
+                catch (Exception ex) { log.Error(DbUtils.Utils.FormatErrorMessage(ex)); }
 
                 //for security issue, should not expose the password to client side
                 user.PASSWORD = string.Empty;
@@ -54,13 +57,21 @@ namespace RcsCargoWeb.Controllers.Admin
             var jsonResult = string.Empty;
             bool status = admin.IsUserLogExist(userId);
 
-            if (status)
+            try
             {
-                admin.UpdateLastRequestTime(userId, Session.SessionID);
-                jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\" }";
+                if (status)
+                {
+                    admin.UpdateLastRequestTime(userId, Session.SessionID);
+                    jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\" }";
+                }
+                else
+                    jsonResult = "{ \"result\": \"error\" }";
             }
-            else
-                jsonResult = "{ \"result\": \"error\" }";
+            catch (Exception ex)
+            {
+                jsonResult = "{ \"result\": \"error\", \"errorMessage\": \"" + ex.Message + "\" }";
+                log.Error(DbUtils.Utils.FormatErrorMessage(ex));
+            }
 
             return Content(jsonResult, "application/json");
         }

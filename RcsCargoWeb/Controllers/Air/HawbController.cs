@@ -54,9 +54,9 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
-                dateTo = DateTime.Now;
+                dateTo = DateTime.Now.AddMonths(3);
 
             var result = air.GetUnusedBookings(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -74,9 +74,9 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
-                dateTo = DateTime.Now;
+                dateTo = DateTime.Now.AddMonths(3);
 
             var result = air.GetHawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -87,9 +87,9 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper();
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddYears(-5) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
-                dateTo = DateTime.Now;
+                dateTo = DateTime.Now.AddMonths(3);
 
             var result = air.GetMawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
             return Json(result, JsonRequestBehavior.AllowGet);

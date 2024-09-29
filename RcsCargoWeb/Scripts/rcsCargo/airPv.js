@@ -14,26 +14,28 @@
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
-            var reportName = "";
-            var filename = `MAWB# ${utils.formatMawbNo(hawbNo)}`;
-            if (e.id == "printMawb") {
-                reportName = "AirMawb";
-            } else if (e.id == "previewMawb") {
-                reportName = "AirMawbPreview";
-            } else if (e.id == "loadplan") {
-                reportName = "AirLoadPlan";
-                filename = `Loadplan ${utils.formatMawbNo(hawbNo)}`;
-            } else if (e.id == "manifest") {
-                reportName = "AirCargoManifest";
-                filename = `CargoManifest ${utils.formatMawbNo(hawbNo)}`;
-            }
-            controls.openReportViewer(reportName, [
+            var buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
+            var reportName = e.id;
+            var reportType = buttonConfig.type;
+            var filename = `PV# ${pvNo}`;
+
+            if (e.id == "AirPaymentVoucherPreview1")
+                reportName = "AirPaymentVoucherPreview";
+
+            var paras = [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
-                { name: "HawbNo", value: hawbNo },
-                { name: "JobNo", value: utils.getFormValue("JOB_NO") },
-                { name: "CompanyName", value: data.companyId },
-                { name: "filename", value: filename },]);
+                { name: "PvNo", value: pvNo },
+                { name: "IsPreview", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
+                { name: "IsEmail", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
+                { name: "AddressCode", value: "" },
+                { name: "filename", value: filename }];
+
+            if (reportType == "pdf") {
+                controls.openReportViewer(reportName, paras);
+            } else if (reportType == "xlsx") {
+                utils.getExcelReport(reportName, paras, filename);
+            }
         });
 
         //invoice(PV) category events
@@ -90,6 +92,20 @@
         $.ajax({
             url: "../Air/Mawb/GetMawb",
             data: { id: selector.dataItem.MAWB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            success: function (result) {
+                result.ORIGIN = result.ORIGIN_CODE;
+                result.DEST = result.DEST_CODE;
+                result.PACKAGE = result.CTNS;
+                result.CWTS = result.GWTS > result.VWTS ? result.GWTS : result.VWTS;
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airPv")[0], result, true);
+            },
+        });
+    }
+
+    selectJob = function (selector, filterValue) {
+        $.ajax({
+            url: "../Air/Mawb/GetJob",
+            data: { id: selector.dataItem.JOB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
             success: function (result) {
                 result.ORIGIN = result.ORIGIN_CODE;
                 result.DEST = result.DEST_CODE;

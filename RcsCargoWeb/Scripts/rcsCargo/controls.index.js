@@ -3,11 +3,66 @@
     }
     
     initIndexPage = function (pageSetting) {
-        $(`#${pageSetting.id}`).html(data.htmlElements.indexPage(pageSetting.title, pageSetting.gridConfig.gridName));
+        if (pageSetting.gridConfig != null) {
+            $(`#${pageSetting.id}`).html(data.htmlElements.indexPage(pageSetting.title, pageSetting.gridConfig.gridName));
+            this.renderSearchControls(pageSetting);
+            this.renderIndexGrid(pageSetting);
+        } else {
+            $(`#${pageSetting.id}`).html(`<div><h3>${pageSetting.title}</h3></div>`);
+            this.renderControls(pageSetting);
+        }
 
-        this.renderSearchControls(pageSetting);
-        this.renderIndexGrid(pageSetting);
+        if (pageSetting.additionalScript != null)
+            eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
+
         kendo.ui.progress($(".container-fluid"), false);
+    }
+
+    renderControls = function (pageSetting) {
+        var html = "";
+
+        pageSetting.controls.forEach(function (control) {
+            var colWidth = "";
+            var callbackFunction = "";
+            var controlHtml = "";
+            var formControlType = "input";
+            var formControlClass = "form-control";
+
+            if (control.colWidth != null)
+                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+            if (data.dropdownlistControls.includes(control.type))
+                formControlClass = "form-control-dropdownlist";
+            if (control.callbackFunction != null)
+                callbackFunction = `callbackFunction="${control.callbackFunction}"`;
+            if (control.type != "emptyBlock")
+                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} />`;
+            else {
+                if (control.name != null)
+                    controlHtml = `<div name="${control.name}" />`;
+                else
+                    controlHtml = `<div />`;
+            }
+
+            if (control.label != null) {
+                html += `
+                    <div class="row ${colWidth}">
+                        <label class="col-sm-3 col-form-label">${control.label}</label>
+                        <div class="col-sm-9">
+                            ${controlHtml}
+                        </div>
+                    </div>`;
+            } else {
+                html += `
+                    <div class="row ${colWidth}">
+                        <div class="col-sm-12">
+                            ${controlHtml}
+                        </div>
+                    </div>`;
+            }
+        });
+
+        $(`#${pageSetting.id}`).append(html);
+        controls.kendo.renderFormControl_kendoUI(pageSetting);
     }
 
     //Render search controls
@@ -74,7 +129,7 @@
 
     //Render index kendoGrid
     renderIndexGrid = function (pageSetting) {
-        var gridHeight = $(".content-wrapper").height() - 220;
+        var gridHeight = $(".content-wrapper").height() - 232;
 
         $(`[name=${pageSetting.gridConfig.gridName}]`).kendoGrid({
             columns: pageSetting.gridConfig.columns,
@@ -144,6 +199,8 @@
                 var formId = utils.getFormId(grid.element);
                 controls.kendo.gridAutoFitColumns(grid);
 
+                $(`#${formId} .k-grid-content.k-auto-scrollable`).height($(`#${formId} .k-grid-content.k-auto-scrollable`).height() - 7);
+
                 $(".k-grid-autoFitColumns").unbind("click");
                 $(`#${formId} .k-grid button:contains("New")`).unbind("click");
 
@@ -156,13 +213,38 @@
                     controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
                 });
 
+                //Toolbar custom button events
+                if (pageSetting.gridConfig.toolbar != null) {
+                    pageSetting.gridConfig.toolbar.forEach(function (button) {
+                        if (["new", "excel", "autoFitColumns"].indexOf(button.name) == -1) {
+                            if (button.callbackFunction != null) {
+                                var controlName = grid.element.attr("name");
+                                //remove all bindings for the control, to prevent duplicated events
+                                $(`#${formId} [name="${controlName}"] button.k-grid-${button.name}`).unbind();
+                                $(`#${formId} [name="${controlName}"] button.k-grid-${button.name}`).bind("click", function (e) {
+                                    eval(`${button.callbackFunction}(e.target)`);
+                                });
+                            }
+                        }
+                    })
+                }
+
                 //override the column width after autoFitColumns function
                 pageSetting.gridConfig.columns.forEach(function (col) {
                     if (col.width != null) {
-                        testObj = grid;
                         grid.resizeColumn(grid.columns[pageSetting.gridConfig.columns.indexOf(col)], col.width);
                     }
                 });
+
+                //remove the link-cell attribute if no data in the cell
+                grid.items().each(function () {
+                    var tr = $(this);
+                    tr.children().each(function () {
+                        var td = $(this);
+                        if (td.hasClass("link-cell") && utils.isEmptyString(td.text()))
+                            td.removeClass("link-cell");
+                    });
+                })
             },
             change: function (e) {
                 var grid = this;
@@ -170,8 +252,12 @@
                 if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
                     var id = $(selectedCell).text();
-                    id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
-                    controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
+                    if ($(selectedCell).attr("callbackFunction") != null) {
+                        eval(`${$(selectedCell).attr("callbackFunction")}(e.sender, id)`);
+                    } else {
+                        id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
+                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
+                    }
                     grid.clearSelection();
                 }
             },

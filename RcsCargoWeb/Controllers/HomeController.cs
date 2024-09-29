@@ -24,19 +24,7 @@ namespace RcsCargoWeb.Controllers
         public ActionResult Test()
         {
             DbUtils.RcsFreightDBContext db = new RcsFreightDBContext();
-            //return Json(db.SysModules.ToList(), JsonRequestBehavior.AllowGet);
-            //db.Database.Exists();
-            //var result = db.Database.SqlQuery<string>("select display_name from sys_module").ToList();
             var items = "";
-
-            //foreach (var item in result)
-            //    items += item + ",";
-            //return Content(items);
-
-            //var hawb = db.Database.SqlQuery<Hawb>("select * from a_hawb where hawb_no = 'WFF74277000'").FirstOrDefault();
-            //hawb.MODIFY_DATE = DateTime.Now;
-            //db.Entry(hawb).State = System.Data.Entity.EntityState.Modified;
-            //db.SaveChanges();
 
             Hawb result = DbUtils.Utils.GetSqlQueryResult<Hawb>("a_hawb", "hawb_no", "WFF74277000").FirstOrDefault();
             foreach (var prop in result.GetType().GetProperties())
@@ -226,6 +214,11 @@ namespace RcsCargoWeb.Controllers
         {
             var admin = new DbUtils.Admin();
             return Content(admin.GetSequenceNumber(seqType, companyId, origin, dest, date ?? DateTime.Now, seqNoCount ?? 1), "text/plain");
+        }
+
+        public ActionResult GetScriptVersion()
+        {
+            return Content(AppUtils.scriptVersion, "text/plain");
         }
 
         #endregion

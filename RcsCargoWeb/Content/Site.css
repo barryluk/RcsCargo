@@ -350,3 +350,52 @@ td.k-edit-cell {
 .toolbar.k-toolbar .toolbar-frtMode {
     margin-left: 100px;
 }
+
+[name="logContent"] {
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+.logFilter {
+    color: #424242;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.LOG_INFO {
+    color: green;
+    font-weight: bold
+}
+
+.LOG_DEBUG {
+    color: blue;
+    font-weight: bold
+}
+
+.LOG_WARN {
+    color: orange;
+    font-weight: bold
+}
+
+.LOG_ERROR {
+    color: red;
+    font-weight: bold
+}
+
+.LOG_FATAL {
+    color: purple;
+    font-weight: bold
+}
+
+[name="toTop"] {
+    width: 40px;
+    padding: 5px;
+    position: fixed;
+    bottom: 50px;
+    right: 45px;
+    cursor: pointer;
+    _float: right;
+    _position: absolute;
+    _top: expression(documentElement.scrollTop + documentElement.clientHeight-this.offsetHeight);
+    _background-attachment: fixed;
+} 

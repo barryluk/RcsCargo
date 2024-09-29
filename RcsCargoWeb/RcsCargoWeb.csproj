@@ -79,6 +79,9 @@
     <Reference Include="Oracle.ManagedDataAccess.EntityFramework, Version=6.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
       <HintPath>..\packages\Oracle.ManagedDataAccess.EntityFramework.23.4.0\lib\net472\Oracle.ManagedDataAccess.EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Reporting">
+      <HintPath>..\..\RCS-Freight\Reporting\bin\Release\Reporting.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
@@ -160,6 +163,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\Admin\SystemController.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
     <Compile Include="Controllers\Air\OtherJobController.cs" />
     <Compile Include="Controllers\Air\PvController.cs" />
@@ -167,6 +171,7 @@
     <Compile Include="Controllers\Air\HawbController.cs" />
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MasterRecord\CustomerController.cs" />
     <Compile Include="Global.asax.cs">
@@ -235,6 +240,7 @@
     <Content Include="Content\img\prod-4.jpg" />
     <Content Include="Content\img\prod-5.jpg" />
     <Content Include="Content\img\RCSLogo.jpg" />
+    <Content Include="Content\img\top.png" />
     <Content Include="Content\img\user1-128x128.jpg" />
     <Content Include="Content\img\user2-160x160.jpg" />
     <Content Include="Content\img\user3-128x128.jpg" />
@@ -449,6 +455,7 @@
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
+    <Content Include="Scripts\rcsCargo\log.js" />
     <Content Include="Scripts\rcsCargo\airPv.js" />
     <Content Include="Scripts\rcsCargo\airInvoice.js" />
     <Content Include="Scripts\rcsCargo\airHawb.js" />
@@ -483,6 +490,7 @@
     <Content Include="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Downloads\" />
     <Folder Include="Views\Test\" />
   </ItemGroup>
   <ItemGroup>

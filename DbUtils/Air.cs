@@ -23,17 +23,35 @@ namespace DbUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         RcsFreightDBContext db;
-        public Air() 
+        public Air()
         {
             db = new RcsFreightDBContext();
         }
 
         #region MAWB, Loadplan
-        public List<MawbView> GetJobNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+
+        public List<string> GetMawbNosByLot(string lotNo, string companyId, string frtMode)
+        {
+            var selectCmd = "mawb as mawb_no";
+            var fromCmd = "a_mawb";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "lot_no", ParaName = "lot_no", ParaCompareType = DbParameter.CompareType.equals, Value = lotNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<string>(fromCmd, selectCmd, dbParas);
+
+            return result.ToList();
+        }
+
+        public List<JobDetailView> GetJobNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
             var selectCmd = "a.*";
-            var fromCmd = @"(select job as job_no, mawb as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, company_id, frt_mode from a_mawb
-                    union select job_no, '' as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, company_id, frt_mode from a_other_job) a";
+            var fromCmd = @"(select job as job_no, mawb as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, 
+                    gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, ctns as package, package_unit, company_id, frt_mode from a_mawb
+                    union select job_no, '' as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, 
+                    gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, package, package_unit, company_id, frt_mode from a_other_job) a";
             var dbParas = new List<DbParameter>
             {
                 new DbParameter { FieldName = "a.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
@@ -44,7 +62,7 @@ namespace DbUtils
                 new DbParameter { FieldName = "a.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
                 new DbParameter { FieldName = "a.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<MawbView>(fromCmd, selectCmd, dbParas);
+            var result = Utils.GetSqlQueryResult<JobDetailView>(fromCmd, selectCmd, dbParas);
 
             return result.OrderByDescending(a => a.FLIGHT_DATE).ToList();
         }
@@ -89,33 +107,26 @@ namespace DbUtils
 
         public List<MawbView> GetMawbs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
-            return db.Mawbs.Where(a => (a.MAWB.StartsWith(searchValue)
-                || a.JOB.StartsWith(searchValue)
-                || a.AIRLINE_CODE.StartsWith(searchValue)
-                || a.FLIGHT_NO.StartsWith(searchValue))
-                && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode
-                && a.FLIGHT_DATE >= startDate && a.FLIGHT_DATE <= endDate)
-                .Select(a => new MawbView
-                {
-                    MAWB = a.MAWB,
-                    MAWB_NO = a.MAWB,
-                    COMPANY_ID = a.COMPANY_ID,
-                    FRT_MODE = a.FRT_MODE,
-                    AIRLINE_CODE = a.AIRLINE_CODE,
-                    FLIGHT_DATE = a.FLIGHT_DATE,
-                    FLIGHT_NO = a.FLIGHT_NO,
-                    ORIGIN_CODE = a.ORIGIN_CODE,
-                    DEST_CODE = a.DEST_CODE,
-                    JOB = a.JOB,
-                    JOB_NO = a.JOB,
-                    JOB_TYPE = a.JOB_TYPE,
-                    LOT_NO = a.LOT_NO,
-                    ETA = a.ETA,
-                    SHIPPER_DESC = a.SHIPPER_DESC,
-                    AGENT_DESC = a.AGENT_DESC,
-                    CREATE_USER = a.CREATE_USER,
-                    CREATE_DATE = a.CREATE_DATE,
-                }).Take(Utils.DefaultMaxQueryRows).ToList();
+            var selectCmd = @"job, job as job_no, mawb, mawb as mawb_no, lot_no, origin_code, dest_code, flight_date, 
+                    job_type, airline_code, flight_no, eta, shipper_desc, agent_desc, create_user, create_date,
+                    gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, ctns as package, package_unit, company_id, frt_mode";
+            var fromCmd = "a_mawb";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "mawb", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "job", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "flight_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "origin_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "dest_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "flight_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "flight_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<MawbView>(fromCmd, selectCmd, dbParas);
+
+            return result.OrderByDescending(a => a.FLIGHT_DATE).ToList();
         }
 
         public Mawb GetMawb(string mawbNo, string companyId, string frtMode)
@@ -138,6 +149,36 @@ namespace DbUtils
                 return mawb;
         }
 
+        public JobDetailView GetJob(string jobNo, string companyId, string frtMode)
+        {
+            var selectCmd = @"job as job_no, mawb as mawb_no, lot_no, company_id, frt_mode, origin_code, dest_code, flight_date, 
+                flight_no, airline_code, ctns as package, gwts, vwts, cwts, package_unit, frt_payment_pc";
+            var fromCmd = "a_mawb";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "job", ParaName = "job", ParaCompareType = DbParameter.CompareType.equals, Value = jobNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<JobDetailView>(fromCmd, selectCmd, dbParas);
+
+            if (result.Count == 0)
+            {
+                selectCmd = @"job_no, lot_no, company_id, frt_mode, origin_code, dest_code, flight_date, package, gwts, vwts, 
+                    case when gwts > vwts then gwts else vwts end as cwts, package_unit";
+                fromCmd = "a_other_job";
+                dbParas = new List<DbParameter>
+                {
+                    new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = jobNo },
+                    new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                    new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                };
+                result = Utils.GetSqlQueryResult<JobDetailView>(fromCmd, selectCmd, dbParas);
+            }
+
+            return result.FirstOrDefault();
+        }
+
         public void AddMawb(Mawb mawb)
         {
             try
@@ -156,6 +197,27 @@ namespace DbUtils
             }
         }
 
+        public void UpdateLotNo(string lotNo, string companyId, string frtMode, List<string> mawbNos)
+        {
+            try
+            {
+                var sqlCmd = $"update a_mawb set lot_no = null where lot_no = '{lotNo}' and company_id = '{companyId}' and frt_mode = '{frtMode}'";
+                db.Database.ExecuteSqlCommand(sqlCmd);
+                db.SaveChanges();
+
+                foreach (var mawbNo in mawbNos)
+                {
+                    sqlCmd = $"update a_mawb set lot_no = '{lotNo}' where mawb = '{mawbNo}' and company_id = '{companyId}' and frt_mode = '{frtMode}'";
+                    db.Database.ExecuteSqlCommand(sqlCmd);
+                }
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
         public void UpdateMawb(Mawb mawb)
         {
             try
@@ -164,7 +226,14 @@ namespace DbUtils
                 var dims = db.MawbDims.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
                 var charges = db.MawbCharges.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
                 var bookingList = db.LoadplanBookingLists.Where(a => a.JOB_NO == mawb.JOB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
-                var hawbNos = db.Hawbs.Where(a => a.JOB_NO == mawb.JOB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE).Select(a => a.HAWB_NO).ToList();
+                
+                var dbParas = new List<DbParameter>
+                {
+                    new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.JOB },
+                    new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.COMPANY_ID },
+                    new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.FRT_MODE },
+                };
+                var hawbNos = Utils.GetSqlQueryResult<string>("a_hawb", "hawb_no", dbParas);
                 var hawbEquips = db.HawbEquips.Where(a => hawbNos.Contains(a.HAWB_NO) && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
 
                 if (dims != null)
@@ -371,7 +440,7 @@ namespace DbUtils
         public List<BookingView> GetBookings(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
             var selectCmd = @"booking_no, company_id, frt_mode, origin_code, dest_code,
-                shipper_code, shipper_desc, consignee_code, consignee_desc,
+                shipper_code, shipper_desc, consignee_code, consignee_desc, cargo_ready_date, cargo_rec_date,
                 package, gwts, vwts, create_user, create_date";
             var fromCmd = "a_booking";
             var dbParas = new List<DbParameter>
@@ -466,8 +535,15 @@ namespace DbUtils
 
         public List<string> GetHawbNos(string id, string companyId, string frtMode)
         {
-            return db.Hawbs.Where(a => (a.MAWB_NO == id || a.JOB_NO == id)
-                && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).Select(a => a.HAWB_NO).ToList();
+            return Utils.GetSqlQueryResult<string>("a_hawb", "hawb_no", new List<DbParameter>
+                {
+                    new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = id, OrGroupIndex = 1 },
+                    new DbParameter { FieldName = "mawb_no", ParaName = "mawb_no", ParaCompareType = DbParameter.CompareType.equals, Value = id, OrGroupIndex = 1 },
+                    new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                    new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                });
+            //return db.Hawbs.Where(a => (a.MAWB_NO == id || a.JOB_NO == id)
+            //    && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).Select(a => a.HAWB_NO).ToList();
         }
 
         public List<HawbView> GetHawbs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
@@ -476,7 +552,7 @@ namespace DbUtils
                 m.airline_code, m.flight_no, m.flight_date, h.origin_code, h.dest_code,
                 h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc, h.frt_payment_pc,
                 case when h.gwts > h.vwts then h.gwts else h.vwts end as cwts,
-                h.package, h.gwts, h.vwts, h.cbm, h.create_user, h.create_date";
+                h.package, h.gwts, h.vwts, h.cbm, h.package_unit, h.create_user, h.create_date";
             var fromCmd = $@"a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode
                 where h.create_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
                 and h.create_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD') ";

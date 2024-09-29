@@ -14,15 +14,11 @@
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
-            var reportName = "";
+            var buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
+            var reportName = e.id;
             var filename = `Invoice# ${invNo}`;
-            if (e.id == "printInvoice") {
-                reportName = "AirInvoice";
-            } else if (e.id == "previewInvoice") {
-                reportName = "AirInvoicePreview";
-            }
 
-            controls.openReportViewer(reportName, [
+            var paras = [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
                 { name: "InvNo", value: invNo },
@@ -30,7 +26,8 @@
                 { name: "IsEmail", value: "N" },
                 { name: "ShowFlightDate", value: utils.isEmptyString($(`#${masterForm.id} [name="FLIGHT_DATE"]`).val()) ? "N" : "Y" },
                 { name: "AddressCode", value: "" },
-                { name: "filename", value: filename },]);
+                { name: "filename", value: filename }];
+            controls.openReportViewer(reportName, paras);
         });
 
         //invoice category events
@@ -78,7 +75,7 @@
             success: function (result) {
                 result[0].ORIGIN = result[0].ORIGIN_CODE;
                 result[0].DEST = result[0].DEST_CODE;
-                var masterForm = JSON.parse($(`#${utils.getFormId()}`).attr("masterForm"));
+                var masterForm = utils.getMasterForm();
                 controls.setValuesToFormControls(masterForm, result[0], true);
             }
         });
@@ -91,6 +88,8 @@
             success: function (result) {
                 result.ORIGIN = result.ORIGIN_CODE;
                 result.DEST = result.DEST_CODE;
+                result.PACKAGE = result.CTNS;
+                result.CWTS = result.GWTS > result.VWTS ? result.GWTS : result.VWTS;
                 controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airInvoice")[0], result, true);
 
                 $.ajax({
@@ -135,10 +134,22 @@
 
                             //console.log(invoiceHawbs);
                             $(`#${formId} [name="InvoiceHawbs"]`).val(JSON.stringify(invoiceHawbs));
-                            $(".kendo-window-alertMessage").data("kendoWindow").destroy();
+                            //$(".kendo-window-alertMessage").data("kendoWindow").destroy();
                         });
                     },
                 });
+            },
+        });
+    }
+
+    selectJob = function (selector, filterValue) {
+        $.ajax({
+            url: "../Air/Mawb/GetJob",
+            data: { id: selector.dataItem.JOB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            success: function (result) {
+                result.ORIGIN = result.ORIGIN_CODE;
+                result.DEST = result.DEST_CODE;
+                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airInvoice")[0], result, true);
             },
         });
     }

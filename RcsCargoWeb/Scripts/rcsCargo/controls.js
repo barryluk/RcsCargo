@@ -1,44 +1,47 @@
 ﻿export default class {
     constructor() {
-        $.ajax({
-            url: "../Home/GetSysModules",
-            success: function (menuItems) {
-                controls.initNavbar();
-                controls.initControlSidebar();
-                controls.initSidebar(menuItems);
-                controls.initTabstripMain();
+        if ($("#dashboardMain").length == 0) {
+            $.ajax({
+                url: "../Home/GetSysModules",
+                success: function (menuItems) {
+                    controls.initNavbar();
+                    controls.initControlSidebar();
+                    controls.initSidebar(menuItems);
+                    controls.initTabstripMain();
 
-                $(window).on("resize", function () {
-                    var height = $(".content-wrapper").height();
-                    $("#tabStripMain").css("height", height - 5);
-                });
-                $(window).trigger("resize");
-
-                $(".nav-item.dropdown").bind("click", function () {
-                    $(this).toggleClass("open");
-                });
-                $(".nav-item.dropdown.sysCompany").hover(function () {
-                    $(this).find(".fa-house-user").toggleClass("fa-shake");
-                });
-                $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
-                    console.log(sender.target);
-                    data.companyId = $(sender.target).text().trim();
-                    $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
-                });
-                $("[data-widget='control-logout']").bind("click", function () {
-                    $.ajax({
-                        url: "/Admin/Account/Logout",
-                        data: { userId: data.user.USER_ID },
-                        success: function (result) {
-                            localStorage.removeItem("user");
-                            localStorage.removeItem("sessionId");
-                            window.open("../Home/Login", "_self");
-                        }
+                    $(window).on("resize", function () {
+                        var height = $(".content-wrapper").height();
+                        $("#tabStripMain").css({ "height": (height - 5), "position": "relative", "top": "-20px"});
                     });
-                });
-                $("[data-toggle='tooltip']").kendoTooltip();
-            }
-        });
+                    $(window).trigger("resize");
+
+                    $(".nav-item.dropdown").bind("click", function () {
+                        $(this).toggleClass("open");
+                    });
+                    $(".nav-item.dropdown.sysCompany").hover(function () {
+                        $(this).find(".fa-house-user").toggleClass("fa-shake");
+                    });
+                    $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
+                        console.log(sender.target);
+                        data.companyId = $(sender.target).text().trim();
+                        $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
+                    });
+                    $("[data-widget='control-logout']").bind("click", function () {
+                        $.ajax({
+                            url: "/Admin/Account/Logout",
+                            data: { userId: data.user.USER_ID },
+                            success: function (result) {
+                                localStorage.removeItem("user");
+                                localStorage.removeItem("sessionId");
+                                window.open("../Home/Login", "_self");
+                            }
+                        });
+                    });
+                    $("[data-toggle='tooltip']").kendoTooltip();
+                    $("[data-widget='control-sidebar']").trigger("click");
+                }
+            });
+        }
     }
 
     //Navbar
@@ -207,7 +210,7 @@
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
         if (pageSetting == null) {
-            utils.alertMessage("No settings found of the requested page, it may still under development, please try later.", "Page not found", "warning", null, true);
+            utils.alertMessage("No settings found of the requested page, it may still <br>under development, please try later.<br><br>", "Page not found", "warning", null, true);
             return;
         }
 
@@ -230,13 +233,13 @@
                 try {
                     eval("remove_" + id + "_Objects();");
                 } catch (err) { }
-                tabStrip.remove(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
-                tabStrip.activateTab("li:last");
+                controls.remove_tabStripMain(id);
             });
 
             $("#btnRefresh_" + id).click(function () {
                 kendo.ui.progress($(`#${id}`).parent(), true);
                 if (id.indexOf("Index") != -1) {
+                    pageSetting = utils.getMasterForm(`#${id}`);
                     pageSetting.id = id;
                     controls.index.initIndexPage(pageSetting);
                 }
@@ -255,6 +258,16 @@
                     $(this).addClass("k-i-unpin");
                 }
             });
+
+            if (localStorage.tabStrips != null) {
+                var tabStrips = JSON.parse(localStorage.tabStrips);
+                if (tabStrips.indexOf(id) == -1) {
+                    tabStrips.push(id);
+                    localStorage.tabStrips = JSON.stringify(tabStrips);
+                }
+            } else {
+                localStorage.tabStrips = JSON.stringify([id]);
+            }
         }
 
         //tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
@@ -273,7 +286,7 @@
 
     remove_tabStripMain = function (id) {
         id = utils.removeSpecialCharacters(id);
-        console.log(id);
+        //console.log(id);
         try {
             eval("remove_" + id + "_Objects();");
         } catch (err) { }
@@ -282,10 +295,29 @@
         try {
             tabStrip.activateTab("li:last");
         } catch { }
+
+        if (localStorage.tabStrips != null) {
+            var tabStrips = JSON.parse(localStorage.tabStrips);
+            if (tabStrips.indexOf(id) != -1) {
+                tabStrips.splice(tabStrips.indexOf(id), 1);
+                localStorage.tabStrips = JSON.stringify(tabStrips);
+            }
+        } else {
+            localStorage.tabStrips = JSON.stringify([]);
+        }
     }
 
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
+        //console.log(masterForm, model);
+        if (masterForm.mode == "create") {
+            masterForm.schema.fields.forEach(function (field) {
+                if (field.defaultValue != null) {
+                    model[field.name] = field.defaultValue;
+                }
+            });
+        }
+
         //Status info
         if (masterForm.mode == "edit") {
             $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 

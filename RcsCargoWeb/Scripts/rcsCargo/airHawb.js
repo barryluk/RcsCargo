@@ -12,26 +12,38 @@
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
-            var reportName = "";
-            var filename = `MAWB# ${utils.formatMawbNo(hawbNo)}`;
-            if (e.id == "printMawb") {
-                reportName = "AirMawb";
-            } else if (e.id == "previewMawb") {
-                reportName = "AirMawbPreview";
-            } else if (e.id == "loadplan") {
-                reportName = "AirLoadPlan";
-                filename = `Loadplan ${utils.formatMawbNo(hawbNo)}`;
-            } else if (e.id == "manifest") {
-                reportName = "AirCargoManifest";
-                filename = `CargoManifest ${utils.formatMawbNo(hawbNo)}`;
+            var buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
+            var reportName = e.id;
+            var reportType = buttonConfig.type;
+            var filename = `HAWB# ${hawbNo}`;
+            
+            if (e.id == "AirHawbAttachList_RCSLON") {
+                filename = `HAWB Attached List - ${hawbNo}`;
+            } else if (e.id == "AirFcr") {
+                filename = `FCR# ${hawbNo}`;
+            } else if (e.id == "CargoShippingInstructions") {
+                filename = `Cargo Shipping Instructions`;
+            } else if (e.id == "SecurityScreeningReceipt") {
+                filename = "Security Screening Receipt";
+            } else if (e.id == "K4securityletter") {
+                filename = "K4 Security Letter";
+            } else if (e.id == "BatteryDeclaration") {
+                filename = "Battery Declaration";
             }
-            controls.openReportViewer(reportName, [
+
+            var paras = [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
                 { name: "HawbNo", value: hawbNo },
-                { name: "JobNo", value: utils.getFormValue("JOB_NO") },
-                { name: "CompanyName", value: data.companyId },
-                { name: "filename", value: filename },]);
+                { name: "ShowDim", value: true },
+                { name: "CustomerType", value: "Shipper" },
+                { name: "filename", value: filename }];
+
+            if (reportType == "pdf") {
+                controls.openReportViewer(reportName, paras);
+            } else if (reportType == "xlsx") {
+                utils.getExcelReport(reportName, paras);
+            }
         });
     }
 

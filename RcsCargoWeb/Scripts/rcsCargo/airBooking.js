@@ -17,7 +17,7 @@
             if (e.id == "printBooking") {
                 reportName = "AirBooking";
             } else if (e.id == "printBookingHawb") {
-                reportName = "AirBookingHawb";
+                reportName = "AirBooking_Hawb";
             } else if (e.id == "printWarehouseReceipt") {
                 controllers.airBooking.printWarehouseReceipt();
                 return;
@@ -27,6 +27,7 @@
                 { name: "FrtMode", value: frtMode },
                 { name: "BookingNo", value: bookingNo },
                 { name: "CompanyName", value: data.companyId },
+                { name: "CustomerType", value: "Shipper" },
                 { name: "filename", value: filename },]);
         });
 

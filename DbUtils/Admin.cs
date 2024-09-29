@@ -144,9 +144,9 @@ namespace DbUtils
 
         public void AddUserLog(UserLog userLog)
         {
-            var oldUserLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userLog.USER_ID)).FirstOrDefault();
+            var oldUserLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userLog.USER_ID) && a.APP_NAME == "RCS Cargo");
             if (oldUserLog != null)
-                db.UsersLogs.Remove(oldUserLog);
+                db.UsersLogs.RemoveRange(oldUserLog);
 
             db.UsersLogs.Add(userLog);
             db.SaveChanges();
@@ -158,22 +158,33 @@ namespace DbUtils
             var userLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userId)).FirstOrDefault();
             if (userLog != null)
             {
-                if (userLog.SESSION_ID.Equals(sessionId))
+                try
                 {
-                    userLog.LAST_REQUEST = DateTime.Now;
-                    db.Entry(userLog).State = EntityState.Modified;
-                    db.SaveChanges();
+                    if (userLog.SESSION_ID.Equals(sessionId))
+                    {
+                        userLog.LAST_REQUEST = DateTime.Now;
+                        db.Entry(userLog).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        var newUserLog = new UserLog
+                        {
+                            SESSION_ID = sessionId,
+                            LAST_REQUEST = DateTime.Now,
+                            USER_ID = userId,
+                            COMPANY_ID = userLog.COMPANY_ID,
+                            USER_HOST_ADDRESS = userLog.USER_HOST_ADDRESS,
+                            APP_NAME = "RCS Cargo",
+                            BROWSER_INFO = userLog.BROWSER_INFO,
+                            LOGIN_TIME = userLog.LOGIN_TIME,
+                        };
+                        db.UsersLogs.Remove(userLog);
+                        db.UsersLogs.Add(newUserLog);
+                        db.SaveChanges();
+                    }
                 }
-                else
-                {
-                    var newUserLog = userLog;
-                    db.UsersLogs.Remove(userLog);
-
-                    newUserLog.SESSION_ID = sessionId;
-                    newUserLog.LAST_REQUEST = DateTime.Now;
-                    db.UsersLogs.Add(newUserLog);
-                    db.SaveChanges();
-                }
+                catch (Exception ex) { log.Error(Utils.FormatErrorMessage(ex)); }
             }
             else
                 status = false;
@@ -183,16 +194,17 @@ namespace DbUtils
 
         public UserLog GetUserLog(string userId)
         {
-            return db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId));
+            return db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId) && a.APP_NAME == "RCS Cargo");
         }
 
         public bool DeleteUserLog(string userId)
         {
-            var userLog = db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId));
+            var userLog = db.UsersLogs.FirstOrDefault(a => a.USER_ID.Equals(userId) && a.APP_NAME == "RCS Cargo");
             if (userLog != null)
             {
                 db.UsersLogs.Remove(userLog);
                 db.SaveChanges();
+                log.Info($"User Log deleted: {userId}");
                 return true;
             }
             else
@@ -201,7 +213,7 @@ namespace DbUtils
 
         public bool IsUserLogExist(string userId)
         {
-            return db.UsersLogs.Count(a => a.USER_ID.Equals(userId)) == 1 ? true : false;
+            return db.UsersLogs.Count(a => a.USER_ID.Equals(userId) && a.APP_NAME == "RCS Cargo") == 1 ? true : false;
         }
 
         #endregion
