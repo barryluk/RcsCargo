@@ -8,7 +8,8 @@
             this.renderSearchControls(pageSetting);
             this.renderIndexGrid(pageSetting);
         } else {
-            $(`#${pageSetting.id}`).html(`<div><h3>${pageSetting.title}</h3></div>`);
+            $(`#${pageSetting.id}`).html(data.htmlElements.indexPage(pageSetting.title));
+            this.renderSearchControls(pageSetting, false);
             this.renderControls(pageSetting);
         }
 
@@ -21,62 +22,77 @@
     renderControls = function (pageSetting) {
         var html = "";
 
-        pageSetting.controls.forEach(function (control) {
-            var colWidth = "";
-            var callbackFunction = "";
-            var controlHtml = "";
-            var formControlType = "input";
-            var formControlClass = "form-control";
+        if (pageSetting.groups != null) {
+            $(`#${pageSetting.id}`).append(`<div name="main" class="row"></div>`);
+            pageSetting.groups.forEach(function (group) {
+                var ctrlHtml = "";
+                $(`#${pageSetting.id} div[name="main"]`).append(`<div name="${group.name}" class="row col-xl-${group.colWidth} col-lg-6"></div>`);
+                group.controls.forEach(function (control) {
+                    ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${control.label}</span>`;
+                });
+                $(`#${pageSetting.id} [name="${group.name}"]`).append(data.htmlElements.card(group.title, ctrlHtml, 12, "info", "center"));
+            });
+        }
 
-            if (control.colWidth != null)
-                colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
-            if (data.dropdownlistControls.includes(control.type))
-                formControlClass = "form-control-dropdownlist";
-            if (control.callbackFunction != null)
-                callbackFunction = `callbackFunction="${control.callbackFunction}"`;
-            if (control.type != "emptyBlock")
-                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} />`;
-            else {
-                if (control.name != null)
-                    controlHtml = `<div name="${control.name}" />`;
-                else
-                    controlHtml = `<div />`;
-            }
+        if (pageSetting.controls != null) {
+            pageSetting.controls.forEach(function (control) {
+                var colWidth = "";
+                var callbackFunction = "";
+                var controlHtml = "";
+                var formControlType = "input";
+                var formControlClass = "form-control";
 
-            if (control.label != null) {
-                html += `
+                if (control.colWidth != null)
+                    colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
+                if (data.dropdownlistControls.includes(control.type))
+                    formControlClass = "form-control-dropdownlist";
+                if (control.callbackFunction != null)
+                    callbackFunction = `callbackFunction="${control.callbackFunction}"`;
+                if (control.type != "emptyBlock")
+                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} />`;
+                else {
+                    if (control.name != null)
+                        controlHtml = `<div name="${control.name}" />`;
+                    else
+                        controlHtml = `<div />`;
+                }
+
+                if (control.label != null) {
+                    html += `
                     <div class="row ${colWidth}">
                         <label class="col-sm-3 col-form-label">${control.label}</label>
                         <div class="col-sm-9">
                             ${controlHtml}
                         </div>
                     </div>`;
-            } else {
-                html += `
+                } else {
+                    html += `
                     <div class="row ${colWidth}">
                         <div class="col-sm-12">
                             ${controlHtml}
                         </div>
                     </div>`;
-            }
-        });
+                }
+            });
+        }
 
         $(`#${pageSetting.id}`).append(html);
         controls.kendo.renderFormControl_kendoUI(pageSetting);
     }
 
     //Render search controls
-    renderSearchControls = function (pageSetting) {
+    renderSearchControls = function (pageSetting, initKendoControls = true) {
         var html = `<div class="col-md-6">`;
 
-        pageSetting.searchControls.forEach(function (control) {
-            var formControlType = "input";
-            if (control.type == "dateRange" || control.type == "buttonGroup") {
-                formControlType = "div";
-            }
+        if (pageSetting.searchControls != null) {
+            pageSetting.searchControls.forEach(function (control) {
+                var formControlType = "input";
+                if (control.type == "dateRange" || control.type == "buttonGroup") {
+                    formControlType = "div";
+                }
 
-            if (control.type == "searchInput") {
-                html += `
+                if (control.type == "searchInput") {
+                    html += `
                     <div class="form-group row">
                         <div class="col-md-2">
                             <label class="col-form-label" >${control.label}</label>
@@ -91,8 +107,8 @@
                             </span>
                         </div>
                     </div>`;
-            } else if (control.type == "buttonGroup") {
-                html += `
+                } else if (control.type == "buttonGroup") {
+                    html += `
                     <div class="form-group row">
                         <div class="col-md-2">
                             <label class="col-form-label" >${control.label}</label>
@@ -101,8 +117,8 @@
                             <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
                         </div>
                     </div>`;
-            } else {
-                html += `
+                } else {
+                    html += `
                     <div class="form-group row">
                         <div class="col-md-2">
                             <label class="col-form-label" >${control.label}</label>
@@ -111,20 +127,22 @@
                             <${formControlType} type="${control.type}" name="${control.name}" />
                         </div>
                     </div>`;
-            }
-        });
+                }
+            });
 
-        html += `</div>`;
-        $(`#${pageSetting.id} div.search-control`).append(html);
-        $(`#${pageSetting.id} div.search-control .k-icon.k-i-search`).click(function () {
-            pageSetting.id = utils.getFormId();
+            html += `</div>`;
+            $(`#${pageSetting.id} div.search-control`).append(html);
+            $(`#${pageSetting.id} div.search-control .k-icon.k-i-search`).click(function () {
+                pageSetting.id = utils.getFormId();
 
-            var ds = $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource;
-            //ds.read();
-            $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").setDataSource(ds);
-        });
+                var ds = $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").dataSource;
+                //ds.read();
+                $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").setDataSource(ds);
+            });
 
-        controls.kendo.renderFormControl_kendoUI(pageSetting);
+            if (initKendoControls)
+                controls.kendo.renderFormControl_kendoUI(pageSetting);
+        }
     }
 
     //Render index kendoGrid

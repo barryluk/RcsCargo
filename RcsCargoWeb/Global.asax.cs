@@ -64,13 +64,6 @@ namespace RcsCargoWeb
             var scriptFile = directory.GetFiles("*.*", System.IO.SearchOption.TopDirectoryOnly)
                 .OrderByDescending(f => f.LastWriteTime).FirstOrDefault();
             AppUtils.scriptVersion = scriptFile.LastWriteTime.ToString("yyyyMMddHHmmss");
-
-            //var scriptFiles = directory.GetFiles("*.*", System.IO.SearchOption.TopDirectoryOnly);
-            //foreach (var file in scriptFiles)
-            //{
-            //    file.Refresh();
-            //    log.Debug(file.Name + ", " + file.LastWriteTime.ToString());
-            //}
         }
     }
 }

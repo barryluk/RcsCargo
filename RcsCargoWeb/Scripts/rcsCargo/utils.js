@@ -594,4 +594,27 @@
             }
         });
     }
+
+    getRdlcExcelReport = function (reportName, paras, downloadFileName) {
+        if (utils.isEmptyString(downloadFileName))
+            downloadFileName = reportName;
+
+        $.ajax({
+            url: "../Report/GetRdlcExcelReport",
+            data: {
+                paras: paras,
+                reportName: reportName,
+            },
+            dataType: "text",
+            beforeSend: function () {
+                kendo.ui.progress($(`#${utils.getFormId()}`), true);
+            },
+            success: function (id) {
+                window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
+            },
+            complete: function () {
+                kendo.ui.progress($(`#${utils.getFormId()}`), false);
+            }
+        });
+    }
 }

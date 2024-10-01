@@ -283,12 +283,13 @@ var frameworkHtmlElements = {
 
 var htmlElements = {
     indexPage: function (title, gridName) {
+        var gridHtml = gridName != null ? `<div name="${gridName}"></div>` : "";
         return `
-                <div>
-                    <h3>${title}</h3>
-                    <div class="search-control row"></div>
-                    <div name="${gridName}"></div>
-                </div>`;
+            <div>
+                <h3>${title}</h3>
+                <div class="search-control row"></div>
+                ${gridHtml}
+            </div>`;
     },
     editPage: function (title) {
         return `
@@ -304,7 +305,7 @@ var htmlElements = {
                     </section>
                 </div>`;
     },
-    card: function (title = "", htmlContent = "", colWidth = 6, colorName = "primary") {
+    card: function (title = "", htmlContent = "", colWidth = 6, colorName = "primary", justifyContent = "left") {
         return `
                 <div class="col-md-${colWidth}">
                     <div class="card card-${colorName} card-outline shadow">
@@ -317,7 +318,7 @@ var htmlElements = {
                             </div>
                         </div>
                             <div class="card-body">
-                                <div class="row">
+                                <div class="row" style="justify-content: ${justifyContent};">
                                     ${htmlContent}
                                 </div>
                             </div>
@@ -327,6 +328,79 @@ var htmlElements = {
 };
 
 var indexPages = [
+    {
+        pageName: "airReport",
+        id: "",
+        title: "Air Reports",
+        additionalScript: "initAirReport",
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Date Range", type: "dateRange", name: "dateRange" },
+        ],
+        groups: [
+            {
+                name: "shipmentReports",
+                title: "Shipment Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Booking Report", name: "bookingReport" },
+                    { label: "Booking DSR", name: "bookingDsr" },
+                    { label: "Daily Booking", name: "bookingReport" },
+                    { label: "Daily Booking For Overseas", name: "bookingReport" },
+                    { label: "Shipment Report", name: "bookingReport" },
+                    { label: "Shipment Tracking Report", name: "bookingReport" },
+                    { label: "Customize Shipment Report", name: "bookingReport" },
+                    { label: "Customer Tonnage Report", name: "bookingReport" },
+                    { label: "Weekly Tonnage Report", name: "bookingReport" },
+                ]
+            },
+            {
+                name: "profitLossReports",
+                title: "Profit & Loss Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Job Profit & Loss Report", name: "jobProfitLoss" },
+                    { label: "Other Job Profit & Loss Report", name: "otherJobProfitLoss" },
+                    { label: "Other Job Summary Profit & Loss Report", name: "otherJobSummaryProfitLoss" },
+                    { label: "Lot Profit & Loss Report", name: "lotProfitLoss" },
+                    { label: "Summary Profit & Loss Report", name: "summaryProfitLoss" },
+                    { label: "Offshore Summary Profit & Loss Report", name: "offshoreSummaryProfitLoss" },
+                    { label: "Charter Flight Profit & Loss Report", name: "charterFlightProfitLoss" },
+                    { label: "Project Profit & Loss Report", name: "projectProfitLoss" },
+                    { label: "Consignee Profit & Loss Report", name: "consigneeProfitLoss" },
+                    { label: "MAWB Shipper Profit & Loss Report", name: "MawbShipperProfitLoss" },
+                    { label: "Draft Profit & Loss Report", name: "draftProfitLoss" },
+                ]
+            },
+            {
+                name: "generalReports",
+                title: "General Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "GOH Load Plan", name: "gohLoadplan" },
+                    { label: "Shipper List Report", name: "shipperListReport" },
+                    { label: "Weight Difference Report", name: "weightDifferenceReport" },
+                    { label: "X-Ray Report", name: "xrayReport" },
+                    { label: "Missing Invoice Report", name: "missingInvoiceReport" },
+                    { label: "Invoice Report", name: "invoiceReport" },
+                    { label: "Payment Voucher Report", name: "pvReport" },
+                ]
+            },
+            {
+                name: "dailyReport",
+                title: "Daily Status Reports & Documents",
+                colWidth: 4,
+                controls: [
+                    { label: "Daily Status Report", name: "dailyStatusReport" },
+                    { label: "Auto Report", name: "autoReport" },
+                    { label: "CN-DN Breakdown Report", name: "cnDnBreakdownReport" },
+                    { label: "Cargo Release", name: "cargoRelease" },
+                    { label: "Certificate of Origin", name: "certificateOfOrigin" },
+                    { label: "Shipper Export Declaration", name: "exportDeclaration" },
+                ]
+            },
+        ],
+    },
     {
         pageName: "customer",
         id: "",

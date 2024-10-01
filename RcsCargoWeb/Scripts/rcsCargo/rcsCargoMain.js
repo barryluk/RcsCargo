@@ -57,6 +57,7 @@ async function loadScripts() {
     controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js?v=${version}`)).default);
     controllers.airInvoice = new ((await import(`../../Scripts/rcsCargo/airInvoice.js?v=${version}`)).default);
     controllers.airPv = new ((await import(`../../Scripts/rcsCargo/airPv.js?v=${version}`)).default);
+    controllers.airReport = new ((await import(`../../Scripts/rcsCargo/airReport.js?v=${version}`)).default);
     controllers.log = new ((await import(`../../Scripts/rcsCargo/log.js?v=${version}`)).default);
 
     $.ajax({

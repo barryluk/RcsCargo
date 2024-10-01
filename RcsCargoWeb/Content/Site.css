@@ -398,4 +398,9 @@ td.k-edit-cell {
     _position: absolute;
     _top: expression(documentElement.scrollTop + documentElement.clientHeight-this.offsetHeight);
     _background-attachment: fixed;
-} 
+}
+
+span.menuButton {
+    width: 50%;
+    margin: 5px;
+}
