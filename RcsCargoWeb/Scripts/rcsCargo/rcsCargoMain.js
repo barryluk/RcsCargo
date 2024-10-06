@@ -11,31 +11,8 @@ $(document).ready(function () {
         cache: false
     });
 
-    //console.log("loadScripts start...");
-    var myPromise = loadScripts().then(function () {
-        console.log("Prefetch data finished", myPromise);
+    loadScripts().then(function () {
         setTimer();
-
-        //Load the last opened tabs
-        if (localStorage.tabStrips != null) {
-            var tabStrips = JSON.parse(localStorage.tabStrips);
-            setTimeout(function () {
-                tabStrips.forEach(function (id) { loadTabPage(id); });
-            }, 500);
-
-            //Simulate the loading open effects
-            function loadTabPage(id) {
-                setTimeout(function () {
-                    var controller = id.split("_")[0];
-                    var pageSetting = utils.getMasterFormByName(controller);
-                    if (controller.endsWith("Index"))
-                        controls.append_tabStripMain(pageSetting.title, id, controller.replace("Index", ""));
-                    else
-                        controls.append_tabStripMain(`${pageSetting.title} ${utils.decodeId(id.split("_")[1])}`, id, controller);
-                }, 100 * (tabStrips.indexOf(id) + 1));
-            }
-        }
-        //controls.append_tabStripMain("MAWB", `airMawbIndex_${data.companyId}`, "airMawb");
     });
 });
 

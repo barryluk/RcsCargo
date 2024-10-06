@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DbUtils.Models.Air;
 using System.Data.Entity;
+using System.Data.SqlTypes;
 
 namespace DbUtils
 {
@@ -165,6 +166,12 @@ namespace DbUtils
         {
             string sqlCmd = $"select get_customer_code('{customerName}') from dual";
             return db.Database.SqlQuery<string>(sqlCmd).First();
+        }
+
+        public List<string> GetGroupCodes()
+        {
+            var groupCodes = db.Database.SqlQuery<string>("select distinct group_code from customer where group_code is not null order by group_code");
+            return groupCodes.Take(Utils.DefaultMaxQueryRows).ToList();
         }
 
         public List<CustomerView> GetCustomerViews(string searchValue)

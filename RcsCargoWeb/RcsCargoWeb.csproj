@@ -67,6 +67,17 @@
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.ReportViewer.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Common\DLL\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel">
+      <HintPath>..\..\Common\DLL\Microsoft.ReportViewer.ProcessingObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebForms, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Common\DLL\Microsoft.ReportViewer.WebForms.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
@@ -280,17 +291,7 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\accent.png" />
-    <Content Include="Images\Avatar\avatar.png" />
     <Content Include="Images\bullet.png" />
-    <Content Include="Images\Employees-images\1.jpg" />
-    <Content Include="Images\Employees-images\2.jpg" />
-    <Content Include="Images\Employees-images\3.jpg" />
-    <Content Include="Images\Employees-images\4.jpg" />
-    <Content Include="Images\Employees-images\5.jpg" />
-    <Content Include="Images\Employees-images\6.jpg" />
-    <Content Include="Images\Employees-images\7.jpg" />
-    <Content Include="Images\Employees-images\8.jpg" />
-    <Content Include="Images\Employees-images\9.jpg" />
     <Content Include="Images\heroAccent.png" />
     <Content Include="Images\images\cloud.svg" />
     <Content Include="Images\images\facebook.svg" />
@@ -299,110 +300,10 @@
     <Content Include="Images\images\reddit.svg" />
     <Content Include="Images\images\signin-logo.svg" />
     <Content Include="Images\images\twitter.svg" />
-    <Content Include="Images\Products-images\1.png" />
-    <Content Include="Images\Products-images\2.png" />
-    <Content Include="Images\Products-images\3.png" />
-    <Content Include="Images\Products-images\4.png" />
-    <Content Include="Images\Products-images\5.png" />
-    <Content Include="Images\Products-images\6.png" />
-    <Content Include="Images\Products-images\7.png" />
-    <Content Include="Images\Products-images\8.png" />
-    <Content Include="Images\Products-images\9.png" />
     <Content Include="Images\signin\background.svg" />
     <Content Include="Images\signin\bgr-image.svg" />
     <Content Include="Images\signin\kendoka.svg" />
     <Content Include="Images\signin\signin.svg" />
-    <Content Include="Images\Team-members\ALFKI.jpg" />
-    <Content Include="Images\Team-members\ANATR.jpg" />
-    <Content Include="Images\Team-members\ANTON.jpg" />
-    <Content Include="Images\Team-members\AROUT.jpg" />
-    <Content Include="Images\Team-members\BERGS.jpg" />
-    <Content Include="Images\Team-members\BLAUS.jpg" />
-    <Content Include="Images\Team-members\BLONP.jpg" />
-    <Content Include="Images\Team-members\BOLID.jpg" />
-    <Content Include="Images\Team-members\BONAP.jpg" />
-    <Content Include="Images\Team-members\BOTTM.jpg" />
-    <Content Include="Images\Team-members\BSBEV.jpg" />
-    <Content Include="Images\Team-members\CACTU.jpg" />
-    <Content Include="Images\Team-members\CENTC.jpg" />
-    <Content Include="Images\Team-members\CHOPS.jpg" />
-    <Content Include="Images\Team-members\COMMI.jpg" />
-    <Content Include="Images\Team-members\CONSH.jpg" />
-    <Content Include="Images\Team-members\DRACD.jpg" />
-    <Content Include="Images\Team-members\DUMON.jpg" />
-    <Content Include="Images\Team-members\EASTC.jpg" />
-    <Content Include="Images\Team-members\ERNSH.jpg" />
-    <Content Include="Images\Team-members\FAMIA.jpg" />
-    <Content Include="Images\Team-members\FISSA.jpg" />
-    <Content Include="Images\Team-members\FOLIG.jpg" />
-    <Content Include="Images\Team-members\FOLKO.jpg" />
-    <Content Include="Images\Team-members\FRANK.jpg" />
-    <Content Include="Images\Team-members\FRANR.jpg" />
-    <Content Include="Images\Team-members\FRANS.jpg" />
-    <Content Include="Images\Team-members\FURIB.jpg" />
-    <Content Include="Images\Team-members\GALED.jpg" />
-    <Content Include="Images\Team-members\GODOS.jpg" />
-    <Content Include="Images\Team-members\GOURL.jpg" />
-    <Content Include="Images\Team-members\GREAL.jpg" />
-    <Content Include="Images\Team-members\GROSR.jpg" />
-    <Content Include="Images\Team-members\HANAR.jpg" />
-    <Content Include="Images\Team-members\HILAA.jpg" />
-    <Content Include="Images\Team-members\HUNGC.jpg" />
-    <Content Include="Images\Team-members\HUNGO.jpg" />
-    <Content Include="Images\Team-members\ISLAT.jpg" />
-    <Content Include="Images\Team-members\KOENE.jpg" />
-    <Content Include="Images\Team-members\LACOR.jpg" />
-    <Content Include="Images\Team-members\LAMAI.jpg" />
-    <Content Include="Images\Team-members\LAUGB.jpg" />
-    <Content Include="Images\Team-members\LAZYK.jpg" />
-    <Content Include="Images\Team-members\LEHMS.jpg" />
-    <Content Include="Images\Team-members\LETSS.jpg" />
-    <Content Include="Images\Team-members\LILAS.jpg" />
-    <Content Include="Images\Team-members\LINOD.jpg" />
-    <Content Include="Images\Team-members\LONEP.jpg" />
-    <Content Include="Images\Team-members\MAGAA.jpg" />
-    <Content Include="Images\Team-members\MAISD.jpg" />
-    <Content Include="Images\Team-members\MEREP.jpg" />
-    <Content Include="Images\Team-members\MORGK.jpg" />
-    <Content Include="Images\Team-members\NORTS.jpg" />
-    <Content Include="Images\Team-members\OCEAN.jpg" />
-    <Content Include="Images\Team-members\OLDWO.jpg" />
-    <Content Include="Images\Team-members\OTTIK.jpg" />
-    <Content Include="Images\Team-members\PARIS.jpg" />
-    <Content Include="Images\Team-members\PERIC.jpg" />
-    <Content Include="Images\Team-members\PICCO.jpg" />
-    <Content Include="Images\Team-members\PRINI.jpg" />
-    <Content Include="Images\Team-members\QUEDE.jpg" />
-    <Content Include="Images\Team-members\QUEEN.jpg" />
-    <Content Include="Images\Team-members\QUICK.jpg" />
-    <Content Include="Images\Team-members\RANCH.jpg" />
-    <Content Include="Images\Team-members\RATTC.jpg" />
-    <Content Include="Images\Team-members\REGGC.jpg" />
-    <Content Include="Images\Team-members\RICAR.jpg" />
-    <Content Include="Images\Team-members\RICSU.jpg" />
-    <Content Include="Images\Team-members\ROMEY.jpg" />
-    <Content Include="Images\Team-members\SANTG.jpg" />
-    <Content Include="Images\Team-members\SAVEA.jpg" />
-    <Content Include="Images\Team-members\SEVES.jpg" />
-    <Content Include="Images\Team-members\SIMOB.jpg" />
-    <Content Include="Images\Team-members\SPECD.jpg" />
-    <Content Include="Images\Team-members\SPLIR.jpg" />
-    <Content Include="Images\Team-members\SUPRD.jpg" />
-    <Content Include="Images\Team-members\THEBI.jpg" />
-    <Content Include="Images\Team-members\THECR.jpg" />
-    <Content Include="Images\Team-members\TOMSP.jpg" />
-    <Content Include="Images\Team-members\TORTU.jpg" />
-    <Content Include="Images\Team-members\TRADH.jpg" />
-    <Content Include="Images\Team-members\TRAIH.jpg" />
-    <Content Include="Images\Team-members\VAFFE.jpg" />
-    <Content Include="Images\Team-members\VICTE.jpg" />
-    <Content Include="Images\Team-members\VINET.jpg" />
-    <Content Include="Images\Team-members\WANDK.jpg" />
-    <Content Include="Images\Team-members\WARTH.jpg" />
-    <Content Include="Images\Team-members\WELLI.jpg" />
-    <Content Include="Images\Team-members\WHITC.jpg" />
-    <Content Include="Images\Team-members\WILMK.jpg" />
-    <Content Include="Images\Team-members\WOLZA.jpg" />
     <Content Include="Scripts\dist\js\adminlte.js" />
     <Content Include="Scripts\dist\js\adminlte.min.js" />
     <Content Include="Scripts\angular.min.js" />
@@ -491,8 +392,8 @@
     <Content Include="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Content\reporting\reports\" />
     <Folder Include="Downloads\" />
-    <Folder Include="Views\Test\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

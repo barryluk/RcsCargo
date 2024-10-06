@@ -28,7 +28,10 @@
                 var ctrlHtml = "";
                 $(`#${pageSetting.id} div[name="main"]`).append(`<div name="${group.name}" class="row col-xl-${group.colWidth} col-lg-6"></div>`);
                 group.controls.forEach(function (control) {
-                    ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${control.label}</span>`;
+                    var iconHtml = "";
+                    if (control.icon != null)
+                        iconHtml = `<span class="k-icon ${control.icon} k-button-icon"></span>`;
+                    ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${iconHtml}${control.label}</span>`;
                 });
                 $(`#${pageSetting.id} [name="${group.name}"]`).append(data.htmlElements.card(group.title, ctrlHtml, 12, "info", "center"));
             });

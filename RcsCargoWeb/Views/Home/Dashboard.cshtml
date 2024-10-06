@@ -10,10 +10,9 @@
         html += data.htmlElements.card("Export Shipments volume by origin", "<div id='shipmentChart'></div>", 8);
         $("#dashboardMain").append(html);
 
-        //add loading effects to all cards
         kendo.ui.progress($("#dashboardMain .card"), true);
-        setTimeout(function () { createFlightSchedule(); }, 500);
-        setTimeout(function () { createShipmentChart(); }, 500);
+        createFlightSchedule();
+        createShipmentChart();
     });
 
     function createFlightSchedule() {
@@ -77,7 +76,11 @@
                 });
             }
         });
-        calendar.render();     
+        calendar.render();
+        setTimeout(function () {
+            calendar.updateSize();
+            calendar.updateSize();
+        }, 500);
     }
 
     function getFlightNos(calendar, startDate, endDate) {

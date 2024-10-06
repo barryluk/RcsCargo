@@ -440,7 +440,7 @@
         if (showCloseButtons)
             contentHeight = "calc(100% - 35px)";
         var closeButtons = "";
-        if (showCloseButtons)
+        if (showCloseButtons) {
             var cancelButton = ``;
             if (callbackFunction != null) {
                 cancelButton = `<button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>`;
@@ -449,6 +449,7 @@
                     <button type="button" class="customButton button-icon-check-outline" style="width: 80px; margin: 4px;">Ok</button>
                     ${cancelButton}
                 </div>`;
+        }
         var html = `<div class='kendo-window-alertMessage'>
                 <div name="kendo-window-alertMessage-content" style="height: ${contentHeight};">${msg}</div>
                 ${closeButtons}
@@ -571,31 +572,45 @@
         });
     }
 
-    getExcelReport = function (reportName, paras, downloadFileName) {
+    getExcelReport = function (reportName, paras, downloadFileName, sender) {
+        var extraParas = {};
         if (utils.isEmptyString(downloadFileName))
             downloadFileName = reportName;
+
+        if (reportName == "AirCustomizeShipmentReport")
+            extraParas = paras.filter(a => a.name == "SelectedFields")[0].value;
 
         $.ajax({
             url: "../Report/GetExcelReport",
             data: {
                 paras: paras,
                 reportName: reportName,
-                companyId: data.companyId
+                companyId: data.companyId,
+                extraParas: extraParas,
             },
             dataType: "text",
             beforeSend: function () {
-                kendo.ui.progress($(`#${utils.getFormId()}`), true);
+                if (sender == null)
+                    kendo.ui.progress($(`#${utils.getFormId()}`), true);
+                else
+                    kendo.ui.progress(sender, true);
             },
             success: function (id) {
-                window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
+                if (reportName == "AirCustomizeShipmentReport")
+                    window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
+                else
+                    window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
             },
             complete: function () {
-                kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                if (sender == null)
+                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                else
+                    kendo.ui.progress(sender, false);
             }
         });
     }
 
-    getRdlcExcelReport = function (reportName, paras, downloadFileName) {
+    getRdlcExcelReport = function (reportName, paras, downloadFileName, sender) {
         if (utils.isEmptyString(downloadFileName))
             downloadFileName = reportName;
 
@@ -607,13 +622,19 @@
             },
             dataType: "text",
             beforeSend: function () {
-                kendo.ui.progress($(`#${utils.getFormId()}`), true);
+                if (sender == null)
+                    kendo.ui.progress($(`#${utils.getFormId()}`), true);
+                else
+                    kendo.ui.progress(sender, true);
             },
             success: function (id) {
                 window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
             },
             complete: function () {
-                kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                if (sender == null)
+                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                else
+                    kendo.ui.progress(sender, false);
             }
         });
     }

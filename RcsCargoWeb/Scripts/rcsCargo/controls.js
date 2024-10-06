@@ -1,47 +1,5 @@
 ﻿export default class {
     constructor() {
-        if ($("#dashboardMain").length == 0) {
-            $.ajax({
-                url: "../Home/GetSysModules",
-                success: function (menuItems) {
-                    controls.initNavbar();
-                    controls.initControlSidebar();
-                    controls.initSidebar(menuItems);
-                    controls.initTabstripMain();
-
-                    $(window).on("resize", function () {
-                        var height = $(".content-wrapper").height();
-                        $("#tabStripMain").css({ "height": (height - 5), "position": "relative", "top": "-20px"});
-                    });
-                    $(window).trigger("resize");
-
-                    $(".nav-item.dropdown").bind("click", function () {
-                        $(this).toggleClass("open");
-                    });
-                    $(".nav-item.dropdown.sysCompany").hover(function () {
-                        $(this).find(".fa-house-user").toggleClass("fa-shake");
-                    });
-                    $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
-                        console.log(sender.target);
-                        data.companyId = $(sender.target).text().trim();
-                        $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
-                    });
-                    $("[data-widget='control-logout']").bind("click", function () {
-                        $.ajax({
-                            url: "/Admin/Account/Logout",
-                            data: { userId: data.user.USER_ID },
-                            success: function (result) {
-                                localStorage.removeItem("user");
-                                localStorage.removeItem("sessionId");
-                                window.open("../Home/Login", "_self");
-                            }
-                        });
-                    });
-                    $("[data-toggle='tooltip']").kendoTooltip();
-                    $("[data-widget='control-sidebar']").trigger("click");
-                }
-            });
-        }
     }
 
     //Navbar
@@ -49,8 +7,7 @@
         function timeout() {
             setTimeout(function () {
                 //if the sysCompanies is not loaded, then recall the parent function to create a recursive loop.
-                console.log("waiting sysCompanies...");
-                if (!$.isEmptyObject(data.masterRecords.sysCompanies)) {
+                if (!$.isEmptyObject(data.masterRecords.sysCompanies) && !controls.isEmptyString(data.companyId)) {
                     $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
                     return;
                 }
@@ -58,7 +15,7 @@
             }, 100);
         }
 
-        if ($.isEmptyObject(data.masterRecords.sysCompanies)) {
+        if ($.isEmptyObject(data.masterRecords.sysCompanies) || controls.isEmptyString(data.companyId)) {
             timeout();
         } else {
             $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
@@ -113,6 +70,12 @@
                     if ($(e.contentElement).find("div[id]")[0]["id"] != "dashboardMain")
                         data.lastActiveTabId = $(e.contentElement).find("div[id]")[0]["id"];
                 } catch { }
+
+                if ($(e.contentElement).find("div[id]")[0]["id"] == "dashboardMain") {
+                    calendar.updateSize();
+                    calendar.updateSize();
+                    calendar.updateSize();
+                }
             }
         }).data("kendoTabStrip");
 

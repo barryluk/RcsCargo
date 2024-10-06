@@ -26,9 +26,9 @@ var masterRecords = {
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
-    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {},
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}
 };
-var dropdownlistControls = ["airline", "port", "country", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
+var dropdownlistControls = ["airline", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles"];
 
@@ -44,10 +44,10 @@ var frameworkHtmlElements = {
                 <div class="sidebar">
                     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                         <div class="image">
-                            <img src="../Content/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                            <span class="k-icon k-i-user" style="color: #C2C7D0; font-size: 18pt;"></span>
                         </div>
                         <div class="info">
-                            <a href="#" class="d-block user-name"></a>
+                            <span class="d-block user-name handCursor" style="color: #C2C7D0; font-size: 1.2em;"></span>
                         </div>
                     </div>
 
@@ -307,23 +307,23 @@ var htmlElements = {
     },
     card: function (title = "", htmlContent = "", colWidth = 6, colorName = "primary", justifyContent = "left") {
         return `
-                <div class="col-md-${colWidth}">
-                    <div class="card card-${colorName} card-outline shadow">
-                        <div class="card-header">
-                            <h4 class="card-title">${title}</h4>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
+            <div class="col-md-${colWidth}">
+                <div class="card card-${colorName} card-outline shadow">
+                    <div class="card-header">
+                        <h4 class="card-title">${title}</h4>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                        <div class="card-body">
+                            <div class="row" style="justify-content: ${justifyContent};">
+                                ${htmlContent}
                             </div>
                         </div>
-                            <div class="card-body">
-                                <div class="row" style="justify-content: ${justifyContent};">
-                                    ${htmlContent}
-                                </div>
-                            </div>
-                    </div>
-                </div>`;
+                </div>
+            </div>`;
     },
 };
 
@@ -343,15 +343,15 @@ var indexPages = [
                 title: "Shipment Reports",
                 colWidth: 4,
                 controls: [
-                    { label: "Booking Report", name: "bookingReport" },
-                    { label: "Booking DSR", name: "bookingDsr" },
-                    { label: "Daily Booking", name: "bookingReport" },
-                    { label: "Daily Booking For Overseas", name: "bookingReport" },
-                    { label: "Shipment Report", name: "bookingReport" },
-                    { label: "Shipment Tracking Report", name: "bookingReport" },
-                    { label: "Customize Shipment Report", name: "bookingReport" },
-                    { label: "Customer Tonnage Report", name: "bookingReport" },
-                    { label: "Weekly Tonnage Report", name: "bookingReport" },
+                    { label: "Booking Report", name: "bookingReport", icon: "k-i-excel" },
+                    { label: "Booking DSR", name: "bookingDsr", icon: "k-i-excel" },
+                    { label: "Daily Booking", name: "dailyBooking", icon: "k-i-pdf" },
+                    { label: "Daily Booking For Overseas", name: "dailyBookingOverseas", icon: "k-i-excel" },
+                    { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
+                    { label: "Shipment Tracking Report", name: "shipmentTrackingReport", icon: "k-i-excel" },
+                    { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
+                    { label: "Customer Tonnage Report", name: "customerTonnageReport" },
+                    { label: "Weekly Tonnage Report", name: "weeklyTonnageReport" },
                 ]
             },
             {
@@ -359,17 +359,17 @@ var indexPages = [
                 title: "Profit & Loss Reports",
                 colWidth: 4,
                 controls: [
-                    { label: "Job Profit & Loss Report", name: "jobProfitLoss" },
-                    { label: "Other Job Profit & Loss Report", name: "otherJobProfitLoss" },
-                    { label: "Other Job Summary Profit & Loss Report", name: "otherJobSummaryProfitLoss" },
-                    { label: "Lot Profit & Loss Report", name: "lotProfitLoss" },
-                    { label: "Summary Profit & Loss Report", name: "summaryProfitLoss" },
-                    { label: "Offshore Summary Profit & Loss Report", name: "offshoreSummaryProfitLoss" },
-                    { label: "Charter Flight Profit & Loss Report", name: "charterFlightProfitLoss" },
-                    { label: "Project Profit & Loss Report", name: "projectProfitLoss" },
-                    { label: "Consignee Profit & Loss Report", name: "consigneeProfitLoss" },
-                    { label: "MAWB Shipper Profit & Loss Report", name: "MawbShipperProfitLoss" },
-                    { label: "Draft Profit & Loss Report", name: "draftProfitLoss" },
+                    { label: "Job Profit & Loss", name: "jobProfitLoss", icon: "k-i-pdf" },
+                    { label: "Other Job Profit & Loss", name: "otherJobProfitLoss", icon: "k-i-pdf" },
+                    { label: "Other Job Summary Profit & Loss", name: "otherJobSummaryProfitLoss", icon: "k-i-excel" },
+                    { label: "Lot Profit & Loss", name: "lotProfitLoss", icon: "k-i-pdf" },
+                    { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
+                    { label: "Offshore/HKG Summary Profit & Loss", name: "offshoreSummaryProfitLoss", icon: "k-i-excel" },
+                    { label: "Charter Flight Profit & Loss", name: "charterFlightProfitLoss" },
+                    { label: "Project Profit & Loss", name: "projectProfitLoss" },
+                    { label: "Consignee Profit & Loss", name: "consigneeProfitLoss" },
+                    { label: "MAWB Shipper Profit & Loss", name: "MawbShipperProfitLoss" },
+                    { label: "Draft Profit & Loss", name: "draftProfitLoss" },
                 ]
             },
             {
@@ -2437,30 +2437,101 @@ export default class {
         else {
             user = JSON.parse(localStorage.user);
             sessionId = localStorage.sessionId;
-            $.ajax({
-                url: "/Admin/Account/GetSessionStatus",
-                type: "post",
-                dataType: "json",
-                data: { userId: user.USER_ID },
-                success: function (result) {
-                    if (result.result == "success") {
-                        //get the latest sessionId from server
-                        localStorage.sessionId = result.sessionId;
-                        data.sessionId = result.sessionId;
-                    } else if (result.result == "error") {
-                        //if userlog has removed this session, clear localStorage and redirect to login
-                        localStorage.removeItem("user");
-                        localStorage.removeItem("sessionId");
-                        window.open("../Home/Login", "_self");
+            this.prefetchGlobalVariables().then(function () {
+                console.log("Prefetch completed: ", new Date());
+                $.ajax({
+                    url: "/Admin/Account/GetSessionStatus",
+                    type: "post",
+                    dataType: "json",
+                    data: { userId: user.USER_ID },
+                    success: function (result) {
+                        if (result.result == "success") {
+                            //get the latest sessionId from server
+                            localStorage.sessionId = result.sessionId;
+                            data.sessionId = result.sessionId;
+                        } else if (result.result == "error") {
+                            //if userlog has removed this session, clear localStorage and redirect to login
+                            localStorage.removeItem("user");
+                            localStorage.removeItem("sessionId");
+                            window.open("../Home/Login", "_self");
+                        }
+
+                        if (data.isEmptyString(user.DEFAULT_COMPANY))
+                            companyId = user.UserCompanies[0].COMPANY_ID;
+                        else
+                            companyId = user.DEFAULT_COMPANY;
+
+
+                        if ($("#dashboardMain").length == 0) {
+                            $.ajax({
+                                url: "../Home/GetSysModules",
+                                success: function (menuItems) {
+                                    controls.initNavbar();
+                                    controls.initControlSidebar();
+                                    controls.initSidebar(menuItems);
+                                    controls.initTabstripMain();
+
+                                    $(window).on("resize", function () {
+                                        var height = $(".content-wrapper").height();
+                                        $("#tabStripMain").css({ "height": (height - 5), "position": "relative", "top": "-20px" });
+                                    });
+                                    $(window).trigger("resize");
+
+                                    console.log("init navbar")
+                                    $(".nav-item.dropdown").bind("click", function () {
+                                        $(this).toggleClass("open");
+                                    });
+                                    $(".nav-item.dropdown.sysCompany").hover(function () {
+                                        $(this).find(".fa-house-user").toggleClass("fa-shake");
+                                    });
+                                    $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
+                                        console.log(sender.target);
+                                        data.companyId = $(sender.target).text().trim();
+                                        $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
+                                    });
+                                    $("[data-widget='control-logout']").bind("click", function () {
+                                        $.ajax({
+                                            url: "/Admin/Account/Logout",
+                                            data: { userId: data.user.USER_ID },
+                                            success: function (result) {
+                                                localStorage.removeItem("user");
+                                                localStorage.removeItem("sessionId");
+                                                window.open("../Home/Login", "_self");
+                                            }
+                                        });
+                                    });
+                                    $("[data-toggle='tooltip']").kendoTooltip();
+                                }
+                            });
+                        }
+
+                        //Load the last opened tabs
+                        if (localStorage.tabStrips != null) {
+                            var tabStrips = JSON.parse(localStorage.tabStrips);
+                            setTimeout(function () {
+                                tabStrips.forEach(function (id) { loadTabPage(id); });
+                                $("[data-widget='control-sidebar']").trigger("click");
+                                //try { calendar.updateSize(); } catch { }
+                                $(".loadingOverlay").addClass("hidden");
+                            }, 500);
+
+                            //Simulate the loading open effects
+                            function loadTabPage(id) {
+                                if ($(`#${id}`).length > 0)
+                                    return;
+
+                                setTimeout(function () {
+                                    var controller = id.split("_")[0];
+                                    var pageSetting = utils.getMasterFormByName(controller);
+                                    if (controller.endsWith("Index"))
+                                        controls.append_tabStripMain(pageSetting.title, id, controller.replace("Index", ""));
+                                    else
+                                        controls.append_tabStripMain(`${pageSetting.title} ${utils.decodeId(id.split("_")[1])}`, id, controller);
+                                }, 100 * (tabStrips.indexOf(id) + 1));
+                            }
+                        }
                     }
-
-                    if (data.isEmptyString(user.DEFAULT_COMPANY))
-                        companyId = user.UserCompanies[0].COMPANY_ID;
-                    else
-                        companyId = user.DEFAULT_COMPANY;
-
-                    data.prefetchGlobalVariables();
-                }
+                });
             });
         }
     }
@@ -2522,8 +2593,8 @@ export default class {
         return data.isEmptyString(dataItem) ? "" : kendo.toString(kendo.parseDate(dataItem), format);
     }
 
-    prefetchGlobalVariables = function () {
-        $.ajax({
+    prefetchGlobalVariables = async function () {
+        await $.ajax({
             url: "../Admin/Account/GetUser",
             data: { userId: user.USER_ID },
             success: function (result) {
@@ -2531,7 +2602,7 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetCurrencies",
             data: { companyId: this.companyId },
             success: function (result) {
@@ -2539,14 +2610,14 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetSysCompanies",
             success: function (result) {
                 masterRecords.sysCompanies = result;
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetChargeTemplates",
             data: { companyId: this.companyId },
             success: function (result) {
@@ -2554,7 +2625,7 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetChargesView",
             success: function (result) {
                 for (var i in result) {
@@ -2564,14 +2635,14 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetEquipCodes",
             success: function (result) {
                 masterRecords.equipCodes = result;
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetCountriesView",
             success: function (result) {
                 for (var i in result) {
@@ -2581,7 +2652,7 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetPortsView",
             success: function (result) {
                 for (var i in result) {
@@ -2591,7 +2662,7 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetAirlinesView",
             success: function (result) {
                 for (var i in result) {
@@ -2601,7 +2672,7 @@ export default class {
             }
         });
 
-        $.ajax({
+        await $.ajax({
             url: "../Home/GetRecentCustomers",
             success: function (result) {
                 for (var i in result) {
@@ -2609,6 +2680,13 @@ export default class {
                     result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
                 }
                 masterRecords.customers = result;
+            }
+        });
+
+        await $.ajax({
+            url: "../Home/GetGroupCodes",
+            success: function (result) {
+                masterRecords.groupCodes = result;
             },
             complete: function () {
                 masterRecords.lastUpdateTime = new Date();

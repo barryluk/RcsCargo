@@ -35,6 +35,7 @@ namespace RcsCargoWeb
         {
             try
             {
+                log.Debug("GetExcelReport: " + Reportname.ToString());
                 PrepareReportData d = new PrepareReportData(companyId);
                 d.PrepareReportDataSource(Reportname, para);
                 string fileName = Reportname.ToString() + ".xlsx";

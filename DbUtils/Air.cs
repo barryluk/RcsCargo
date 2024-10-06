@@ -410,6 +410,15 @@ namespace DbUtils
             return hawbEquips;
         }
 
+        public List<string> GetOffShoreOrigins()
+        {
+            var origins = db.Database.SqlQuery<string>(@"SELECT DISTINCT SUBSTR(JOB,1,3) JOB_NO
+                FROM A_MAWB WHERE FRT_MODE = 'AE' AND COMPANY_ID = 'RCSHKG_OFF'
+                AND JOB IS NOT NULL AND JOB NOT LIKE 'AE%' AND FLIGHT_DATE >= SYSDATE - 540");
+
+            return origins.ToList();
+        }
+
         #endregion
 
         #region Booking, Warehouse

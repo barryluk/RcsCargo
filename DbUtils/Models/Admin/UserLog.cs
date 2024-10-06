@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DbUtils.Models.Admin
 {
-    [Table("USER_LOG")]
+    [Table("USER_LOG_NEW")]
     public class UserLog
     {
         [Key]

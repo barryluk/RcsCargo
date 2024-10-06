@@ -391,8 +391,8 @@ td.k-edit-cell {
     width: 40px;
     padding: 5px;
     position: fixed;
-    bottom: 50px;
-    right: 45px;
+    bottom: 105px;
+    right: 40px;
     cursor: pointer;
     _float: right;
     _position: absolute;
@@ -403,4 +403,9 @@ td.k-edit-cell {
 span.menuButton {
     width: 50%;
     margin: 5px;
+}
+
+.kendo-window-alertMessage.k-window-content .dialogFooter {
+    text-align: center;
+    margin-bottom: 6px;
 }

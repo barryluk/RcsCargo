@@ -949,6 +949,15 @@
             });
         });
 
+        //kendoDropDownList for GroupCode
+        $(`#${masterForm.id} input[type=groupCode]`).each(function () {
+            $(this).kendoDropDownList({
+                optionLabel: " ",
+                filter: "startswith",
+                dataSource: data.masterRecords.groupCodes
+            });
+        });
+
         //kendoGrid
         $(`#${masterForm.id} div[type=grid]`).each(function () {
             var editable = { mode: "incell", confirmation: false };

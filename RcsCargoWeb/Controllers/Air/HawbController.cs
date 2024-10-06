@@ -85,7 +85,7 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetMawbs")]
         public ActionResult GetMawbs(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
         {
-            searchValue = searchValue.Trim().ToUpper();
+            searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
                 dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
