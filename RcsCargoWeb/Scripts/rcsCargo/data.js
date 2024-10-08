@@ -12,10 +12,12 @@ var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
 var lastActiveTabId = "";
 var masterRecords = {
     lastUpdateTime: null,
-    chargeQtyUnit: ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS"],
+    region: [{ text: "NORTH AMERICA", value: "1" }, { text: "EUROPE", value: "2" }, { text: "ASIA", value: "3" }, { text: "OCEANIA", value: "4" }, { text: "AFRICA", value: "5" }, { text: "SOUTH AMERICA", value: "6" }, { text: "ANTARCTICA", value: "7" }],
+    chargeQtyUnit: ["KGS", "SHP", "HAWB", "MAWB", "TRUCK", "PLT", "SETS", "SET", "MTH", "JOB", "CBM", "CTNS", "LBS", "PCS", "PACKAGES"],
     packageUnit: ["CTNS", "PLT", "PKG", "ROLLS", "PCS"],
     jobType: [{ text: "Consol", value: "C" }, { text: "Direct", value: "D" }],
     bookingType: [{ text: "Flat Pack", value: "F" }, { text: "GOH", value: "G" }, { text: "Flat Pack + GOH", value: "O" }],
+    ediTerminal: ["HACTL", "AAT"],
     vwtsFactor: [6000, 6500, 7000, 9000],
     incoterm: ["FOB", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP", "FAS", "CFR", "CIF"],
     customerType: [{ text: "Customer" }, { text: "Agent" }, { text: "Carrier" }, { text: "Vendor" }],
@@ -28,7 +30,7 @@ var masterRecords = {
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}
 };
-var dropdownlistControls = ["airline", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "qtyUnit", "currency",
+var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles"];
 
@@ -329,77 +331,268 @@ var htmlElements = {
 
 var indexPages = [
     {
-        pageName: "airReport",
+        pageName: "country",
         id: "",
-        title: "Air Reports",
-        additionalScript: "initAirReport",
+        title: "Country",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Country/UpdateCountry",
+        deleteUrl: "../MasterRecord/Country/DeleteCountry",
+        targetContainer: {},
         searchControls: [
-            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
-            { label: "Date Range", type: "dateRange", name: "dateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Country Code / Name" },
         ],
-        groups: [
-            {
-                name: "shipmentReports",
-                title: "Shipment Reports",
-                colWidth: 4,
-                controls: [
-                    { label: "Booking Report", name: "bookingReport", icon: "k-i-excel" },
-                    { label: "Booking DSR", name: "bookingDsr", icon: "k-i-excel" },
-                    { label: "Daily Booking", name: "dailyBooking", icon: "k-i-pdf" },
-                    { label: "Daily Booking For Overseas", name: "dailyBookingOverseas", icon: "k-i-excel" },
-                    { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
-                    { label: "Shipment Tracking Report", name: "shipmentTrackingReport", icon: "k-i-excel" },
-                    { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
-                    { label: "Customer Tonnage Report", name: "customerTonnageReport" },
-                    { label: "Weekly Tonnage Report", name: "weeklyTonnageReport" },
-                ]
+        gridConfig: {
+            gridName: "gridCountryIndex",
+            dataSourceUrl: "../MasterRecord/Country/GridCountry_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "COUNTRY_CODE", title: "Code" },
+                { field: "COUNTRY_DESC", title: "Name" },
+                {
+                    field: "REGION_CODE", title: "Region", template: function (dataItem) {
+                        var region = data.masterRecords.region.filter(a => a.value == dataItem.REGION_CODE)[0];
+                        return region == null ? "" : region.text;
+                    }
+                },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ COUNTRY_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${COUNTRY_CODE}"></i>`, width: 30 },
+                { template: ({ COUNTRY_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${COUNTRY_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "COUNTRY_CODE",
+            fields: [
+                { name: "COUNTRY_CODE", label: "Country Code", readonly: "edit", required: "true" },
+                { name: "COUNTRY_DESC", label: "Country Name", required: "true" },
+                { name: "REGION_CODE", label: "Region", type: "region" },
+            ],
+            validation: {
+                rules: {
+                    countryCodeExistsRule: function (input) {
+                        if (input.is("[name=COUNTRY_CODE]")) {
+                            return !utils.isExistingCountryCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { countryCodeExistsRule: "Country code already exists in the database!", },
             },
-            {
-                name: "profitLossReports",
-                title: "Profit & Loss Reports",
-                colWidth: 4,
-                controls: [
-                    { label: "Job Profit & Loss", name: "jobProfitLoss", icon: "k-i-pdf" },
-                    { label: "Other Job Profit & Loss", name: "otherJobProfitLoss", icon: "k-i-pdf" },
-                    { label: "Other Job Summary Profit & Loss", name: "otherJobSummaryProfitLoss", icon: "k-i-excel" },
-                    { label: "Lot Profit & Loss", name: "lotProfitLoss", icon: "k-i-pdf" },
-                    { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
-                    { label: "Offshore/HKG Summary Profit & Loss", name: "offshoreSummaryProfitLoss", icon: "k-i-excel" },
-                    { label: "Charter Flight Profit & Loss", name: "charterFlightProfitLoss" },
-                    { label: "Project Profit & Loss", name: "projectProfitLoss" },
-                    { label: "Consignee Profit & Loss", name: "consigneeProfitLoss" },
-                    { label: "MAWB Shipper Profit & Loss", name: "MawbShipperProfitLoss" },
-                    { label: "Draft Profit & Loss", name: "draftProfitLoss" },
-                ]
-            },
-            {
-                name: "generalReports",
-                title: "General Reports",
-                colWidth: 4,
-                controls: [
-                    { label: "GOH Load Plan", name: "gohLoadplan" },
-                    { label: "Shipper List Report", name: "shipperListReport" },
-                    { label: "Weight Difference Report", name: "weightDifferenceReport" },
-                    { label: "X-Ray Report", name: "xrayReport" },
-                    { label: "Missing Invoice Report", name: "missingInvoiceReport" },
-                    { label: "Invoice Report", name: "invoiceReport" },
-                    { label: "Payment Voucher Report", name: "pvReport" },
-                ]
-            },
-            {
-                name: "dailyReport",
-                title: "Daily Status Reports & Documents",
-                colWidth: 4,
-                controls: [
-                    { label: "Daily Status Report", name: "dailyStatusReport" },
-                    { label: "Auto Report", name: "autoReport" },
-                    { label: "CN-DN Breakdown Report", name: "cnDnBreakdownReport" },
-                    { label: "Cargo Release", name: "cargoRelease" },
-                    { label: "Certificate of Origin", name: "certificateOfOrigin" },
-                    { label: "Shipper Export Declaration", name: "exportDeclaration" },
-                ]
-            },
+        },
+    },
+    {
+        pageName: "port",
+        id: "",
+        title: "Port",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Port/UpdatePort",
+        deleteUrl: "../MasterRecord/Port/DeletePort",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Port Code / Name" },
         ],
+        gridConfig: {
+            gridName: "gridPortIndex",
+            dataSourceUrl: "../MasterRecord/Port/GridPort_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "PORT_CODE", title: "Code" },
+                { field: "PORT_DESC", title: "Name" },
+                {
+                    field: "COUNTRY_CODE", title: "Country", template: function (dataItem) {
+                        var country = data.masterRecords.countries.filter(a => a.COUNTRY_CODE == dataItem.COUNTRY_CODE)[0];
+                        return country == null ? "" : country.COUNTRY_DESC;
+                    }
+                },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ PORT_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${PORT_CODE}"></i>`, width: 30 },
+                { template: ({ PORT_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${PORT_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "PORT_CODE",
+            fields: [
+                { name: "PORT_CODE", label: "Port Code", readonly: "edit", required: "true" },
+                { name: "PORT_DESC", label: "Port Name", required: "true" },
+                { name: "COUNTRY_CODE", label: "Country", type: "country", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    portCodeExistsRule: function (input) {
+                        if (input.is("[name=PORT_CODE]")) {
+                            return !utils.isExistingPortCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { portCodeExistsRule: "Port code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "airline",
+        id: "",
+        title: "Airline",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Airline/UpdateAirline",
+        deleteUrl: "../MasterRecord/Airline/DeleteAirline",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Airline Code / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridAirlineIndex",
+            dataSourceUrl: "../MasterRecord/Airline/GridAirline_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "AIRLINE_CODE", title: "Code" },
+                { field: "AIRLINE_DESC", title: "Name" },
+                { field: "MAWB_PREFIX", title: "MAWB Prefix" },
+                { field: "EDI_TERMINAL", title: "EDI Terminal" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ AIRLINE_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${AIRLINE_CODE}"></i>`, width: 30 },
+                { template: ({ AIRLINE_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${AIRLINE_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "AIRLINE_CODE",
+            fields: [
+                { name: "AIRLINE_CODE", label: "Airline Code", readonly: "edit", required: "true" },
+                { name: "AIRLINE_DESC", label: "Airline Name", required: "true" },
+                { name: "MAWB_PREFIX", label: "MAWB Prefix", required: "true" },
+                { name: "EDI_TERMINAL", label: "EDI Terminal", type: "ediTerminal", required: "true" },
+                { name: "CUSTOMER", label: "Customer", type: "customerAddr" },
+            ],
+            validation: {
+                rules: {
+                    airlineCodeExistsRule: function (input) {
+                        if (input.is("[name=AIRLINE_CODE]")) {
+                            return !utils.isExistingAirlineCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { airlineCodeExistsRule: "Airline code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "currency",
+        id: "",
+        title: "Currency",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Currency/UpdateCurrency",
+        deleteUrl: "../MasterRecord/Currency/DeleteCurrency",
+        targetContainer: {},
+        searchControls: [],
+        gridConfig: {
+            gridName: "gridCurrencyIndex",
+            dataSourceUrl: "../MasterRecord/Currency/GridCurrency_Read",
+            serverSorting: false,
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CURR_CODE", title: "Code" },
+                { field: "CURR_DESC", title: "Currency Name" },
+                { field: "EX_RATE", title: "Exchange Rate" },
+                { field: "DECIMAL_PLACE", title: "Decimal Places" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ CURR_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${CURR_CODE}"></i>`, width: 30 },
+                { template: ({ CURR_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${CURR_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "CURR_CODE",
+            fields: [
+                { name: "CURR_CODE", label: "Currency Code", readonly: "edit", required: "true" },
+                { name: "CURR_DESC", label: "Currency Name", required: "true" },
+                { name: "EX_RATE", label: "Exchange Rate", type: "number", required: "true" },
+                { name: "DECIMAL_PLACE", label: "Decimal Places", type: "numberInt", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    currencyCodeExistsRule: function (input) {
+                        if (input.is("[name=CURR_CODE]")) {
+                            return !utils.isExistingCurrencyCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { currencyCodeExistsRule: "Currency already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "charge",
+        id: "",
+        title: "Charge",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Charge/UpdateCharge",
+        deleteUrl: "../MasterRecord/Charge/DeleteCharge",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Charge Code / Description" },
+        ],
+        gridConfig: {
+            gridName: "gridChargeIndex",
+            dataSourceUrl: "../MasterRecord/Charge/GridCharge_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CHARGE_CODE", title: "Code" },
+                { field: "CHARGE_DESC", title: "Description" },
+                { field: "CHARGE_BASE", title: "Unit" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ CHARGE_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${CHARGE_CODE}"></i>`, width: 30 },
+                { template: ({ CHARGE_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${CHARGE_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "CHARGE_CODE",
+            fields: [
+                { name: "CHARGE_CODE", label: "Charge Code", readonly: "edit", required: "true" },
+                { name: "CHARGE_DESC", label: "Description", required: "true" },
+                { name: "CHARGE_BASE", label: "Unit", type: "chargeQtyUnit" },
+            ],
+            validation: {
+                rules: {
+                    chargeCodeExistsRule: function (input) {
+                        if (input.is("[name=CHARGE_CODE]")) {
+                            return !utils.isExistingChargeCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { chargeCodeExistsRule: "Charge code already exists in the database!", },
+            },
+        },
     },
     {
         pageName: "customer",
@@ -696,6 +889,79 @@ var indexPages = [
                 { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
+    },
+    {
+        pageName: "airReport",
+        id: "",
+        title: "Air Reports",
+        additionalScript: "initAirReport",
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
+            { label: "Date Range", type: "dateRange", name: "dateRange" },
+        ],
+        groups: [
+            {
+                name: "shipmentReports",
+                title: "Shipment Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Booking Report", name: "bookingReport", icon: "k-i-excel" },
+                    { label: "Booking DSR", name: "bookingDsr", icon: "k-i-excel" },
+                    { label: "Daily Booking", name: "dailyBooking", icon: "k-i-pdf" },
+                    { label: "Daily Booking For Overseas", name: "dailyBookingOverseas", icon: "k-i-excel" },
+                    { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
+                    { label: "Shipment Tracking Report", name: "shipmentTrackingReport", icon: "k-i-excel" },
+                    { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
+                    { label: "Customer Tonnage Report", name: "customerTonnageReport" },
+                    { label: "Weekly Tonnage Report", name: "weeklyTonnageReport" },
+                ]
+            },
+            {
+                name: "profitLossReports",
+                title: "Profit & Loss Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Job Profit & Loss", name: "jobProfitLoss", icon: "k-i-pdf" },
+                    { label: "Other Job Profit & Loss", name: "otherJobProfitLoss", icon: "k-i-pdf" },
+                    { label: "Other Job Summary Profit & Loss", name: "otherJobSummaryProfitLoss", icon: "k-i-excel" },
+                    { label: "Lot Profit & Loss", name: "lotProfitLoss", icon: "k-i-pdf" },
+                    { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
+                    { label: "Offshore/HKG Summary Profit & Loss", name: "offshoreSummaryProfitLoss", icon: "k-i-excel" },
+                    { label: "Charter Flight Profit & Loss", name: "charterFlightProfitLoss" },
+                    { label: "Project Profit & Loss", name: "projectProfitLoss" },
+                    { label: "Consignee Profit & Loss", name: "consigneeProfitLoss" },
+                    { label: "MAWB Shipper Profit & Loss", name: "MawbShipperProfitLoss" },
+                    { label: "Draft Profit & Loss", name: "draftProfitLoss" },
+                ]
+            },
+            {
+                name: "generalReports",
+                title: "General Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "GOH Load Plan", name: "gohLoadplan" },
+                    { label: "Shipper List Report", name: "shipperListReport" },
+                    { label: "Weight Difference Report", name: "weightDifferenceReport" },
+                    { label: "X-Ray Report", name: "xrayReport" },
+                    { label: "Missing Invoice Report", name: "missingInvoiceReport" },
+                    { label: "Invoice Report", name: "invoiceReport" },
+                    { label: "Payment Voucher Report", name: "pvReport" },
+                ]
+            },
+            {
+                name: "dailyReport",
+                title: "Daily Status Reports & Documents",
+                colWidth: 4,
+                controls: [
+                    { label: "Daily Status Report", name: "dailyStatusReport" },
+                    { label: "Auto Report", name: "autoReport" },
+                    { label: "CN-DN Breakdown Report", name: "cnDnBreakdownReport" },
+                    { label: "Cargo Release", name: "cargoRelease" },
+                    { label: "Certificate of Origin", name: "certificateOfOrigin" },
+                    { label: "Shipper Export Declaration", name: "exportDeclaration" },
+                ]
+            },
+        ],
     },
     {
         pageName: "log",
@@ -2477,7 +2743,6 @@ export default class {
                                     });
                                     $(window).trigger("resize");
 
-                                    console.log("init navbar")
                                     $(".nav-item.dropdown").bind("click", function () {
                                         $(this).toggleClass("open");
                                     });

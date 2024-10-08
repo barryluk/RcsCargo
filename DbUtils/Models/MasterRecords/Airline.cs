@@ -20,6 +20,10 @@ namespace DbUtils.Models.MasterRecords
         public string CUSTOMER_CODE { get; set; }
         public string BRANCH_CODE { get; set; }
         public string SHORT_DESC { get; set; }
+        [NotMapped]
+        public string CUSTOMER_BRANCH { get; set; }
+        [NotMapped]
+        public string CUSTOMER_SHORT_DESC { get; set; }
 
     }
 

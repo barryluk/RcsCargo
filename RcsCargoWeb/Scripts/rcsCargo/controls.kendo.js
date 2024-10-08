@@ -451,7 +451,7 @@
                     }
                 },
                 select: function (e) {
-                    //console.log(masterForm.id);
+                    console.log(masterForm.id);
                     if (!masterForm.id.endsWith("_createInvoice"))
                         masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
@@ -489,7 +489,18 @@
             });
         });
 
-        //kendoDropDownList for PORT
+        //kendoDropDownList for Country
+        $(`#${masterForm.id} input[type=country]`).each(function () {
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "COUNTRY_DESC",
+                dataValueField: "COUNTRY_CODE",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: { data: data.masterRecords.countries },
+            });
+        });
+
+        //kendoDropDownList for Port
         $(`#${masterForm.id} input[type=port]`).each(function () {
             $(this).kendoDropDownList({
                 filter: "startswith",
@@ -500,7 +511,7 @@
             });
         });
 
-        //kendoDropDownList for AIRLINE
+        //kendoDropDownList for Airline
         $(`#${masterForm.id} input[type=airline]`).each(function () {
             $(this).kendoDropDownList({
                 filter: "startswith",
@@ -508,6 +519,13 @@
                 dataValueField: "AIRLINE_CODE",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
                 dataSource: { data: data.masterRecords.airlines },
+            });
+        })
+
+        //kendoDropDownList for EDI Terminal
+        $(`#${masterForm.id} input[type=ediTerminal]`).each(function () {
+            $(this).kendoDropDownList({
+                dataSource: { data: data.masterRecords.ediTerminal },
             });
         })
 
@@ -942,10 +960,28 @@
             });
         });
 
+        //kendoDropDownList for Region
+        $(`#${masterForm.id} input[type=region]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "text",
+                dataValueField: "value",
+                optionLabel: " ",
+                dataSource: data.masterRecords.region,
+            });
+        });
+
         //kendoDropDownList for PACKAGE_UNIT
         $(`#${masterForm.id} input[type=pkgUnit]`).each(function () {
             $(this).kendoDropDownList({
                 dataSource: data.masterRecords.packageUnit
+            });
+        });
+
+        //kendoDropDownList for ChargeUnit
+        $(`#${masterForm.id} input[type=chargeQtyUnit]`).each(function () {
+            $(this).kendoDropDownList({
+                optionLabel: " ",
+                dataSource: data.masterRecords.chargeQtyUnit
             });
         });
 

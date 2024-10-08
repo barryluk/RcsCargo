@@ -67,6 +67,12 @@
     }
 
     getFormId = function (selector) {
+        if ($(".kendo-window-alertMessage").length == 1) {
+            if ($(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").length == 1) {
+                return $(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").attr("id");
+            }
+        }
+
         if (selector != null) {
             var els = $(selector).parentsUntil("#tabStripMain");
             //return els.eq(els.length - 2).attr("id");
@@ -316,6 +322,81 @@
         return $(`#${id}`).attr("style") == "display: none";
     }
 
+    isExistingChargeCode = function (chargeCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Charge/IsExistingChargeCode",
+            dataType: "text",
+            data: { id: utils.formatText(chargeCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingCountryCode = function (countryCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Country/IsExistingCountryCode",
+            dataType: "text",
+            data: { id: utils.formatText(countryCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingPortCode = function (portCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Port/IsExistingPortCode",
+            dataType: "text",
+            data: { id: utils.formatText(portCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingAirlineCode = function (airlineCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Airline/IsExistingAirlineCode",
+            dataType: "text",
+            data: { id: utils.formatText(airlineCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingCurrencyCode = function (currencyCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Currency/IsExistingCurrencyCode",
+            dataType: "text",
+            data: { id: utils.formatText(currencyCode), companyId: data.companyId },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isExistingBookingNo = function (bookingNo) {
         var serverResult = "";
         $.ajax({
@@ -529,7 +610,7 @@
                 </div>
             </div>`;
         var width = "25%";
-        var height = "25%";
+        var height = "20%";
 
         if (utils.isEmptyString(title))
             title = "RCS Cargo System";
@@ -637,5 +718,37 @@
                     kendo.ui.progress(sender, false);
             }
         });
+    }
+
+    getFormControlClass = function (type) {
+        var formControlClass = "form-control";
+        if (type == null)
+            return formControlClass;
+
+        if (type == "date" || type == "dateTime") {
+            formControlClass = "form-control-dateTime";
+        } else if (type.startsWith("number")) {
+            formControlClass = "form-control-number";
+        } else if (data.dropdownlistControls.includes(type)) {
+            formControlClass = "form-control-dropdownlist";
+        } else if (type == "textArea") {
+            formControlClass = "form-control-textArea";
+        } else if (type == "switch") {
+            formControlClass = "";
+        }
+        return formControlClass;
+    }
+
+    getFormControlType = function (type) {
+        var formControlType = "input";
+        if (type == null)
+            return formControlType;
+
+        if (type == "textArea") {
+            formControlType = "textarea";
+        } else if (type == "dateRange" || type == "buttonGroup") {
+            formControlType = "div";
+        }
+        return formControlType;
     }
 }

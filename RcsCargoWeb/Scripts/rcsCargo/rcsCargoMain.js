@@ -29,6 +29,7 @@ async function loadScripts() {
     controls.edit = new ((await import(`../../Scripts/rcsCargo/controls.edit.js?v=${version}`)).default);
     controls.kendo = new ((await import(`../../Scripts/rcsCargo/controls.kendo.js?v=${version}`)).default);
 
+    controllers.masterRecords = new ((await import(`../../Scripts/rcsCargo/masterRecords.js?v=${version}`)).default);
     controllers.airMawb = new ((await import(`../../Scripts/rcsCargo/airMawb.js?v=${version}`)).default);
     controllers.airBooking = new ((await import(`../../Scripts/rcsCargo/airBooking.js?v=${version}`)).default);
     controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js?v=${version}`)).default);

@@ -13,8 +13,12 @@
             this.renderControls(pageSetting);
         }
 
-        if (pageSetting.additionalScript != null)
-            eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
+        if (pageSetting.additionalScript != null) {
+            if (["country", "port", "airline", "currency", "charge", "chargeTemplate"].indexOf(pageSetting.pageName) == -1)
+                eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
+            else
+                eval(`controllers.masterRecords.${pageSetting.additionalScript}(pageSetting)`);
+        }
 
         kendo.ui.progress($(".container-fluid"), false);
     }
@@ -163,7 +167,7 @@
 
                         var searchData = {};
 
-                        if (pageSetting.searchControls.length == 1) {
+                        if (pageSetting.searchControls.length <= 1) {
                             searchData = {
                                 searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
                                 companyId: data.companyId,
@@ -201,9 +205,9 @@
                         return response.Total;
                     }
                 },
-                serverSorting: true,
+                serverSorting: pageSetting.gridConfig.serverSorting == null ? true : pageSetting.gridConfig.serverSorting,
                 pageSize: data.indexGridPageSize,
-                serverPaging: true,
+                serverPaging: pageSetting.gridConfig.serverSorting == null ? true : pageSetting.gridConfig.serverSorting,
             },
             resizable: true,
             sortable: true,
@@ -223,16 +227,17 @@
                 $(`#${formId} .k-grid-content.k-auto-scrollable`).height($(`#${formId} .k-grid-content.k-auto-scrollable`).height() - 7);
 
                 $(".k-grid-autoFitColumns").unbind("click");
-                $(`#${formId} .k-grid button:contains("New")`).unbind("click");
-
                 $(".k-grid-autoFitColumns").bind("click", function (e) {
                     controls.kendo.gridAutoFitColumns(grid);
                 });
 
-                $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
-                    var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
-                    controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
-                });
+                if (pageSetting.gridConfig.linkIdPrefix != null) {
+                    $(`#${formId} .k-grid button:contains("New")`).unbind("click");
+                    $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
+                        var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
+                        controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
+                    });
+                }
 
                 //Toolbar custom button events
                 if (pageSetting.gridConfig.toolbar != null) {

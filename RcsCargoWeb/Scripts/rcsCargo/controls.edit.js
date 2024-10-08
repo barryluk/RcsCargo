@@ -75,8 +75,8 @@
                     for (var j in formGroup.formControls) {
                         var control = formGroup.formControls[j];
                         var field = masterForm.schema.fields.filter(a => a.name == control.name)[0];
-                        var formControlClass = "form-control";
-                        var formControlType = "input";
+                        var formControlClass = utils.getFormControlClass(control.type);
+                        var formControlType = utils.getFormControlType(control.type);
                         var required = "";
 
                         //skip for empty blocks
@@ -92,26 +92,8 @@
                             continue;
                         }
 
-                        //if (masterForm.schema.requiredFields != null) {
-                        //    required = masterForm.schema.requiredFields.indexOf(control.name) == -1 ? "" : "required";
-                        //}
                         if (field != null)
                             required = field["required"] == null ? "" : "required";
-                        
-                        if (control.type == "date" || control.type == "dateTime") {
-                            formControlClass = "form-control-dateTime";
-                        } else if (control.type.startsWith("number")) {
-                            formControlClass = "form-control-number";
-                        } else if (data.dropdownlistControls.includes(control.type)) {
-                            formControlClass = "form-control-dropdownlist";
-                        } else if (control.type == "textArea") {
-                            formControlClass = "form-control-textArea";
-                            formControlType = "textarea";
-                        } else if (control.type == "dateRange" || control.type == "buttonGroup") {
-                            formControlType = "div";
-                        } else if (control.type == "switch") {
-                            formControlClass = "";
-                        }
 
                         if (control.type == "label") {
                             html += `

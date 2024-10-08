@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using DbUtils.Models.Air;
 using System.Data.Entity;
 using System.Data.SqlTypes;
+using System.ComponentModel.Design;
+using System.Web.Configuration;
 
 namespace DbUtils
 {
@@ -30,8 +32,13 @@ namespace DbUtils
 
         public List<Country> GetCountries(string searchValue)
         {
-            return db.Countries.Where(a => a.COUNTRY_CODE.StartsWith(searchValue) || a.COUNTRY_DESC.StartsWith(searchValue))
-                    .Take(Utils.DefaultMaxQueryRows).ToList();
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "country_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "country_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Country>("country", "*", dbParas);
+            return result.ToList();
         }
 
         public Country GetCountry(string countryCode)
@@ -41,6 +48,54 @@ namespace DbUtils
                 return new Country();
             else
                 return country;
+        }
+
+        public void AddCountry(Country country)
+        {
+            try
+            {
+                db.Countries.Add(country);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCountry(Country country)
+        {
+            try
+            {
+                db.Entry(country).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCountry(string countryCode)
+        {
+            try
+            {
+                var country = db.Countries.FirstOrDefault(a => a.COUNTRY_CODE.Equals(countryCode));
+                if (country != null)
+                {
+                    db.Countries.Remove(country);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingCountryCode(string countryCode)
+        {
+            return db.Countries.Count(a => a.COUNTRY_CODE == countryCode) == 1 ? true : false;
         }
 
         #endregion
@@ -60,8 +115,13 @@ namespace DbUtils
 
         public List<Port> GetPorts(string searchValue)
         {
-            return db.Ports.Where(a => a.PORT_CODE.StartsWith(searchValue) || a.PORT_DESC.StartsWith(searchValue))
-                    .Take(Utils.DefaultMaxQueryRows).ToList();
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "port_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "port_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Port>("port", "*", dbParas);
+            return result.ToList();
         }
 
         public Port GetPort(string portCode)
@@ -71,6 +131,54 @@ namespace DbUtils
                 return new Port();
             else
                 return port;
+        }
+
+        public void AddPort(Port port)
+        {
+            try
+            {
+                db.Ports.Add(port);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdatePort(Port port)
+        {
+            try
+            {
+                db.Entry(port).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeletePort(string portCode)
+        {
+            try
+            {
+                var port = db.Ports.FirstOrDefault(a => a.PORT_CODE.Equals(portCode));
+                if (port != null)
+                {
+                    db.Ports.Remove(port);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingPortCode(string portCode)
+        {
+            return db.Ports.Count(a => a.PORT_CODE == portCode) == 1 ? true : false;
         }
 
         #endregion
@@ -88,8 +196,18 @@ namespace DbUtils
 
         public List<Airline> GetAirlines(string searchValue)
         {
-            return db.Airlines.Where(a => a.AIRLINE_CODE.StartsWith(searchValue) || a.AIRLINE_DESC.StartsWith(searchValue))
-                    .Take(Utils.DefaultMaxQueryRows).ToList();
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "airline_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "airline_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Airline>("airline", "*", dbParas);
+            foreach(var item in result)
+            {
+                item.CUSTOMER_BRANCH = item.BRANCH_CODE;
+                item.CUSTOMER_SHORT_DESC = item.SHORT_DESC;
+            }
+            return result.ToList();
         }
 
         public Airline GetAirline(string airlineCode)
@@ -99,6 +217,54 @@ namespace DbUtils
                 return new Airline();
             else
                 return airline;
+        }
+
+        public void AddAirline(Airline airline)
+        {
+            try
+            {
+                db.Airlines.Add(airline);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateAirline(Airline airline)
+        {
+            try
+            {
+                db.Entry(airline).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteAirline(string airlineCode)
+        {
+            try
+            {
+                var airline = db.Airlines.FirstOrDefault(a => a.AIRLINE_CODE.Equals(airlineCode));
+                if (airline != null)
+                {
+                    db.Airlines.Remove(airline);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingAirlineCode(string airlineCode)
+        {
+            return db.Airlines.Count(a => a.AIRLINE_CODE == airlineCode) == 1 ? true : false;
         }
 
         #endregion
@@ -116,8 +282,13 @@ namespace DbUtils
 
         public List<Charge> GetCharges(string searchValue)
         {
-            return db.Charges.Where(a => a.CHARGE_CODE.StartsWith(searchValue) || a.CHARGE_DESC.StartsWith(searchValue))
-                    .Take(Utils.DefaultMaxQueryRows).ToList();
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "charge_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "charge_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Charge>("charge", "*", dbParas);
+            return result.ToList();
         }
 
         public Charge GetCharge(string chargeCode)
@@ -127,6 +298,54 @@ namespace DbUtils
                 return new Charge();
             else
                 return charge;
+        }
+
+        public void AddCharge(Charge charge)
+        {
+            try
+            {
+                db.Charges.Add(charge);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCharge(Charge charge)
+        {
+            try
+            {
+                db.Entry(charge).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCharge(string chargeCode)
+        {
+            try
+            {
+                var charge = db.Charges.FirstOrDefault(a => a.CHARGE_CODE.Equals(chargeCode));
+                if (charge != null)
+                {
+                    db.Charges.Remove(charge);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingChargeCode(string chargeCode)
+        {
+            return db.Charges.Count(a => a.CHARGE_CODE == chargeCode) == 1 ? true : false;
         }
 
         public List<string> GetChargeTemplates(string companyId)
@@ -156,6 +375,54 @@ namespace DbUtils
                 return new Currency();
             else
                 return currency;
+        }
+
+        public void AddCurrency(Currency currency)
+        {
+            try
+            {
+                db.Currencies.Add(currency);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCurrency(Currency currency)
+        {
+            try
+            {
+                db.Entry(currency).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCurrency(string currencyCode, string companyId)
+        {
+            try
+            {
+                var currency = db.Currencies.FirstOrDefault(a => a.CURR_CODE.Equals(currencyCode) && a.COMPANY_ID == companyId);
+                if (currency != null)
+                {
+                    db.Currencies.Remove(currency);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingCurrencyCode(string currencyCode, string companyId)
+        {
+            return db.Currencies.Count(a => a.CURR_CODE == currencyCode && a.COMPANY_ID == companyId) == 1 ? true : false;
         }
 
         #endregion

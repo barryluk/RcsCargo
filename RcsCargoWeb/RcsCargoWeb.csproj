@@ -182,6 +182,11 @@
     <Compile Include="Controllers\Air\HawbController.cs" />
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
+    <Compile Include="Controllers\MasterRecord\AirlineController.cs" />
+    <Compile Include="Controllers\MasterRecord\CurrencyController.cs" />
+    <Compile Include="Controllers\MasterRecord\PortController.cs" />
+    <Compile Include="Controllers\MasterRecord\CountryController.cs" />
+    <Compile Include="Controllers\MasterRecord\ChargeController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MasterRecord\CustomerController.cs" />
@@ -355,6 +360,7 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\masterRecords.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
     <Content Include="Scripts\rcsCargo\airReport.js" />
     <Content Include="Scripts\rcsCargo\log.js" />
