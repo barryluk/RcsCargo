@@ -398,11 +398,12 @@ namespace DbUtils
             return loadplanView;
         }
 
-        public List<HawbEquip> GetLoadplanHawbEquipList(string jobNo, string companyId, string frtMode)
+        public List<HawbEquip> GetLoadplanHawbEquipList(string id, string companyId, string frtMode)
         {
             var hawbNos = db.Database.SqlQuery<string>(
-                "select hawb_no from a_hawb where job_no = :jobNo and company_id = :companyId and frt_mode = :frtMode", new[] {
-                new OracleParameter("jobNo", jobNo),
+                "select hawb_no from a_hawb where (job_no = :jobNo or mawb_no = :mawbNo) and company_id = :companyId and frt_mode = :frtMode", new[] {
+                new OracleParameter("jobNo", id),
+                new OracleParameter("mawbNo", id),
                 new OracleParameter("companyId", companyId),
                 new OracleParameter("frtMode", frtMode), }).ToList();
             var hawbEquips = db.HawbEquips.Where(a => hawbNos.Contains(a.HAWB_NO)).ToList();

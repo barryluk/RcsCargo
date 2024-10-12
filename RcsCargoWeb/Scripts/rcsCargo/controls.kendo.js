@@ -4,6 +4,7 @@
 
     //Render form controls (KendoUI)
     renderFormControl_kendoUI = function (masterForm, enableValidation = false) {
+        masterForm.id = utils.getFormId();
         //kendoValidator
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
         if (validator == null && enableValidation) {
@@ -414,6 +415,7 @@
         //kendoDropDownList for CustomerView (with address)
         $(`#${masterForm.id} input[type*=customerAddr]`).each(function () {
             var filterValue = "";
+            let ddl = $(this);
             $(this).kendoDropDownList({
                 filter: "startswith",
                 dataTextField: "CUSTOMER_DESC",
@@ -433,25 +435,33 @@
                             if (filterValue == "")
                                 options.success(data.masterRecords.customers);
                             else {
-                                $.ajax({
-                                    url: "../Home/GetCustomers",
-                                    data: { searchValue: filterValue, take: data.take },
-                                    dataType: "json",
-                                    type: "post",
-                                    success: function (result) {
-                                        for (var i in result) {
-                                            result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
-                                            result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                                let searchValue = utils.formatText(filterValue);
+                                let customers = data.masterRecords.customers.filter(a =>
+                                    a.CUSTOMER_CODE.startsWith(searchValue) || a.CUSTOMER_DESC.indexOf(searchValue) != -1 || a.SHORT_DESC.startsWith(searchValue)
+                                );
+                                if (customers.length > 0) {
+                                    options.success(customers);
+                                } else {
+                                    $.ajax({
+                                        url: "../Home/GetCustomers",
+                                        data: { searchValue: filterValue, take: data.take },
+                                        dataType: "json",
+                                        type: "post",
+                                        success: function (result) {
+                                            for (var i in result) {
+                                                result[i].CUSTOMER_DESC = result[i].CUSTOMER_CODE + " - " + result[i].CUSTOMER_DESC + " - " + result[i].BRANCH_CODE;
+                                                result[i].CUSTOMER_CODE = result[i].CUSTOMER_CODE + "-" + result[i].BRANCH_CODE + "-" + result[i].SHORT_DESC;
+                                            }
+                                            options.success(result);
                                         }
-                                        options.success(result);
-                                    }
-                                });
+                                    });
+                                }
                             }
                         },
                     }
                 },
                 select: function (e) {
-                    console.log(masterForm.id);
+                    //console.log(masterForm.id);
                     if (!masterForm.id.endsWith("_createInvoice"))
                         masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
@@ -1343,12 +1353,12 @@
     gridAutoFitColumns = function (grid) {
         //kendoTabStrip animation issue, disable the animation of the tabStrip will not need the setTimeout anymore
         //setTimeout(function () {
-        var colMaxWidth = 280;
+        var colMaxWidth = grid.thead.find("th").length > 5 ? 280 : 600;
         var row = [];
         var colIndex = 0;
         var tableWidth = 0;
         var font = utils.getCanvasFont(grid.thead.find(".k-column-title")[0]);
-
+        
         //get the text width from table header
         grid.thead.find("th").each(function () {
             if (this.style.display != "none") {

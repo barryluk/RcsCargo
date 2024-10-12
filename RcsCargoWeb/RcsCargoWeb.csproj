@@ -55,6 +55,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.4.2.13, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.4.2\lib\netstandard2.0\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Kendo.Mvc, Version=2018.1.117.545, Culture=neutral, PublicKeyToken=121fae78165ba3d4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Common\DLL\Kendo.Mvc.dll</HintPath>
@@ -183,6 +186,7 @@
     <Compile Include="Controllers\Air\BookingController.cs" />
     <Compile Include="Controllers\Air\MawbController.cs" />
     <Compile Include="Controllers\MasterRecord\AirlineController.cs" />
+    <Compile Include="Controllers\MasterRecord\ChargeTemplateController.cs" />
     <Compile Include="Controllers\MasterRecord\CurrencyController.cs" />
     <Compile Include="Controllers\MasterRecord\PortController.cs" />
     <Compile Include="Controllers\MasterRecord\CountryController.cs" />
@@ -393,9 +397,6 @@
     <Content Include="Views\Shared\_SignInLayout.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Home\Dashboard.cshtml" />
-    <Content Include="Views\Shared\_MainSidebar.cshtml" />
-    <Content Include="Views\Shared\_ControlSidebar.cshtml" />
-    <Content Include="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\reporting\reports\" />

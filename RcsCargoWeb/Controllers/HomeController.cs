@@ -153,7 +153,7 @@ namespace RcsCargoWeb.Controllers
         public ActionResult GetChargeTemplate(string templateName, string companyId = "RCSHKG")
         {
             var masterRecords = new MasterRecords();
-            return Json(masterRecords.GetChargeTemplate(templateName, companyId), JsonRequestBehavior.AllowGet);
+            return Json(masterRecords.GetChargeTemplate(templateName, companyId).Charges, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetEquipCodes()

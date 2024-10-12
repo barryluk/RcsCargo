@@ -409,3 +409,7 @@ span.menuButton {
     text-align: center;
     margin-bottom: 6px;
 }
+
+.k-loading-mask {
+    z-index: 99999;
+}

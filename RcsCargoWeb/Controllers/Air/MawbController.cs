@@ -79,6 +79,13 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetLoadplanHawbEquipList")]
+        public ActionResult GetLoadplanHawbEquipList(string id, string companyId, string frtMode)
+        {
+            var result = air.GetLoadplanHawbEquipList(id, companyId, frtMode);
+            return Content(result.Select(a => a.EQUIP_DESC).JustifyString(), "plain/text");
+        }
+
         [Route("UpdateLotNo")]
         public ActionResult UpdateLotNo(string lotNo, string companyId, string frtMode, string[] mawbNos)
         {

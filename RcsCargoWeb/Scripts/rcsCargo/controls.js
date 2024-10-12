@@ -124,8 +124,11 @@
                 },
                 {
                     text: "Refresh all tabs", icon: "refresh", click: function (e) {
+                        let index = 0;
                         $("#tabStripMain li.k-tabstrip-item .k-icon.k-i-refresh").each(function () {
-                            $(this).trigger("click");
+                            let btn = $(this);
+                            index++;
+                            setTimeout(function () { btn.trigger("click"); }, 600 * index);
                         })
                     },
                 },
@@ -200,6 +203,7 @@
             });
 
             $("#btnRefresh_" + id).click(function () {
+                controls.activate_tabStripMain(id);
                 kendo.ui.progress($(`#${id}`).parent(), true);
                 if (id.indexOf("Index") != -1) {
                     pageSetting = utils.getMasterForm(`#${id}`);
@@ -239,6 +243,8 @@
             controls.index.initIndexPage(pageSetting);
         else
             controls.edit.initEditPage(id);
+
+        controls.activate_tabStripMain(id);
     }
 
     activate_tabStripMain = function (id) {
@@ -351,24 +357,32 @@
                     }
                 } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                     if (model[`${control.name}_CODE`] != null) {
-                        var controlName = control.name;
-                        $(`#${masterForm.id} [name=${controlName}]`).each(function () {
-                            var ddl = $(this).data("kendoDropDownList");
+                        let controlName = control.name;
+                        let ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
+                        //console.log(controlName, $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList").dataSource.data());
+                        let customer = data.masterRecords.customers.filter(a =>
+                            a.CUSTOMER_CODE.startsWith(model[`${controlName}_CODE`]) && 
+                            a.BRANCH_CODE == (model[`${controlName}_BRANCH`]) &&
+                            a.SHORT_DESC == (model[`${controlName}_SHORT_DESC`])
+                        );
+                        if (customer.length > 0) {
+                            ddl.select(data.masterRecords.customers.indexOf(customer[0]) + 1);
+                            ddl.trigger("select");
+                        } else {
                             ddl.search(model[`${controlName}_CODE`]);
                             ddl.bind("dataBound", function (e) {
-                                var ddlName = $(e.sender.element).attr("name");     //very important to get the correct control name!! the dropDropList search is a async function
-                                var dataItems = ddl.dataSource.data();
-                                for (var i = 0; i < dataItems.length; i++) {
-                                    //console.log(ddlName, dataItems[i].BRANCH_CODE, dataItems[i].SHORT_DESC, model[`${ddlName}_BRANCH`], model[`${ddlName}_SHORT_DESC`])
-                                    if (dataItems[i].BRANCH_CODE == model[`${ddlName}_BRANCH`] &&
-                                        dataItems[i].SHORT_DESC == model[`${ddlName}_SHORT_DESC`]) {
-                                        this.select(i + 1);
-                                        this.trigger("select");
-                                        break;
-                                    }
+                                let ddlName = $(e.sender.element).attr("name");     //very important to get the correct control name!! the dropDropList search is a async function
+                                //console.log(ddlName, ddl.dataSource.data());
+                                customer = ddl.dataSource.data().filter(a =>
+                                    a.BRANCH_CODE == (model[`${ddlName}_BRANCH`]) &&
+                                    a.SHORT_DESC == (model[`${ddlName}_SHORT_DESC`]));
+
+                                if (customer.length > 0) {
+                                    ddl.select(ddl.dataSource.data().indexOf(customer[0]) + 1);
+                                    ddl.trigger("select");
                                 }
                             });
-                        });
+                        }
                     }
                 } else if (control.type == "switch") {
                     var switchCtrl = $(`#${masterForm.id} [name=${control.name}]`).data("kendoSwitch");

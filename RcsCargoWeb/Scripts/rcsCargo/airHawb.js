@@ -26,7 +26,9 @@
             } else if (e.id == "SecurityScreeningReceipt") {
                 filename = "Security Screening Receipt";
             } else if (e.id == "K4securityletter") {
-                filename = "K4 Security Letter";
+                controllers.airHawb.dialogK4securityletter();
+                return;
+                //filename = "K4 Security Letter";
             } else if (e.id == "BatteryDeclaration") {
                 filename = "Battery Declaration";
             }
@@ -43,6 +45,110 @@
                 controls.openReportViewer(reportName, paras);
             } else if (reportType == "xlsx") {
                 utils.getExcelReport(reportName, paras);
+            }
+        });
+    }
+
+    dialogK4securityletter = function () {
+        var html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_k4securityletter" style="width: 600px">
+                <label class="col-sm-4 col-form-label">Multiple MAWB#</label>
+                <div class="col-md-8">
+                    <textarea type="textArea" class="form-control-textArea" name="k4securityletter_mawbNos" />
+                </div>
+                <label class="col-sm-4 col-form-label">Name of Signatory</label>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="k4securityletter_NameTitle" />
+                </div>
+                <label class="col-sm-4 col-form-label">Number appearing on ID</label>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="k4securityletter_IDNo" />
+                </div>
+                <label class="col-sm-4 col-form-label">Name of cargo accepted</label>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="k4securityletter_AcceptedName" />
+                </div>
+                <label class="col-sm-4 col-form-label">Name of verified ID</label>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="k4securityletter_VerifiedName" />
+                </div>
+                <label class="col-sm-4 col-form-label">Inspection Date</label>
+                <div class="col-md-8">
+                    <input type="date" class="form-control-dateTime" name="k4securityletter_LetterDate" />
+                </div>
+            </div>
+            <br>
+            <div class="col-md-12 dialogFooter">
+                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="k4securityletter_Print"><span class="k-icon k-i-pdf"></span>Print</span>
+            </div>`;
+
+        utils.alertMessage(html, "K4 Security Letter", null, null, false);
+        var formSetting = { id: utils.getFormId() };
+        controls.kendo.renderFormControl_kendoUI(formSetting);
+        $(`#${utils.getFormId()} [name="k4securityletter_LetterDate"]`).data("kendoDatePicker").value(new Date());
+
+        $(`[name="k4securityletter_Print"]`).click(function () {
+            var dateFormat = "dd-MMM-yyyy";
+            var modelData = JSON.parse($(`#${utils.getMasterFormId()}`).attr("modeldata"));
+            var mawbNos = $(`#${utils.getFormId()} [name="k4securityletter_mawbNos"]`).val();
+            
+            if (!utils.isEmptyString(mawbNos)) {
+                var reports = [];
+                mawbNos.split("\n").forEach(function (mawbNo) {
+                    if (mawbNo.trim().length == 11) {
+                        var palletNo = "";
+                        $.ajax({
+                            url: "../Air/Mawb/GetLoadplanHawbEquipList",
+                            data: { id: mawbNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                            dataType: "text",
+                            async: false,
+                            success: function (result) { palletNo = result; }
+                        });
+                        var hawbNo = "WFF" + mawbNo.trim().substring(3);
+                        reports.push({
+                            ReportName: "K4securityletter",
+                            FileName: `${mawbNo}.pdf`,
+                            reportParas: [
+                                { name: "CompanyId", value: data.companyId },
+                                { name: "FrtMode", value: utils.getFrtMode() },
+                                { name: "CompanyName", value: data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COMPANY_NAME },
+                                { name: "HawbNo", value: hawbNo },
+                                { name: "NameTitle", value: $(`#${utils.getFormId()} [name="k4securityletter_NameTitle"]`).val() },
+                                { name: "IDNo", value: $(`#${utils.getFormId()} [name="k4securityletter_IDNo"]`).val() },
+                                { name: "AcceptedName", value: $(`#${utils.getFormId()} [name = "k4securityletter_AcceptedName"]`).val() },
+                                { name: "VerifiedName", value: $(`#${utils.getFormId()} [name="k4securityletter_VerifiedName"]`).val() },
+                                { name: "LetterDate", value: kendo.toString($(`#${utils.getFormId()} [name="k4securityletter_LetterDate"]`).data("kendoDatePicker").value(), dateFormat) },
+                                { name: "PalletNo", value: palletNo },
+                            ],
+                        });
+                    }
+                });
+
+                console.log("print multiple letters", reports);
+                utils.getMultipleRdlcReports(reports, "K4 Security Letter.zip");
+            } else {
+                var palletNo = "";
+                $.ajax({
+                    url: "../Air/Mawb/GetLoadplanHawbEquipList",
+                    data: { id: modelData.MAWB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                    dataType: "text",
+                    async: false,
+                    success: function (result) { palletNo = result; }
+                });
+                var paras = [
+                    { name: "CompanyId", value: data.companyId },
+                    { name: "FrtMode", value: utils.getFrtMode() },
+                    { name: "CompanyName", value: data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COMPANY_NAME },
+                    { name: "HawbNo", value: modelData.HAWB_NO },
+                    { name: "NameTitle", value: $(`#${utils.getFormId()} [name="k4securityletter_NameTitle"]`).val() },
+                    { name: "IDNo", value: $(`#${utils.getFormId()} [name="k4securityletter_IDNo"]`).val() },
+                    { name: "AcceptedName", value: $(`#${utils.getFormId()} [name = "k4securityletter_AcceptedName"]`).val() },
+                    { name: "VerifiedName", value: $(`#${utils.getFormId()} [name="k4securityletter_VerifiedName"]`).val() },
+                    { name: "LetterDate", value: kendo.toString($(`#${utils.getFormId()} [name="k4securityletter_LetterDate"]`).data("kendoDatePicker").value(), dateFormat) },
+                    { name: "PalletNo", value: palletNo },
+                ];
+                console.log("print letter", paras);
+                controls.openReportViewer("K4securityletter", paras);
             }
         });
     }

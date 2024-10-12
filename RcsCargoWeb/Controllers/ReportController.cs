@@ -2,7 +2,9 @@
 using DbUtils;
 using DbUtils.Models.Air;
 using DbUtils.Models.MasterRecords;
+using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Reporting;
 using Reporting.DataService.AirFreightReport;
 using System;
@@ -12,6 +14,7 @@ using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Services.Description;
@@ -30,7 +33,8 @@ namespace RcsCargoWeb.Controllers
         public ActionResult GetPdf()
         {
             string info = string.Empty;
-            string url = "http://gemini.rcs-asia.com:9010/FileDownload?id=8BCDC04165C3FC5800DA28027C7A13B2EE32D9391FCAD5AEC550568E393390402AF2CE03C2A33ADEFF42DD069D5BFC96A89B8A73B8BD6972B1EB456932DB948C9203AF22DB43650EAA03226FAB29519012D99664C465F64F46D4A9714AA9604152353053FA000038E7D6123CAA1D6115";
+            var para = "reportName=AirHawbPreview;CompanyId=RCSHKG;HawbNo=WFF74094171;FrtMode=AE;ShowDim=True;CustomerType=Shipper;";
+            string url = $"http://gemini.rcs-asia.com:9010/FileDownload?id={DbUtils.Utils.DESEncrypt(para)}";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
 
@@ -44,6 +48,7 @@ namespace RcsCargoWeb.Controllers
                 respStream.Flush();
                 log.Debug("Bytes Length: " + resultStream.Length);
 
+                Response.AppendHeader("Content-Disposition", $"attachment;filename=report.pdf");
                 return File(resultStream.ToArray(), "application/pdf");
             }
             catch (Exception ex)
@@ -145,44 +150,68 @@ namespace RcsCargoWeb.Controllers
             }
         }
 
-        public ActionResult GetRdlcExcelReport(List<ReportParameter> paras, string reportName)
+        private byte[] GetRdlcReport(List<ReportParameter> paras, string reportName)
         {
             if (Request.Url.GetString().Contains("favicon"))
                 return null;
 
-            string info = string.Empty;
             var paraValue = $"reportName={reportName};";
             paras.ForEach(a => { paraValue += $"{a.name}={(a.value as Array).GetValue(0)};"; });
             string url = $"http://gemini.rcs-asia.com:9010/FileDownload?id={DbUtils.Utils.DESEncrypt(paraValue)}";
-            
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
 
             try
             {
-                log.Debug(url);
                 WebResponse response = request.GetResponse();
                 var resultStream = new MemoryStream();
                 var respStream = response.GetResponseStream();
                 respStream.CopyTo(resultStream);
                 respStream.Close();
                 respStream.Flush();
-                log.Debug("Bytes Length: " + resultStream.Length);
-
-                var id = DbUtils.Utils.NewGuid();
-                Session[id] = resultStream.ToArray();
-
-                return Content(id, "text/plain");
+                log.Debug("RDLC bytes length: " + resultStream.Length);
+                return resultStream.ToArray();
             }
             catch (Exception ex)
             {
                 log.Error(DbUtils.Utils.FormatErrorMessage(ex));
+                return null;
             }
-
-            return null;
         }
 
-        public ActionResult DownloadExcelReport(string id, string downloadFilename)
+        public ActionResult GetMultipleRdlcReports(List<MultipleReport> reports)
+        {
+            var id = DbUtils.Utils.NewGuid();
+            MemoryStream ms = new MemoryStream();
+            ZipOutputStream zipStream = new ZipOutputStream(ms);
+            zipStream.SetLevel(6);
+
+            foreach (var report in reports)
+            {
+                var rdlcReport = GetRdlcReport(report.reportParas, report.ReportName);
+                ZipEntry entry = new ZipEntry(report.FileName);
+                entry.DateTime = DateTime.Now;
+                zipStream.PutNextEntry(entry);
+                zipStream.Write(rdlcReport, 0, rdlcReport.Length);
+                zipStream.CloseEntry();
+            }
+            zipStream.Finish();
+            zipStream.Close();
+            Session[id] = ms.ToArray();
+
+            return Content(id, "text/plain");
+        }
+
+        public ActionResult GetRdlcExcelReport(List<ReportParameter> paras, string reportName)
+        {
+            var id = DbUtils.Utils.NewGuid();
+            Session[id] = GetRdlcReport(paras, reportName);
+
+            return Content(id, "text/plain");
+        }
+
+        public ActionResult DownloadReport(string id, string downloadFilename)
         {
             if (Session[id] != null)
             {
@@ -190,7 +219,13 @@ namespace RcsCargoWeb.Controllers
                 Session[id] = null;
 
                 Response.AppendHeader("Content-Disposition", $"attachment;filename={downloadFilename}");
-                return File(fileByte, "application/xlsx");
+                var contentType = "application/xlsx";
+                if (downloadFilename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                    contentType = "application/pdf";
+                else if (downloadFilename.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    contentType = "application/x-zip";
+
+                return File(fileByte, contentType);
             }
             return null;
         }
@@ -228,6 +263,13 @@ namespace RcsCargoWeb.Controllers
                 case "AirHKGSummaryJobProfitLoss": reportName = ReportName.AirHKGSummaryJobProfitLoss; break;
             }
             return reportName;
+        }
+
+        public class MultipleReport
+        {
+            public string ReportName { get; set; }
+            public string FileName { get; set; }
+            public List<ReportParameter> reportParas { get; set; }
         }
 
         public class ReportParameter

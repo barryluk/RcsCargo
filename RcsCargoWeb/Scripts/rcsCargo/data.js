@@ -595,6 +595,34 @@ var indexPages = [
         },
     },
     {
+        pageName: "chargeTemplate",
+        id: "",
+        title: "Charge Template",
+        additionalScript: "initMasterRecords",
+        deleteUrl: "../MasterRecord/ChargeTemplate/DeleteChargeTemplate",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Template name" },
+        ],
+        gridConfig: {
+            gridName: "gridChargeTemplateIndex",
+            dataSourceUrl: "../MasterRecord/ChargeTemplate/GridChargeTemplate_Read",
+            linkIdPrefix: "chargeTemplate",
+            linkTabTitle: "Template: ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "TEMPLATE_NAME", title: "Template name" },
+                { field: "CHARGE_CODES", title: "Charges" },
+                { template: ({ TEMPLATE_NAME }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${TEMPLATE_NAME}"></i>`, width: 30 },
+                { template: ({ TEMPLATE_NAME }) => `<i class="k-icon k-i-trash handCursor" data-attr="${TEMPLATE_NAME}"></i>`, width: 30 },
+            ],
+        },
+    },
+    {
         pageName: "customer",
         id: "",
         title: "Customer",
@@ -976,6 +1004,72 @@ var indexPages = [
 ];
 
 var masterForms = [
+    {
+        formName: "chargeTemplate",
+        mode: "edit",   //create / edit
+        title: "Charge Template:",
+        readUrl: "../MasterRecord/ChargeTemplate/GetChargeTemplate",
+        updateUrl: "../MasterRecord/ChargeTemplate/UpdateChargeTemplate",
+        //additionalScript: "initCustomer",
+        idField: "TEMPLATE_NAME",
+        id: "",
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+        ],
+        schema: {
+            fields: [
+                { name: "TEMPLATE_NAME", readonly: "edit" },
+                { name: "charges", required: "true" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Charge Template",
+                name: "mainInfo",
+                formGroups: ["main"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "main",
+                title: "Charge Template",
+                colWidth: 10,
+                formControls: [
+                    { label: "Template Name", type: "text", name: "TEMPLATE_NAME", colWidth: 6 },
+                    {
+                        label: "", type: "grid", name: "Charges",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            {
+                                title: "Unit", field: "UNIT", width: 80,
+                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Min. Charge", field: "MIN_AMOUNT", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            UNIT: { validation: { required: true } },
+                            MIN_AMOUNT: { type: "number", validation: { required: true }, defaultValue: 1 },
+                        },
+                    },
+                ]
+            },
+        ],
+    },
     {
         formName: "customer",
         mode: "edit",   //create / edit
@@ -2792,9 +2886,9 @@ export default class {
                                         controls.append_tabStripMain(pageSetting.title, id, controller.replace("Index", ""));
                                     else
                                         controls.append_tabStripMain(`${pageSetting.title} ${utils.decodeId(id.split("_")[1])}`, id, controller);
-                                }, 100 * (tabStrips.indexOf(id) + 1));
+                                }, 500 * (tabStrips.indexOf(id) + 1));
                             }
-                        }
+                        } else { $(".loadingOverlay").addClass("hidden"); }
                     }
                 });
             });

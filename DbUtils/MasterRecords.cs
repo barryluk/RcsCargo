@@ -354,9 +354,89 @@ namespace DbUtils
                     .Select(a => a.TEMPLATE_NAME).Distinct().ToList();
         }
 
-        public List<ChargeTemplate> GetChargeTemplate(string templateName, string companyId)
+        public List<ChargeTemplateView> GetChargeTemplates(string searchValue, string companyId)
         {
-            return db.ChargeTemplates.Where(a => a.COMPANY_ID.Equals(companyId) && a.TEMPLATE_NAME == templateName).ToList();
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "template_name", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "company_id", ParaName = "companyId", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+            };
+            var query = Utils.GetSqlQueryResult<ChargeTemplateView>("charge_template", "template_name, charge_code", dbParas);
+            var result = new List<ChargeTemplateView>();
+            foreach(var templateName in query.Select(a => a.TEMPLATE_NAME).Distinct())
+            {
+                result.Add(new ChargeTemplateView
+                {
+                    TEMPLATE_NAME = templateName,
+                    CHARGE_CODES = query.Where(a => a.TEMPLATE_NAME.Equals(templateName)).Select(a => a.CHARGE_CODE).JustifyString(),
+                });
+            }
+            return result.ToList();
+        }
+
+        public ChargeTemplateView GetChargeTemplate(string templateName, string companyId)
+        {
+            var result = db.ChargeTemplates.Where(a => a.COMPANY_ID.Equals(companyId) && a.TEMPLATE_NAME == templateName).ToList();
+            var template = new ChargeTemplateView();
+            if (result.Count > 0)
+            {
+                template.TEMPLATE_NAME = result.First().TEMPLATE_NAME;
+                template.COMPANY_ID = companyId;
+                template.Charges = result;
+            }
+            return template;
+        }
+
+        public void AddChargeTemplate(ChargeTemplateView chargeTemplate)
+        {
+            try
+            {
+                db.ChargeTemplates.AddRange(chargeTemplate.Charges);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateChargeTemplate(ChargeTemplateView chargeTemplate)
+        {
+            try
+            {
+                var records = db.ChargeTemplates.Where(a => 
+                    a.COMPANY_ID == chargeTemplate.COMPANY_ID && a.TEMPLATE_NAME == chargeTemplate.TEMPLATE_NAME);
+                db.ChargeTemplates.RemoveRange(records);
+                db.ChargeTemplates.AddRange(chargeTemplate.Charges);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteChargeTemplate(string chargeCode, string companyId)
+        {
+            try
+            {
+                var records = db.ChargeTemplates.Where(a =>
+                    a.COMPANY_ID == companyId && a.TEMPLATE_NAME == chargeCode);
+                if (records != null)
+                {
+                    db.ChargeTemplates.RemoveRange(records);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingChargeTemplateName(string templateName)
+        {
+            return db.ChargeTemplates.Count(a => a.TEMPLATE_NAME == templateName) > 0 ? true : false;
         }
 
         #endregion
@@ -464,6 +544,11 @@ namespace DbUtils
                 union
                 select consignee_code customer_code, consignee_desc customer_desc, consignee_branch branch_code, consignee_short_desc short_desc,
                 consignee_addr1 addr1, consignee_addr2 addr2, consignee_addr3 addr3, consignee_addr4 addr4
+                from a_hawb
+                where create_date > sysdate - 60 and frt_mode = 'AE'
+                union
+                select agent_code customer_code, agent_desc customer_desc, agent_branch branch_code, agent_short_desc short_desc,
+                agent_addr1 addr1, agent_addr2 addr2, agent_addr3 addr3, agent_addr4 addr4
                 from a_hawb
                 where create_date > sysdate - 60 and frt_mode = 'AE'
                 union

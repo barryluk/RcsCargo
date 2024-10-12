@@ -22,8 +22,9 @@
     <script src="@Url.Content("~/Scripts/rcsCargo/rcsCargoMain.js?v=" + DbUtils.Utils.NewGuid() + "")"></script>
 </head>
 <body class="hold-transition sidebar-mini">
-    <div class="loadingOverlay" style="z-index: 10000; position: absolute; width: 100%; height: 100%; background-color: rgb(128, 128, 128, 0.6); text-align: center;">
-        <span style="position: absolute; top: 40%; font-size: 32pt; font-style: italic; font-weight: bold">
+    <div class="loadingOverlay" style="z-index: 10000; position: absolute; width: 100%; height: 100%; background-color: rgb(128, 128, 128, 0.6);">
+        <div class="k-loading-image"></div>
+        <span style="position: absolute; top: calc(50% + 20px); left: calc(50% - 87px); font-size: 32pt; font-family: Arial">
             Loading...
         </span>
     </div>

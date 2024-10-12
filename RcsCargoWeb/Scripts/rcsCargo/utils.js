@@ -85,6 +85,19 @@
         }
     }
 
+    getMasterFormId = function (selector) {
+        if (selector != null) {
+            var els = $(selector).parentsUntil("#tabStripMain");
+            //return els.eq(els.length - 2).attr("id");
+            return els.children().closest("div").not(".k-loading-mask").attr("id");
+        } else {
+            if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length > 0)
+                return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).first().attr("id");
+            else
+                return null;
+        }
+    }
+
     getFrtMode = function (selector) {
         var frtMode = null;
         if (selector != null) {
@@ -225,12 +238,18 @@
     encodeId = function (id) {
         id = id.replaceAll("/", "-slash-");
         id = id.replaceAll("\\", "-backslash-");
+        id = id.replaceAll(" ", "-space-");
+        id = id.replaceAll("(", "-lbracket-");
+        id = id.replaceAll(")", "-rbracket-");
         return id;
     }
 
     decodeId = function (id) {
         id = id.replaceAll("-slash-", "/");
         id = id.replaceAll("-backslash-", "\\");
+        id = id.replaceAll("-space-", " ");
+        id = id.replaceAll("-lbracket-", "(");
+        id = id.replaceAll("-rbracket-", ")");
         return id;
     }
 
@@ -320,6 +339,21 @@
     isHiddenTab = function (selector) {
         var id = $(selector).parentsUntil(".k-tabstrip-content.k-content").parent().eq(0).attr("aria-labelledby");
         return $(`#${id}`).attr("style") == "display: none";
+    }
+
+    isExisitingChargeTemplateName = function (templateName) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/ChargeTemplate/IsExisitingChargeTemplateName",
+            dataType: "text",
+            data: { id: utils.formatText(templateName), companyId: data.companyId },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
     }
 
     isExistingChargeCode = function (chargeCode) {
@@ -653,7 +687,30 @@
         });
     }
 
-    getExcelReport = function (reportName, paras, downloadFileName, sender) {
+    getRdlcEncryptString = function (value) {
+        var str = "";
+        $.ajax({
+            url: "../Home/EncryptString",
+            data: {value: value},
+            dataType: "text",
+            async: false,
+            success: function (result) { str = result; }
+        });
+        return str;
+    }
+
+    getMultipleRdlcReports = function (reports, downloadFileName) {
+        $.ajax({
+            url: "../Report/GetMultipleRdlcReports",
+            data: { reports: reports, },
+            dataType: "text",
+            beforeSend: function () { kendo.ui.progress($(".wrapper"), true); },
+            success: function (id) { window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}`); },
+            complete: function () { kendo.ui.progress($(".wrapper"), false); }
+        });
+    }
+
+    getExcelReport = function (reportName, paras, downloadFileName) {
         var extraParas = {};
         if (utils.isEmptyString(downloadFileName))
             downloadFileName = reportName;
@@ -670,28 +727,18 @@
                 extraParas: extraParas,
             },
             dataType: "text",
-            beforeSend: function () {
-                if (sender == null)
-                    kendo.ui.progress($(`#${utils.getFormId()}`), true);
-                else
-                    kendo.ui.progress(sender, true);
-            },
+            beforeSend: function () { kendo.ui.progress($(".wrapper"), true); },
             success: function (id) {
                 if (reportName == "AirCustomizeShipmentReport")
-                    window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
+                    window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
                 else
-                    window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
+                    window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
             },
-            complete: function () {
-                if (sender == null)
-                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
-                else
-                    kendo.ui.progress(sender, false);
-            }
+            complete: function () { kendo.ui.progress($(".wrapper"), false); }
         });
     }
 
-    getRdlcExcelReport = function (reportName, paras, downloadFileName, sender) {
+    getRdlcExcelReport = function (reportName, paras, downloadFileName) {
         if (utils.isEmptyString(downloadFileName))
             downloadFileName = reportName;
 
@@ -702,21 +749,11 @@
                 reportName: reportName,
             },
             dataType: "text",
-            beforeSend: function () {
-                if (sender == null)
-                    kendo.ui.progress($(`#${utils.getFormId()}`), true);
-                else
-                    kendo.ui.progress(sender, true);
-            },
+            beforeSend: function () { kendo.ui.progress($(".wrapper"), true); },
             success: function (id) {
-                window.open(`../Report/DownloadExcelReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
+                window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
             },
-            complete: function () {
-                if (sender == null)
-                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
-                else
-                    kendo.ui.progress(sender, false);
-            }
+            complete: function () { kendo.ui.progress($(".wrapper"), false); }
         });
     }
 

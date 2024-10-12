@@ -26,13 +26,19 @@
                 $(this).unbind("click");
                 $(this).click(function () {
                     var key = $(this).attr("data-attr");
-                    utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "edit"),
-                        `Edit: ${key}`, null, null, true, "controllers.masterRecords.editSaveClick");
-                    controls.kendo.renderFormControl_kendoUI({
-                        id: `${utils.getFormId()}`,
-                        schema: pageSetting.schema,
-                    }, true);
-                    controllers.masterRecords.setValuesToControls(pageSetting, key);
+
+                    if (pageSetting.gridConfig.linkIdPrefix != null) {
+                        var id = `${pageSetting.gridConfig.linkIdPrefix}_${key}_${data.companyId}`;
+                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${key}`, id, pageSetting.pageName);
+                    } else {
+                        utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "edit"),
+                            `Edit: ${key}`, null, null, true, "controllers.masterRecords.editSaveClick");
+                        controls.kendo.renderFormControl_kendoUI({
+                            id: `${utils.getFormId()}`,
+                            schema: pageSetting.schema,
+                        }, true);
+                        controllers.masterRecords.setValuesToControls(pageSetting, key);
+                    }
                 });
             });
 

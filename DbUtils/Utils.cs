@@ -85,6 +85,15 @@ namespace DbUtils
             return new DateTime(dt.Year, dt.Month, dt.Day, 23, 59, 59);
         }
 
+        public static string JustifyString(this IEnumerable<string> values, char separator = ',')
+        {
+            var result = string.Empty;
+            foreach ( var item in values)
+                result += $"{item}{separator} ";
+
+            return result.Length > 1 ? result.Substring(0, result.Length - 2) : result;
+        }
+
         //Special format for AEO (e.g. 69.1 -> 6910)
         public static string FormatAEONumber(this decimal number)
         {

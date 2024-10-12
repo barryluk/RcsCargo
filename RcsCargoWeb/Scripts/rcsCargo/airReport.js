@@ -108,9 +108,7 @@
             </div>`;
 
         utils.alertMessage(html, "Daily Booking", null, null, false);
-        var formSetting = {
-            id: `${utils.getFormId()}_dailyBooking`
-        };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value(2);
@@ -165,9 +163,7 @@
             </div>`;
 
         utils.alertMessage(html, "Daily Booking For Overseas", null, null, false);
-        var formSetting = {
-            id: `${utils.getFormId()}_dailyBookingOverseas`
-        };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value(2);
@@ -228,7 +224,7 @@
             </div>`;
 
         utils.alertMessage(html, "Shipment Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_shipmentReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="shipmentReport_sortingOrder"]`).kendoDropDownList({
             dataTextField: "text",
@@ -294,7 +290,7 @@
             </div>`;
 
         utils.alertMessage(html, "Shipment Tracking Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_shipmentTrackingReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="shipmentTrackingReport_Print"]`).click(function () {
@@ -343,7 +339,7 @@
             </div>`;
 
         utils.alertMessage(html, "Customize Shipment Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_customizeShipmentReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="customizeShipmentReport_sortingOrder"]`).kendoDropDownList({
@@ -489,7 +485,7 @@
             </div>`;
 
         utils.alertMessage(html, "Job Profit & Loss Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_jobProfitLossReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="jobProfitLossReport_Print"]`).click(function () {
@@ -519,7 +515,7 @@
             </div>`;
 
         utils.alertMessage(html, "Other Job Profit & Loss Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_otherJobProfitLossReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="otherJobProfitLossReport_Print"]`).click(function () {
@@ -546,7 +542,7 @@
             </div>`;
 
         utils.alertMessage(html, "Lot Profit & Loss Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_lotProfitLossReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="lotProfitLossReport_Print"]`).click(function () {
@@ -575,7 +571,7 @@
             </div>`;
 
         utils.alertMessage(html, "Summary Profit & Loss Report", null, null, false);
-        var formSetting = { id: `${utils.getFormId()}_summaryProfitLossReport` };
+        var formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name^="summaryProfitLossReport_Print"]`).click(function () {
@@ -654,7 +650,7 @@
     }
 
     getCommonParas = function (dateFormat = "yyyy/M/d") {
-        var id = utils.getFormId();
+        var id = utils.getMasterFormId();
         var companyName = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COMPANY_NAME;
         return [
             { name: "CompanyId", value: data.companyId },

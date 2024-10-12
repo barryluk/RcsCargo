@@ -13,6 +13,7 @@
         console.log(id);
 
         var masterForm = utils.getMasterForm();
+        //console.log(masterForm);
         $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : utils.decodeId(this.keyValue)}`));
         this.renderFormControls(masterForm);
         this.getModelData(masterForm, para);
