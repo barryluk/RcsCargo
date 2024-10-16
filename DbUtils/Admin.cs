@@ -12,6 +12,7 @@ using System.Data.SqlTypes;
 using System.Data.Common;
 using System.Reflection;
 using System.Web.UI.WebControls.WebParts;
+using DbUtils.Models.MasterRecords;
 
 namespace DbUtils
 {
@@ -123,6 +124,53 @@ namespace DbUtils
             return user;
         }
 
+        public void AddUser(User user)
+        {
+            try
+            {
+                db.Users.Add(user);
+                db.UserCompanies.AddRange(user.UserCompanies);
+                db.UserGroups.AddRange(user.UserGroups);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateUser(User user)
+        {
+            try
+            {
+                db.Entry(user).State = EntityState.Modified;
+                var userCompanies = db.UserCompanies.Where(a => a.USER_ID == user.USER_ID);
+                var userGroups = db.UserGroups.Where(a => a.USER_ID == user.USER_ID);
+
+                if (userCompanies != null)
+                {
+                    db.UserCompanies.RemoveRange(userCompanies);
+                    db.UserCompanies.AddRange(user.UserCompanies);
+                }
+                if (userGroups != null)
+                {
+                    db.UserGroups.RemoveRange(userGroups);
+                    db.UserGroups.AddRange(user.UserGroups);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingUserId(string userId)
+        {
+            return db.Users.Count(a => a.USER_ID == userId) == 1 ? true : false;
+        }
+
         public string IsValidLogin(string userId, string password)
         {
             string status = string.Empty;
@@ -152,7 +200,7 @@ namespace DbUtils
             db.SaveChanges();
         }
 
-        public bool UpdateLastRequestTime(string userId, string sessionId)
+        public bool UpdateLastRequestTime(string userId, string sessionId, string hostAddress, string browserInfo)
         {
             bool status = true;
             var userLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userId)).FirstOrDefault();
@@ -163,6 +211,8 @@ namespace DbUtils
                     if (userLog.SESSION_ID.Equals(sessionId))
                     {
                         userLog.LAST_REQUEST = DateTime.Now;
+                        userLog.USER_HOST_ADDRESS = hostAddress;
+                        userLog.BROWSER_INFO = browserInfo;
                         db.Entry(userLog).State = EntityState.Modified;
                         db.SaveChanges();
                     }
@@ -223,7 +273,9 @@ namespace DbUtils
         public string GetSequenceNumber(string seqType, string companyId, string origin, string dest, DateTime? date, int seqNoCount = 1)
         {
             string formattedNumber = string.Empty;
-            var seqFormat = db.SeqFormats.Where(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId).FirstOrDefault();
+            var seqFormat = db.SeqFormats.Where(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId).FirstOrDefault(); 
+            if (string.IsNullOrEmpty(seqFormat.PREFIX))
+                seqFormat.PREFIX = string.Empty;
             if (string.IsNullOrEmpty(seqFormat.PREFIX2))
                 seqFormat.PREFIX2 = string.Empty;
             if (string.IsNullOrEmpty(seqFormat.SUFFIX))

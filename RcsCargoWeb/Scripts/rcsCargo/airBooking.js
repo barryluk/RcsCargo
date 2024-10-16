@@ -48,9 +48,240 @@
                 }
             });
         }
+
+        //Auto calculate vwts, cuft
+        $(`#${masterForm.id} [name="CBM"]`).blur(function () {
+            let inputVwtsFactor = $(`#${masterForm.id} [name="VWTS_FACTOR"]`).data("kendoDropDownList");
+            let inputCbm = $(this).data("kendoNumericTextBox");
+            let inputVwts = $(`#${masterForm.id} [name="VWTS"]`).data("kendoNumericTextBox");
+            let inputCuft = $(`#${masterForm.id} [name="CUFT"]`).data("kendoNumericTextBox");
+
+            if (inputCbm.value() != null) {
+                inputVwts.value(utils.roundUp(inputCbm.value() * 1000000 / inputVwtsFactor.value(), 2));
+                inputCuft.value(utils.roundUp(inputCbm.value() * 35.31, 2))
+            }
+        });
+
+        //function CalcVwtsCuft() {
+        //    if ($get(txtCbm).value != "") {
+        //        var cbm = parseFloat($get(txtCbm).value);
+        //        var vwtsFactor = parseFloat($get(drpVwtsFactor).options[$get(drpVwtsFactor).selectedIndex].value);
+
+        //        $get(txtVwts).value = dataCheck.formatNumber(cbm * 1000000 / vwtsFactor, 2);
+        //        dataCheck.formatWts($get(txtVwts));
+        //        $get(txtCuft).value = dataCheck.formatNumber(cbm * 35.31, 2);
+        //    }
+        //}
     }
 
     printWarehouseReceipt = function () {
         utils.alertMessage("Warehouse Receipt...", "Print Warehouse Receipt", "info", "medium");
     };
+
+    pasteToPo = function () {
+        let html = `
+            <div id="${utils.getFormId()}_pasteToPo">
+                <div class="row col-sm-12" style="width: 600px">
+                    <label class="col-sm-2 col-form-label">PO Content Type:</label>
+                    <div class="col-sm-10">
+                        <input class="form-control-dropdownlist" name="poContentType" />
+                    </div>
+                    <span class="k-input k-textarea k-input-solid k-input-md k-rounded-md k-resize-none">
+                        <textArea name="pastedContent" class="!k-overflow-y-auto k-input-inner" maxlength="2000" rows="8" autocomplete="off" style="width: 100%; resize: none; height: 100%;"></textArea>
+                    </span>
+                </div>
+                <br>
+                <div class="col-md-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="pasteToPo_paste"><span class="k-icon k-i-clipboard-text"></span>Paste</span>
+                </div>
+            </div>`;
+
+        let dialog = utils.alertMessage(html, "Paste from Excel", null, null, false);
+
+        $(`#${utils.getFormId()} [name="poContentType"]`).kendoDropDownList({
+            dataSource: {
+                data: [
+                    { text: "KateSpade (CT#, PO#, STYLE#)", value: "poKateSpade" },
+                    { text: "PO# separated by comma (',') ", value: "poComma"},
+                    { text: "PO# separated new line)", value: "poNewline" },
+                ]
+            },
+            dataTextField: "text",
+            dataValueField: "value",
+            change: function (e) {
+                let placeHolder = "Paste contents here, example:\n";
+                if (this.value() == "poKateSpade")
+                    placeHolder += "CT#54370 PO#PO0000740 STYLE#SKBR2019\nCT#54457 PO#PO0000741 STYLE#SKBR2014";
+                else if (this.value() == "poComma")
+                    placeHolder += "PO0000740,PO0000741";
+                else if (this.value() == "poNewline")
+                    placeHolder += "PO0000740\nPO0000741";
+
+                $(`#${utils.getFormId()} [name="pastedContent"]`).attr("placeHolder", placeHolder);
+            }
+        }).data("kendoDropDownList").trigger("change");
+
+        $(`#${utils.getFormId()} [name="pasteToPo_paste"]`).click(function () {
+            let lineNo = 1;
+            if (!utils.isEmptyString($(`#${utils.getFormId()} [name="pastedContent"]`).val())) {
+                let pastedContents = $(`#${utils.getFormId()} [name="pastedContent"]`).val().trim();
+                let grid = $(`#${utils.getMasterFormId()} [name="grid_BookingPos"]`).data("kendoGrid");
+                let poContentType = $(`#${utils.getFormId()} [name="poContentType"]`).data("kendoDropDownList").value();
+
+                if (poContentType == "poKateSpade") {
+                    pastedContents.split("\n").forEach(function (strline) {
+                        let str = strline.trim();
+                        if (!utils.isEmptyString(str)) {
+                            if (str.indexOf("CT#") != -1 && str.indexOf("PO#") != -1 && str.indexOf("STYLE#") != -1) {
+                                let materialNo = "";
+                                let styleNo = "";
+                                let poNo = "";
+                                str.split(" ").forEach(function (value) {
+                                    if (value.trim().startsWith("CT#"))
+                                        materialNo = value.replace("CT#", "").trim();
+                                    else if (value.trim().startsWith("STYLE#"))
+                                        styleNo = value.replace("STYLE#", "").trim();
+                                    else if (value.trim().startsWith("PO#"))
+                                        poNo = value.replace("PO#", "").trim();
+
+                                    if (!utils.isEmptyString(poNo) && !utils.isEmptyString(styleNo) && !utils.isEmptyString(materialNo)) {
+                                        grid.dataSource.data().push({
+                                            LINE_NO: lineNo,
+                                            PO_NO: poNo,
+                                            STYLE_NO: styleNo,
+                                            MATERIAL_NO: materialNo,
+                                            QTY: 0,
+                                            UNIT: "CTNS",
+                                        });
+                                        lineNo++;
+                                    }
+                                });
+                            }
+
+                        }
+                    });
+                } else if (poContentType == "poComma") {
+                    pastedContents.split(",").forEach(function (strline) {
+                        let str = strline.trim();
+                        if (!utils.isEmptyString(str)) {
+                            grid.dataSource.data().push({
+                                LINE_NO: lineNo,
+                                PO_NO: str,
+                                QTY: 0,
+                                UNIT: "CTNS",
+                            });
+                            lineNo++;
+                        };
+                    });
+                } else if (poContentType == "poNewline") {
+                    pastedContents.split("\n").forEach(function (strline) {
+                        let str = strline.trim();
+                        if (!utils.isEmptyString(str)) {
+                            grid.dataSource.data().push({
+                                LINE_NO: lineNo,
+                                PO_NO: str,
+                                QTY: 0,
+                                UNIT: "CTNS",
+                            });
+                            lineNo++;
+                        };
+                    });
+                }
+            }
+            if (lineNo == 1)
+                utils.showNotification("Pasted PO failed, content format is incorrect.", "error", ".k-widget.k-window .k-i-close");
+            else
+                dialog.destroy();
+        });
+    }
+
+    pasteToWarehouse = function () {
+        let html = `
+            <div id="${utils.getFormId()}_pasteToWarehouse">
+                <div class="row col-sm-12" style="width: 650px;">
+                    <div name="pastedContent" style="height: 450px;" />
+                </div>
+                <br>
+                <div class="col-md-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 30%" name="pasteToWarehouse_paste"><span class="k-icon k-i-clipboard-text"></span>Paste To Warehouse</span>
+                </div>
+            </div>`;
+
+        let dialog = utils.alertMessage(html, "Paste from Excel (Warehouse)", null, null, false);
+
+        $(`#${utils.getFormId()} [name="pastedContent"]`).kendoSpreadsheet({
+            toolbar: false,
+            sheetsbar: false,
+            sheets: [{
+                rows: [{
+                    cells: [{ value: "日期", enable: false, background: "rgb(167,214,255)", color: "rgb(0,62,117)", bold: true },
+                        { value: "件数", enable: false, background: "rgb(167,214,255)", color: "rgb(0,62,117)", bold: true },
+                        { value: "重量", enable: false, background: "rgb(167,214,255)", color: "rgb(0,62,117)", bold: true },
+                        { value: "体积", enable: false, background: "rgb(167,214,255)", color: "rgb(0,62,117)", bold: true },
+                        { value: "货物尺寸", enable: false, background: "rgb(167,214,255)", color: "rgb(0,62,117)", bold: true }]
+                },],
+                columns: [{ width: 120 }, { width: 50 }, { width: 50 }, { width: 50 }, { width: 280 },],
+            }],
+            paste: function (e) {
+                e.preventDefault();
+                let cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"];
+                let rowIndex = e.range.topLeft().row + 1;
+                let sheet = $(e.sender.element).data("kendoSpreadsheet").sheets()[0];
+                e.clipboardContent.data.forEach(function (row) {
+                    let colIndex = e.range.topLeft().col;
+                    row.forEach(function (cell) {
+                        sheet.range(`${cols[colIndex]}${rowIndex}`).value(cell.value);
+                        colIndex++;
+                    });
+                    rowIndex++;
+                });
+            }
+        });
+
+        $(`#${utils.getFormId()} [name="pasteToWarehouse_paste"]`).click(function () {
+            let lineNo = 1;
+            let warehouse = [];
+            let rows = $(`#${utils.getFormId()} [name="pastedContent"]`).data("kendoSpreadsheet").toJSON().sheets[0].rows;
+
+            try {
+                rows.forEach(function (row) {
+                    //skip the header row
+                    if (rows.indexOf(row) > 0) {
+                        //[0]: date, [1]: ctns, [2]: gwts, [3]: cbm, [4]: dim
+                        row.cells[4].value.split("\n").forEach(function (dim) {
+                            if (!utils.isEmptyString(dim.trim())) {
+                                warehouse.push({
+                                    CREATE_DATE: utils.parseDate(row.cells[0].value) ?? new Date(),
+                                    PACKAGE_TYPE: "CTNS",
+                                    CTNS: eval(dim.split("*")[3].substring(0, dim.split("*")[3].indexOf("="))),
+                                    GWTS: utils.roundUp(eval(row.cells[2].value) * (eval(dim.split("*")[3].substring(0, dim.split("*")[3].indexOf("="))) / eval(row.cells[1].value)), 2),
+                                    VWTS: utils.roundUp(eval(dim.split("*")[0]) * eval(dim.split("*")[1]) * eval(dim.split("*")[2]) * eval(dim.split("*")[3].substring(0, dim.split("*")[3].indexOf("="))) / 1000000 / 0.006, 2),
+                                    LENGTH: eval(dim.split("*")[0]),
+                                    WIDTH: eval(dim.split("*")[1]),
+                                    HEIGHT: eval(dim.split("*")[2]),
+                                    MEASURE_UNIT: "C",
+                                    DIMENSION: `${eval(dim.split("*")[0])}x${eval(dim.split("*")[1])}x${eval(dim.split("*")[2])}C\\${eval(dim.split("*")[3].substring(0, dim.split("*")[3].indexOf("=")))}`,
+                                    IS_PICKUP: "N",
+                                    IS_DEL: "N",
+                                    IS_DAM: "N",
+                                });
+                                lineNo++;
+                            }
+                        });
+                    }
+                });
+            } catch (err) {
+                utils.showNotification(`Paste to warehouse failed: ${err}`, "error", ".k-widget.k-window .k-i-close");
+                return;
+            }
+
+            if (lineNo == 1)
+                utils.showNotification("Paste to warehouse failed, content format is incorrect.", "error", ".k-widget.k-window .k-i-close");
+            else {
+                let grid = $(`#${utils.getMasterFormId()} [name="grid_WarehouseHistories"]`).data("kendoGrid");
+                grid.dataSource.data(warehouse);
+                dialog.destroy();
+            }
+        });
+    }
 }

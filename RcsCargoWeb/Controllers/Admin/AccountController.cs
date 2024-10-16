@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using DbUtils.Models.Admin;
 using Newtonsoft.Json;
 
 namespace RcsCargoWeb.Controllers.Admin
@@ -61,7 +62,7 @@ namespace RcsCargoWeb.Controllers.Admin
             {
                 if (status)
                 {
-                    admin.UpdateLastRequestTime(userId, Session.SessionID);
+                    admin.UpdateLastRequestTime(userId, Session.SessionID, Request.UserHostAddress, HttpContext.Request.UserAgent);
                     jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\" }";
                 }
                 else
@@ -99,5 +100,11 @@ namespace RcsCargoWeb.Controllers.Admin
             user.PASSWORD = string.Empty;
             return Json(user, JsonRequestBehavior.AllowGet);
         }
+
+        //[Route("UpdateUser")]
+        //public ActionResult UpdateUser(User user)
+        //{
+
+        //}
     }
 }

@@ -925,7 +925,7 @@ var indexPages = [
         additionalScript: "initAirReport",
         searchControls: [
             { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
-            { label: "Date Range", type: "dateRange", name: "dateRange" },
+            { label: "Date Range", type: "dateRange", name: "dateRange", daysBefore: 30 },
         ],
         groups: [
             {
@@ -972,8 +972,10 @@ var indexPages = [
                     { label: "Weight Difference Report", name: "weightDifferenceReport" },
                     { label: "X-Ray Report", name: "xrayReport" },
                     { label: "Missing Invoice Report", name: "missingInvoiceReport" },
-                    { label: "Invoice Report", name: "invoiceReport" },
-                    { label: "Payment Voucher Report", name: "pvReport" },
+                    { label: "Invoice Report", name: "invoiceReport", icon: "k-i-pdf" },
+                    { label: "Invoice Report (Other Job)", name: "invoiceReportOtherJob", icon: "k-i-excel" },
+                    { label: "Payment Voucher Report", name: "pvReport", icon: "k-i-excel" },
+                    { label: "SHA / CN Reports", name: "shaReport", icon: "k-i-excel" },
                 ]
             },
             {
@@ -1308,7 +1310,7 @@ var masterForms = [
             {
                 name: "mainInfo",
                 title: "General Information",
-                colWidth: 5,
+                colWidth: 6,
                 formControls: [
                     { label: "First Flight", type: "label" },
                     { label: "MAWB #", type: "text", name: "MAWB" },
@@ -1335,7 +1337,7 @@ var masterForms = [
             {
                 name: "2nd3rdFlights",
                 title: "Second / Third Flights",
-                colWidth: 5,
+                colWidth: 6,
                 collapse: true,
                 formControls: [
                     { label: "Second Flight", type: "label" },
@@ -1355,9 +1357,9 @@ var masterForms = [
                 title: "Main Contact Information",
                 colWidth: 6,
                 formControls: [
-                    { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
-                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
-                    { label: "Notify Party", type: "customerAddr", name: "NOTIFY" },
+                    { label: "Shipper", type: "customerAddr", name: "SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE", colWidth: 6 },
+                    { label: "Notify Party", type: "customerAddr", name: "NOTIFY", colWidth: 6 },
                 ]
             },
             {
@@ -1365,8 +1367,8 @@ var masterForms = [
                 title: "Other Contact Information",
                 colWidth: 6,
                 formControls: [
-                    { label: "Agent", type: "customerAddr", name: "AGENT" },
-                    { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE" },
+                    { label: "Agent", type: "customerAddr", name: "AGENT", colWidth: 6 },
+                    { label: "Issuing Carrier", type: "customerAddr", name: "ISSUE", colWidth: 6 },
                 ]
             },
             {
@@ -1681,7 +1683,7 @@ var masterForms = [
                 { name: "CONSIGNEE", required: "true" },
                 { name: "ORIGIN_CODE", required: "true" },
                 { name: "DEST_CODE", required: "true" },
-                { name: "VWTS_FACTOR", required: "true" },
+                { name: "VWTS_FACTOR", required: "true", defaultValue: "6000" },
             ],
             validation: {
                 rules: {
@@ -1706,8 +1708,8 @@ var masterForms = [
                 formControls: [
                     { label: "Booking #", type: "text", name: "BOOKING_NO", colWidth: 6 },
                     { label: "Booking Type", type: "buttonGroup", dataType: "bookingType", name: "BOOKING_TYPE", colWidth: 6 },
-                    { label: "Shipper", type: "customerAddr", name: "SHIPPER" },
-                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE" },
+                    { label: "Shipper", type: "customerAddr", name: "SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddr", name: "CONSIGNEE", colWidth: 6 },
                     { label: "Document Received", type: "switch", name: "IS_DOC_REC", colWidth: 6 },
                     { label: "Booking Approved", type: "switch", name: "IS_BOOKING_APP", colWidth: 6 },
                     { label: "Approval #", type: "text", name: "APPROVAL_NO", colWidth: 6 },
@@ -1730,9 +1732,8 @@ var masterForms = [
                     { label: "Cubic Feet", type: "number", name: "CUFT", colWidth: 6 },
                     { label: "Incoterm", type: "incoterm", name: "INCOTERM_2012", colWidth: 6 },
                     { label: "Port", type: "port", name: "INCOTERM_2012_PORT", colWidth: 6 },
-                    /*{ label: "", type: "emptyBlock", colWidth: 6 },*/
-                    { label: "Notify Party 1", type: "customerAddr", name: "NOTIFY1" },
-                    { label: "Notify Party 2", type: "customerAddr", name: "NOTIFY2" },
+                    { label: "Notify Party 1", type: "customerAddr", name: "NOTIFY1", colWidth: 6 },
+                    { label: "Notify Party 2", type: "customerAddr", name: "NOTIFY2", colWidth: 6 },
                     { label: "Handle Information", type: "textArea", name: "HANDLE_INFO", colWidth: 6 },
                     { label: "Marks & Numbers", type: "textArea", name: "MARKS_NO", colWidth: 6 },
                     { label: "Goods Description", type: "textArea", name: "GOOD_DESC", colWidth: 6 },
@@ -1749,6 +1750,7 @@ var masterForms = [
                 formControls: [
                     {
                         label: "", type: "grid", name: "BookingPos",
+                        toolbar: ["create", "cancel", { name: "pasteToPo", text: "Paste From Excel", iconClass: "k-icon k-i-clipboard-text", callbackFunction: "controllers.airBooking.pasteToPo" },],
                         columns: [
                             { title: "PO#", field: "PO_NO", width: 120 },
                             { title: "Style #", field: "STYLE_NO", width: 120 },
@@ -1789,6 +1791,7 @@ var masterForms = [
                 formControls: [
                     {
                         label: "", type: "grid", name: "WarehouseHistories",
+                        toolbar: ["create", "cancel", { name: "pasteToWarehouse", text: "Paste From Excel", iconClass: "k-icon k-i-clipboard-text", callbackFunction: "controllers.airBooking.pasteToWarehouse" },],
                         columns: [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
@@ -1835,6 +1838,7 @@ var masterForms = [
                             { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
                         ],
                         fields: {
+                            SEQ: { type: "lineNo" },
                             CTNS: { type: "number", validation: { required: true } },
                             PACKAGE_TYPE: { validation: { required: true } },
                             CREATE_DATE: { type: "date", validation: { required: true } },
@@ -1848,6 +1852,9 @@ var masterForms = [
                             IS_PICKUP: { type: "string", controlType: "checkBox" },
                             IS_DEL: { type: "string", controlType: "checkBox" },
                             IS_DAM: { type: "string", controlType: "checkBox" },
+                            CREATE_USER: { type: "string" },
+                            MODIFY_USER: { type: "string" },
+                            MODIFY_DATE: { defaultValue: new Date().toISOString() },
                         },
                         formulas: [
                             { fieldName: "DIMENSION", formula: `{LENGTH}x{WIDTH}x{HEIGHT}C\\{CTNS}` },
@@ -1942,10 +1949,10 @@ var masterForms = [
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airHawb.selectMawb", colWidth: 6 },
                     { label: "Booking #", type: "unUsedBooking", name: "BOOKING_NO", callbackFunction: "controllers.airHawb.selectUnusedBooking", colWidth: 6 },
                     { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
-                    { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER" },
-                    { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE" },
-                    { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY" },
-                    { label: "Agent", type: "customerAddrEditable", name: "AGENT" },
+                    { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE", colWidth: 6 },
+                    { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY", colWidth: 6 },
+                    { label: "Agent", type: "customerAddrEditable", name: "AGENT", colWidth: 6 },
                 ]
             },
             {
@@ -1954,9 +1961,9 @@ var masterForms = [
                 collapse: true,
                 colWidth: 8,
                 formControls: [
-                    { label: "Notify Party 1", type: "customerAddrEditable", name: "NOTIFY1" },
-                    { label: "Notify Party 2", type: "customerAddrEditable", name: "NOTIFY2" },
-                    { label: "Notify Party 3", type: "customerAddrEditable", name: "NOTIFY3" },
+                    { label: "Notify Party 1", type: "customerAddrEditable", name: "NOTIFY1", colWidth: 6 },
+                    { label: "Notify Party 2", type: "customerAddrEditable", name: "NOTIFY2", colWidth: 6 },
+                    { label: "Notify Party 3", type: "customerAddrEditable", name: "NOTIFY3", colWidth: 6 },
                 ]
             },
             {
@@ -2390,8 +2397,9 @@ var masterForms = [
                 title: "Invoice Information",
                 colWidth: 12,
                 formControls: [
-                    { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 6 },
-                    { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 6 },
+                    { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 4 },
+                    { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "Invoice Type", type: "buttonGroup", name: "INV_TYPE", dataType: "invoiceType", colWidth: 4 },
                     { label: "Category", type: "buttonGroup", name: "INV_CATEGORY", dataType: "invoiceCategory", colWidth: 4 },
                     { label: "Print Date", type: "buttonGroup", name: "SHOW_DATE_TYPE", dataType: "printDateType", colWidth: 4 },
@@ -2399,8 +2407,8 @@ var masterForms = [
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airInvoice.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airInvoice.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airInvoice.selectLot", colWidth: 3 },
-                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
-                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 8 },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
                     { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },
                     { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE", colWidth: 4 },
@@ -2489,6 +2497,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Save as Invoice", icon: "track-changes", click: function () { controllers.airPv.saveAsInvoiceDialog() } },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "AirPaymentVoucherPreview", text: "Print PV", icon: "file-txt", type: "pdf" },
@@ -2540,8 +2549,8 @@ var masterForms = [
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airPv.selectLot", colWidth: 3 },
-                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 6 },
-                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 8 },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
                     { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },
                     { label: "Flight Date", type: "dateTime", name: "FLIGHT_DATE", colWidth: 4 },
@@ -2815,12 +2824,14 @@ export default class {
                             localStorage.removeItem("sessionId");
                             window.open("../Home/Login", "_self");
                         }
-
-                        if (data.isEmptyString(user.DEFAULT_COMPANY))
-                            companyId = user.UserCompanies[0].COMPANY_ID;
-                        else
-                            companyId = user.DEFAULT_COMPANY;
-
+                        if (!utils.isEmptyString(localStorage.companyId)) {
+                            companyId = localStorage.companyId;
+                        } else {
+                            if (data.isEmptyString(user.DEFAULT_COMPANY))
+                                companyId = user.UserCompanies[0].COMPANY_ID;
+                            else
+                                companyId = user.DEFAULT_COMPANY;
+                        }
 
                         if ($("#dashboardMain").length == 0) {
                             $.ajax({
@@ -2846,6 +2857,7 @@ export default class {
                                     $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
                                         console.log(sender.target);
                                         data.companyId = $(sender.target).text().trim();
+                                        localStorage.companyId = data.companyId;
                                         $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
                                     });
                                     $("[data-widget='control-logout']").bind("click", function () {

@@ -239,11 +239,12 @@
 
         //kendoDateRangePicker
         $(`#${masterForm.id} div[type=dateRange]`).each(function () {
+            //console.log(utils.getFormControlByName($(this).attr("name")));
             $(this).kendoDateRangePicker({
                 labels: false,
                 format: data.dateFormat,
                 range: {
-                    start: utils.addDays(new Date(), -60),
+                    start: utils.addDays(new Date(), (utils.getFormControlByName($(this).attr("name")).daysBefore ?? 60) * -1),
                     end: new Date()
                 }
             });
@@ -387,7 +388,7 @@
                                 } catch { }
                             }
                             if (filterValue == "")
-                                options.success([]);
+                                options.success(data.masterRecords.customers);
                             else {
                                 $.ajax({
                                     url: "../Home/GetCustomers",
@@ -437,7 +438,7 @@
                             else {
                                 let searchValue = utils.formatText(filterValue);
                                 let customers = data.masterRecords.customers.filter(a =>
-                                    a.CUSTOMER_CODE.startsWith(searchValue) || a.CUSTOMER_DESC.indexOf(searchValue) != -1 || a.SHORT_DESC.startsWith(searchValue)
+                                    a.CUSTOMER_CODE.startsWith(searchValue) || a.CUSTOMER_DESC.indexOf(searchValue) != -1 || (a.SHORT_DESC ?? "").startsWith(searchValue)
                                 );
                                 if (customers.length > 0) {
                                     options.success(customers);
@@ -758,9 +759,10 @@
         });
 
         //kendoDropDownList for selectHawb
-        $(`#${masterForm.id} input[type=selectHawb]`).each(function () {
-            var filterValue = "";
-            var ddl = $(this).kendoDropDownList({
+        $(`#${masterForm.id} input[type^=selectHawb]`).each(function () {
+            let filterValue = "";
+            let typeAttr = $(this).attr("type");
+            let ddl = $(this).kendoDropDownList({
                 autoWidth: true,
                 filter: "startswith",
                 dataTextField: "HAWB_NO",
@@ -784,7 +786,7 @@
                                 options.success([]);
                             else {
                                 $.ajax({
-                                    url: "../Air/Hawb/GetHawbs",
+                                    url: typeAttr == "selectHawb" ? "../Air/Hawb/GetHawbs" : "../Air/Hawb/GetHawbsAllOrigin",
                                     data: {
                                         searchValue: filterValue,
                                         companyId: data.companyId,

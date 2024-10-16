@@ -261,6 +261,18 @@ namespace RcsCargoWeb.Controllers
                 case "AirMawbShipperProfitLoss": reportName = ReportName.AirMawbShipperProfitLoss; break;
                 case "AirOffshoreSummaryJobProfitLoss": reportName = ReportName.AirOffshoreSummaryJobProfitLoss; break;
                 case "AirHKGSummaryJobProfitLoss": reportName = ReportName.AirHKGSummaryJobProfitLoss; break;
+
+                case "AirAutoReport_MissingInvoiceReport_Origin": reportName = ReportName.AirAutoReport_MissingInvoiceReport_Origin; break;
+                case "AirInvoiceReport": reportName = ReportName.AirInvoiceReport; break;
+                case "AirInvoiceReportVat": reportName = ReportName.AirInvoiceReportVat; break;
+                case "AirInvoiceReport_HKG_Summary": reportName = ReportName.AirInvoiceReport_HKG_Summary; break;
+                case "AirInvoiceReport_SHA_Account": reportName = ReportName.AirInvoiceReport_SHA_Account; break;               //出口开票明细
+                case "AirInvoiceReport_SHA_Account_Import": reportName = ReportName.AirInvoiceReport_SHA_Account_Import; break; //进口开票明细
+                case "AirPaymentReport_SHA_Account": reportName = ReportName.AirPaymentReport_SHA_Account; break;               //付款账单明细
+                case "AirInvoiceReport_SHA_DN": reportName = ReportName.AirInvoiceReport_SHA_DN; break;                         //account statement (对账单)
+                case "AirOtherJobInvoiceReport": reportName = ReportName.AirOtherJobInvoiceReport; break;
+                case "AirPVReport": reportName = ReportName.AirPVReport; break;
+                case "AirPvTypeReport": reportName = ReportName.AirPvTypeReport; break;
             }
             return reportName;
         }

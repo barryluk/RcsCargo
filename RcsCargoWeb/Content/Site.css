@@ -401,13 +401,13 @@ td.k-edit-cell {
 }
 
 span.menuButton {
-    width: 50%;
+    max-width: 256px;
     margin: 5px;
 }
 
 .kendo-window-alertMessage.k-window-content .dialogFooter {
     text-align: center;
-    margin-bottom: 6px;
+    margin: 6px;
 }
 
 .k-loading-mask {

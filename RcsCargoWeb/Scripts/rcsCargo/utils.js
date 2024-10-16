@@ -171,13 +171,25 @@
     }
 
     getFormControlByName = function (name) {
-        var masterForm = data.masterForms.filter(a => a.formName == utils.getFormId().split("_")[0])[0];
-        var formControl = {};
+        let masterForm = data.masterForms.filter(a => a.formName == utils.getFormId().split("_")[0])[0];
+        let pageSetting = data.indexPages.filter(a => a.pageName == utils.getFormId().split("_")[0].replace("Index", ""))[0];
+        let formControl = {};
         if (masterForm != null) {
             masterForm.formGroups.forEach(function (group) {
                 if (group.formControls.filter(a => a.name == name).length == 1)
                     formControl = group.formControls.filter(a => a.name == name)[0];
             });
+        }
+        if (pageSetting != null) {
+            if (pageSetting.searchControls.filter(a => a.name == name).length == 1)
+                formControl = pageSetting.searchControls.filter(a => a.name == name)[0];
+
+            if (pageSetting.groups != null) {
+                pageSetting.groups.forEach(function (group) {
+                    if (group.controls.filter(a => a.name == name).length == 1)
+                        formControl = group.controls.filter(a => a.name == name)[0];
+                });
+            }
         }
         return formControl;
     }
@@ -253,6 +265,12 @@
         return id;
     }
 
+    parseDate = function (value) {
+        try {
+            return kendo.parseDate(value);
+        } catch { return null; }
+    }
+
     formatDateTime = function (dataItem, format = "date") {
         if (format == "date")
             format = data.dateFormat;
@@ -305,6 +323,11 @@
                             rowData[field] = utils.formatText(item[field]);
                     }
                 }
+                if (gridConfig.fields[field].type == "lineNo")
+                    rowData[field] = lineNo;
+
+                if (field == "CREATE_USER" || field == "MODIFY_USER")
+                    rowData[field] = data.user.USER_ID;
             }
 
             if (idField != null) {
@@ -501,6 +524,14 @@
         }
     }
 
+    formatSearchText = function (value) {
+        try {
+            return value.toUpperCase().trim() + "%";
+        } catch {
+            return value;
+        }
+    }
+
     formatDateTime = function (value, dateFormat) {
         var date = kendo.parseDate(value);
         if (date != null) {
@@ -633,6 +664,8 @@
                 });
             }
         });
+
+        return alertWin;
     }
 
     confirmMessage = function (msg, eventObj, confirmCallback, cancelCallback, title) {

@@ -7,8 +7,8 @@
         //id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         var formName = id.split("_")[0];
         this.keyValue = id.split("_")[1];
-        this.companyId = id.split("_")[2];
-        this.frtMode = id.split("_")[3];
+        this.companyId = id.indexOf("RCSHKG_OFF") == -1 ? id.split("_")[2] : "RCSHKG_OFF";
+        this.frtMode = id.substring(id.lastIndexOf("_") + 1);
 
         console.log(id);
 
@@ -84,7 +84,7 @@
                         if (control.name == null) {
                             if (control.type == "emptyBlock") {
                                 html += `
-                                    <div class="row ${control.colWidth}">
+                                    <div class="col-xl-${control.colWidth}">
                                         <label class="col-sm-3 col-form-label">${control.label}</label>
                                         <div class="col-sm-9">
                                         </div>
@@ -136,11 +136,14 @@
                         } else if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
                             var readonlyAttr = "";
                             if (control.type == "customerAddr" || control.type == "customerAddrEditable") {
+                                var colWidth = "";
+                                if (control.colWidth != null)
+                                    colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
                                 if (control.type == "customerAddr") {
                                     readonlyAttr = "readonly";
                                 }
                                 html += `
-                                    <div class="row col-xl-6 col-lg-12">
+                                    <div class="row ${colWidth}">
                                         <label class="col-sm-3 col-form-label">${control.label}</label>
                                         <div class="col-sm-9">
                                             <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${required} />

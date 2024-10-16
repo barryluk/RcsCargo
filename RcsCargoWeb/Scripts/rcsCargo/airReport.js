@@ -8,18 +8,18 @@
 
         $(`#${pageSetting.id} .menuButton`).each(function () {
             $(this).click(function () {
-                testObj = $(this);
+                let reportName = "";
+                let paras = controllers.airReport.getCommonParas();
+                //testObj = $(this);
                 switch ($(this).attr("name")) {
                     case "bookingReport":
-                        var paras = controllers.airReport.getCommonParas();
-                        var reportName = "AirBookingReport";
+                        reportName = "AirBookingReport";
                         paras.push({ name: "fileFormat", value: "excel" });
                         utils.getRdlcExcelReport(reportName, paras, "Booking Report");
                         break;
 
                     case "bookingDsr":
-                        var paras = controllers.airReport.getCommonParas();
-                        var reportName = "AirBookingDSR";
+                        reportName = "AirBookingDSR";
                         utils.getExcelReport(reportName, paras, "Booking DSR");
                         break;
 
@@ -43,6 +43,10 @@
                         controllers.airReport.dialogCustomizeShipmentReport();
                         break;
 
+                    case "customerTonnageReport":
+                        controllers.airReport.dialogCustomerTonnageReport();
+                        break;
+
                     case "jobProfitLoss":
                         controllers.airReport.dialogJobProfitLossReport();
                         break;
@@ -52,7 +56,6 @@
                         break;
 
                     case "otherJobSummaryProfitLoss":
-                        var paras = controllers.airReport.getCommonParas();
                         utils.getExcelReport("AirSummaryOtherJobProfitLoss", paras, "Other Job Profit Loss Report");
                         break;
 
@@ -67,13 +70,29 @@
                     case "offshoreSummaryProfitLoss":
                         controllers.airReport.dialogOffshoreSummaryProfitLoss();
                         break;
+
+                    case "invoiceReport":
+                        controllers.airReport.dialogInvoiceReport();
+                        break;
+
+                    case "invoiceReportOtherJob":
+                        utils.getExcelReport("AirOtherJobInvoiceReport", paras, "Invoice Report (Other Job)");
+                        break;
+
+                    case "pvReport":
+                        controllers.airReport.dialogPvReport();
+                        break;
+
+                    case "shaReport":
+                        controllers.airReport.dialogShaReport();
+                        break;
                 }
             });
         });
     }
 
     dialogDailyBooking = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_dailyBooking" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Reference Date</label>
                 <div class="col-sm-8">
@@ -108,19 +127,22 @@
             </div>`;
 
         utils.alertMessage(html, "Daily Booking", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value(2);
 
         $(`[name^="dailyBooking_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var buttonName = $(this).attr("name");
-            var origin = $(`[name="dailyBooking_origin"]`).data("kendoDropDownList").value();
-            var dest = $(`[name="dailyBooking_dest"]`).data("kendoDropDownList").value();
-            var exceptPorts = $(`[name="dailyBooking_excludedPorts"]`).val();
-            var showSr = $(`[name="dailyBooking_showSr"]`).data("kendoSwitch").value();
+            let paras = controllers.airReport.getCommonParas();
+            let buttonName = $(this).attr("name");
+            let refDate = $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value() ?? new Date();
+            let days = $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value() ?? 0;
+            let origin = $(`[name="dailyBooking_origin"]`).data("kendoDropDownList").value();
+            let dest = $(`[name="dailyBooking_dest"]`).data("kendoDropDownList").value();
+            let exceptPorts = $(`[name="dailyBooking_excludedPorts"]`).val();
+            let showSr = $(`[name="dailyBooking_showSr"]`).data("kendoSwitch").value();
 
+            paras.filter(a => a.name == "DateTo")[0].value = kendo.toString(utils.addDays(refDate, days), "yyyy/M/d");
             paras.push({ name: "Origin", value: utils.isEmptyString(origin) ? "%" : origin });
             paras.push({ name: "Dest", value: utils.isEmptyString(dest) ? "%" : dest });
             paras.push({ name: "ExceptPorts", value: utils.formatText(exceptPorts) });
@@ -132,8 +154,8 @@
                 else
                     controls.openReportViewer("AirDailyBooking_NoSR", paras);
             } else if (buttonName == "dailyBooking_PrintExcel") {
-                var sender = $(this).parentsUntil(".k-widget.k-window").last();
-                utils.getExcelReport("AirDailyBookingExcel", paras, "Daily Booking", sender);
+                //let sender = $(this).parentsUntil(".k-widget.k-window").last();
+                utils.getExcelReport("AirDailyBookingExcel", paras, "Daily Booking");
             } else if (buttonName == "dailyBooking_PrintCbm") {
                 controls.openReportViewer("AirDailyBookingCBM", paras);
             }
@@ -142,7 +164,7 @@
     }
 
     dialogDailyBookingOverseas = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_dailyBookingOverseas" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Reference Date</label>
                 <div class="col-sm-8">
@@ -163,30 +185,29 @@
             </div>`;
 
         utils.alertMessage(html, "Daily Booking For Overseas", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value(2);
         $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value(2);
 
         $(`[name="dailyBookingOverseas_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var refDate = $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value();
-            var beforeDays = $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value();
-            var afterDays = $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value();
-            var sender = $(this).parentsUntil(".k-widget.k-window").last();
+            let paras = controllers.airReport.getCommonParas();
+            let refDate = $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value() ?? new Date();
+            let beforeDays = $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value() ?? 2;
+            let afterDays = $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value() ?? 2;
 
             paras.push({ name: "ReferenceDate", value: refDate.toISOString() });
             paras.filter(a => a.name == "DateFrom")[0].value = utils.addDays(refDate, beforeDays * -1).toISOString();
             paras.filter(a => a.name == "DateTo")[0].value = utils.addDays(refDate, afterDays).toISOString();
             paras.push({ name: "fileFormat", value: "excel" });
 
-            utils.getRdlcExcelReport("AirDailyBooking_Oversea", paras, "Daily Booking For Overseas", sender);
+            utils.getRdlcExcelReport("AirDailyBooking_Oversea", paras, "Daily Booking For Overseas");
         });
     }
 
     dialogShipmentReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_shipmentReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Group Code</label>
                 <div class="col-sm-8">
@@ -224,7 +245,7 @@
             </div>`;
 
         utils.alertMessage(html, "Shipment Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
         $(`[name="shipmentReport_sortingOrder"]`).kendoDropDownList({
             dataTextField: "text",
@@ -245,15 +266,15 @@
         });
 
         $(`[name^="shipmentReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var buttonName = $(this).attr("name");
-            var groupCode = $(`[name="shipmentReport_groupCode"]`).data("kendoDropDownList").value();
-            var shipper = $(`[name="shipmentReport_shipper"]`).data("kendoDropDownList").value();
-            var consignee = $(`[name="shipmentReport_consignee"]`).data("kendoDropDownList").value();
-            var agent = $(`[name="shipmentReport_agent"]`).data("kendoDropDownList").value();
-            var origin = $(`[name="shipmentReport_origin"]`).data("kendoDropDownList").value();
-            var dest = $(`[name="shipmentReport_dest"]`).data("kendoDropDownList").value();
-            var sortingOrder = $(`[name="shipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
+            let paras = controllers.airReport.getCommonParas();
+            let buttonName = $(this).attr("name");
+            let groupCode = $(`[name="shipmentReport_groupCode"]`).data("kendoDropDownList").value();
+            let shipper = $(`[name="shipmentReport_shipper"]`).data("kendoDropDownList").value();
+            let consignee = $(`[name="shipmentReport_consignee"]`).data("kendoDropDownList").value();
+            let agent = $(`[name="shipmentReport_agent"]`).data("kendoDropDownList").value();
+            let origin = $(`[name="shipmentReport_origin"]`).data("kendoDropDownList").value();
+            let dest = $(`[name="shipmentReport_dest"]`).data("kendoDropDownList").value();
+            let sortingOrder = $(`[name="shipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
 
             paras.push({ name: "GroupCode", value: utils.isEmptyString(groupCode) ? "%" : groupCode });
             paras.push({ name: "ShipperCode", value: utils.isEmptyString(shipper) ? "%" : shipper });
@@ -269,15 +290,14 @@
             if (buttonName == "shipmentReport_Print") {
                 controls.openReportViewer("AirShipmentReport", paras);
             } else if (buttonName == "shipmentReport_PrintExcel") {
-                var sender = $(this).parentsUntil(".k-widget.k-window").last();
                 paras.push({ name: "fileFormat", value: "excel" });
-                utils.getRdlcExcelReport("AirShipmentReport", paras, "Shipment Report", sender);
+                utils.getRdlcExcelReport("AirShipmentReport", paras, "Shipment Report");
             }
         });
     }
 
     dialogShipmentTrackingReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_shipmentTrackingReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Group Code</label>
                 <div class="col-sm-8">
@@ -290,22 +310,20 @@
             </div>`;
 
         utils.alertMessage(html, "Shipment Tracking Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="shipmentTrackingReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var buttonName = $(this).attr("name");
-            var sender = $(this).parentsUntil(".k-widget.k-window").last();
-            var groupCode = $(`[name="shipmentTrackingReport_groupCode"]`).data("kendoDropDownList").value();
+            let paras = controllers.airReport.getCommonParas();
+            let groupCode = $(`[name="shipmentTrackingReport_groupCode"]`).data("kendoDropDownList").value();
             paras.push({ name: "GroupCode", value: utils.isEmptyString(groupCode) ? "%" : groupCode });
             paras.push({ name: "fileFormat", value: "excel" });
-            utils.getRdlcExcelReport("AirShipmentTrackingReport", paras, "Shipment Tracking Report", sender);
+            utils.getRdlcExcelReport("AirShipmentTrackingReport", paras, "Shipment Tracking Report");
         });
     }
 
     dialogCustomizeShipmentReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_customizeShipmentReport" style="width: 600px">
                 <label class="col-sm-3 col-form-label">Group Code</label>
                 <div class="col-md-9">
@@ -339,7 +357,7 @@
             </div>`;
 
         utils.alertMessage(html, "Customize Shipment Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="customizeShipmentReport_sortingOrder"]`).kendoDropDownList({
@@ -439,16 +457,15 @@
         });
 
         $(`[name="customizeShipmentReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var groupCode = $(`[name="customizeShipmentReport_groupCode"]`).data("kendoDropDownList").value();
-            var shipper = $(`[name="customizeShipmentReport_shipper"]`).data("kendoDropDownList").value();
-            var consignee = $(`[name="customizeShipmentReport_consignee"]`).data("kendoDropDownList").value();
-            var agent = $(`[name="customizeShipmentReport_agent"]`).data("kendoDropDownList").value();
-            var sortingOrder = $(`[name="customizeShipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
-            var selectedItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").items();
-            var dataItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").dataItems();
-            var selectedFields = [];
-            var sender = $(this).parentsUntil(".k-widget.k-window").last();
+            let paras = controllers.airReport.getCommonParas();
+            let groupCode = $(`[name="customizeShipmentReport_groupCode"]`).data("kendoDropDownList").value();
+            let shipper = $(`[name="customizeShipmentReport_shipper"]`).data("kendoDropDownList").value();
+            let consignee = $(`[name="customizeShipmentReport_consignee"]`).data("kendoDropDownList").value();
+            let agent = $(`[name="customizeShipmentReport_agent"]`).data("kendoDropDownList").value();
+            let sortingOrder = $(`[name="customizeShipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
+            let selectedItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").items();
+            let dataItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").dataItems();
+            let selectedFields = [];
 
             selectedItems.each(function () {
                 selectedFields.push({
@@ -463,12 +480,41 @@
             paras.push({ name: "AgentCode", value: utils.isEmptyString(agent) ? "%" : agent });
             paras.push({ name: "SelectedFields", value: selectedFields });
             paras.push({ name: "SortingOrder", value: sortingOrder });
-            utils.getExcelReport("AirCustomizeShipmentReport", paras, "Customize Shipment Report", sender);
+            utils.getExcelReport("AirCustomizeShipmentReport", paras, "Customize Shipment Report");
         });
     }
 
+    dialogCustomerTonnageReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_customerTonnage" style="width: 460px">
+                <label class="col-sm-3 col-form-label">Group code</label>
+                <div class="col-md-9">
+                    <input type="groupCode" class="form-control-dropdownlist" name="pvReport_groupCode" />
+                </div>
+                <label class="col-sm-3 col-form-label">Vendor</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="pvReport_vendor" />
+                </div>
+                <label class="col-sm-3 col-form-label">Consignee</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="pvReport_consignee" />
+                </div>
+                <label class="col-sm-3 col-form-label">Origin Invoice Type</label>
+                <div class="col-sm-9">
+                    <input name="pvReport_originInvType" />
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="pvReport_print"><span class="k-icon k-i-excel"></span>Print</span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "Job Profit & Loss Report", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.kendo.renderFormControl_kendoUI(formSetting);
+    }
+
     dialogJobProfitLossReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_jobProfitLossReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Job #</label>
                 <div class="col-sm-8">
@@ -485,13 +531,13 @@
             </div>`;
 
         utils.alertMessage(html, "Job Profit & Loss Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="jobProfitLossReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var jobNo = $(`[name="jobProfitLossReport_jobNo"]`).data("kendoDropDownList").value();
-            var mawbNo = $(`[name="jobProfitLossReport_mawbNo"]`).data("kendoDropDownList").value();
+            let paras = controllers.airReport.getCommonParas();
+            let jobNo = $(`[name="jobProfitLossReport_jobNo"]`).data("kendoDropDownList").value();
+            let mawbNo = $(`[name="jobProfitLossReport_mawbNo"]`).data("kendoDropDownList").value();
 
             paras.push({ name: "JobNo", value: jobNo });
             paras.push({ name: "MawbNo", value: mawbNo });
@@ -502,7 +548,7 @@
     }
 
     dialogOtherJobProfitLossReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_otherJobProfitLossReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Job #</label>
                 <div class="col-sm-8">
@@ -515,12 +561,12 @@
             </div>`;
 
         utils.alertMessage(html, "Other Job Profit & Loss Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="otherJobProfitLossReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var jobNo = $(`[name="otherJobProfitLossReport_jobNo"]`).data("kendoDropDownList").value();
+            let paras = controllers.airReport.getCommonParas();
+            let jobNo = $(`[name="otherJobProfitLossReport_jobNo"]`).data("kendoDropDownList").value();
 
             paras.push({ name: "JobNo", value: jobNo });
             paras.push({ name: "filename", value: "Other Job Profit & Loss Report" });
@@ -529,7 +575,7 @@
     }
 
     dialogLotProfitLossReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_lotProfitLossReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Lot #</label>
                 <div class="col-sm-8">
@@ -542,12 +588,12 @@
             </div>`;
 
         utils.alertMessage(html, "Lot Profit & Loss Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name="lotProfitLossReport_Print"]`).click(function () {
-            var paras = controllers.airReport.getCommonParas();
-            var lotNo = $(`[name="lotProfitLossReport_lotNo"]`).data("kendoDropDownList").value();
+            let paras = controllers.airReport.getCommonParas();
+            let lotNo = $(`[name="lotProfitLossReport_lotNo"]`).data("kendoDropDownList").value();
 
             paras.push({ name: "LotNo", value: lotNo });
             paras.push({ name: "filename", value: "Lot Profit & Loss Report" });
@@ -556,7 +602,7 @@
     }
 
     dialogSummaryProfitLossReport = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_summaryProfitLossReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Airline</label>
                 <div class="col-sm-8">
@@ -571,13 +617,13 @@
             </div>`;
 
         utils.alertMessage(html, "Summary Profit & Loss Report", null, null, false);
-        var formSetting = { id: utils.getFormId() };
+        let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
         $(`[name^="summaryProfitLossReport_Print"]`).click(function () {
-            var buttonName = $(this).attr("name");
-            var paras = controllers.airReport.getCommonParas("yyyyMMdd");
-            var airline = $(`[name="summaryProfitLossReport_airline"]`).data("kendoDropDownList").value();
+            let buttonName = $(this).attr("name");
+            let paras = controllers.airReport.getCommonParas("yyyyMMdd");
+            let airline = $(`[name="summaryProfitLossReport_airline"]`).data("kendoDropDownList").value();
 
             if (buttonName == "summaryProfitLossReport_Print") {
                 paras.push({ name: "Airline", value: utils.isEmptyString(airline) ? "%" : airline });
@@ -588,16 +634,15 @@
                 paras.push({ name: "filename", value: "Summary Profit & Loss Report (Airline)" });
                 controls.openReportViewer("AirSummaryAirlineProfitLoss", paras);
             } else if (buttonName == "summaryProfitLossReport_PrintBreakdown") {
-                var sender = $(this).parentsUntil(".k-widget.k-window").last();
                 paras = controllers.airReport.getCommonParas();
                 paras.push({ name: "Airline", value: utils.isEmptyString(airline) ? "%" : airline });
-                utils.getExcelReport("AirSummaryProfitLossBreakDown", paras, "Summary Profit Loss Report (Breakdown)", sender);
+                utils.getExcelReport("AirSummaryProfitLossBreakDown", paras, "Summary Profit Loss Report (Breakdown)");
             }
         });
     }
 
     dialogOffshoreSummaryProfitLoss = function () {
-        var html = `
+        let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_offShoreSummaryProfitLossReport" style="width: 460px">
                 <label class="col-sm-4 col-form-label">Origins</label>
                 <div class="col-sm-8">
@@ -614,12 +659,12 @@
         $.ajax({
             url: "../Home/GetOffshoreOrigins",
             success(result) {
-                var origins = [];
+                let origins = [];
                 result.forEach(function (origin) {
                     origins.push({ label: origin, themeColor: "info" });
                 });
 
-                $(`#${utils.getFormId()}_offShoreSummaryProfitLossReport [name="offShoreSummaryProfitLossReport_origins"]`).kendoChipList({
+                $(`#${utils.getFormId()} [name="offShoreSummaryProfitLossReport_origins"]`).kendoChipList({
                     selectable: 'multiple',
                     itemSize: "small",
                     items: origins,
@@ -628,30 +673,185 @@
         });
 
         $(`[name^="offshoreSummaryProfitLossReport_Print"]`).click(function () {
-            var buttonName = $(this).attr("name");
-            var paras = controllers.airReport.getCommonParas();
-            var origins = [];
+            let buttonName = $(this).attr("name");
+            let paras = controllers.airReport.getCommonParas();
+            let origins = [];
             $(`#${utils.getFormId()}_offShoreSummaryProfitLossReport [name="offShoreSummaryProfitLossReport_origins"]`).data("kendoChipList").items().each(function () {
                 if ($(this).hasClass("k-selected"))
                     origins.push($(this).text())
             });
 
             if (buttonName == "offshoreSummaryProfitLossReport_Print") {
-                var sender = $(this).parentsUntil(".k-widget.k-window").last();
                 paras.push({ name: "Origins", value: origins });
-                utils.getExcelReport("AirOffshoreSummaryJobProfitLoss", paras, "Offshore Summary Profit Loss Report", sender);
+                utils.getExcelReport("AirOffshoreSummaryJobProfitLoss", paras, "Offshore Summary Profit Loss Report");
             } else if (buttonName == "offshoreSummaryProfitLossReport_PrintHKG") {
-                var sender = $(this).parentsUntil(".k-widget.k-window").last();
-                utils.getExcelReport("AirHKGSummaryJobProfitLoss", paras, "HKG Summary Profit Loss Report", sender);
+                utils.getExcelReport("AirHKGSummaryJobProfitLoss", paras, "HKG Summary Profit Loss Report");
             }
         });
 
         
     }
 
+    dialogInvoiceReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_invoiceReport" style="width: 460px">
+                <label class="col-sm-3 col-form-label">Payee</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="invoiceReport_payee" />
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="invoiceReport_print"><span class="k-icon k-i-pdf"></span>Print</span>
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="invoiceReport_printVat"><span class="k-icon k-i-pdf"></span>Print (VAT)</span>
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="invoiceReport_hkgSummary"><span class="k-icon k-i-excel"></span>HKG Billing Summary</span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "Invoice Reports", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.kendo.renderFormControl_kendoUI(formSetting);
+
+        $(`#${utils.getFormId()} [name="invoiceReport_print"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas("yyyyMMdd");
+            paras.push({ name: "fileFormat", value: "excel" });
+            utils.getRdlcExcelReport("AirInvoiceReport", paras, "Invoice Report");
+        });
+
+        $(`#${utils.getFormId()} [name="invoiceReport_printVat"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas("yyyyMMdd");
+            paras.push({ name: "fileFormat", value: "excel" });
+            utils.getRdlcExcelReport("AirInvoiceReportVat", paras, "Invoice Report (VAT)");
+        });
+
+        $(`#${utils.getFormId()} [name="invoiceReport_hkgSummary"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            paras.push({ name: "CustomerCode", value: $(`#${utils.getFormId()} [name=invoiceReport_payee]`).data("kendoDropDownList").value() });
+            utils.getExcelReport("AirInvoiceReport_HKG_Summary", paras, "HKG BillingSummaryReport");
+        });
+    }
+
+    dialogPvReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_pvReport" style="width: 460px">
+                <label class="col-sm-3 col-form-label">Group code</label>
+                <div class="col-md-9">
+                    <input type="groupCode" class="form-control-dropdownlist" name="pvReport_groupCode" />
+                </div>
+                <label class="col-sm-3 col-form-label">Vendor</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="pvReport_vendor" />
+                </div>
+                <label class="col-sm-3 col-form-label">Consignee</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="pvReport_consignee" />
+                </div>
+                <label class="col-sm-3 col-form-label">Origin Invoice Type</label>
+                <div class="col-sm-9">
+                    <input name="pvReport_originInvType" />
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="pvReport_print"><span class="k-icon k-i-excel"></span>Print</span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "Payment Voucher Report", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.kendo.renderFormControl_kendoUI(formSetting);
+
+        $(`#${utils.getFormId()} [name="pvReport_originInvType"]`).kendoDropDownList({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: {
+                data: [{ text: "ALL", value: "" },
+                    { text: "Origin Debit Note", value: "OD" },
+                    { text: "Origin Credit Note", value: "OC" },
+                    { text: "Destination PV", value: "DestPV" },
+                ]
+            }
+        });
+
+        $(`#${utils.getFormId()} [name="pvReport_print"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            paras.push({ name: "OriginPvType", value: $(`#${utils.getFormId()} [name=pvReport_originInvType]`).data("kendoDropDownList").value() });
+            paras.push({ name: "GroupCode", value: utils.formatSearchText($(`#${utils.getFormId()} [name=pvReport_groupCode]`).data("kendoDropDownList").value()) });
+            paras.push({ name: "VendorCode", value: utils.formatSearchText($(`#${utils.getFormId()} [name=pvReport_vendor]`).data("kendoDropDownList").value()) });
+            paras.push({ name: "ConsigneeCode", value: utils.formatSearchText($(`#${utils.getFormId()} [name=pvReport_consignee]`).data("kendoDropDownList").value()) });
+            paras.push({ name: "fileFormat", value: "excel" });
+
+            if (utils.isEmptyString($(`#${utils.getFormId()} [name=pvReport_originInvType]`).data("kendoDropDownList").value()))
+                utils.getExcelReport("AirPVReport", paras, `PV Report-${kendo.toString(new Date(), "MMM dd")}`);
+            else
+                utils.getRdlcExcelReport("AirPvTypeReport", paras, `PV Type Report-${kendo.toString(new Date(), "MMM dd")}`);
+        });
+    }
+
+    dialogShaReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_shaReport" style="width: 460px">
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="shaReport_account"><span class="k-icon k-i-excel"></span>出口开票明细</span>
+                    &nbsp;
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="shaReport_accountImport"><span class="k-icon k-i-excel"></span>进口开票明细</span>
+                    &nbsp;
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="shaReport_payment"><span class="k-icon k-i-excel"></span>付款账单明细</span>
+                </div>
+                <label class="col-lg-12 col-form-label"><h5>对账单</h5></label>
+                <label class="col-sm-3 col-form-label">HAWB #</label>
+                <div class="col-sm-9">
+                    <input type="selectHawbAllOrigin" name="shaReport_hawb" />
+                </div>
+                <label class="col-sm-3 col-form-label">Charge Template</label>
+                <div class="col-sm-9">
+                    <input name="shaReport_chargeTemplate" />
+                </div>
+                <label class="col-sm-3 col-form-label">USD Ex. Rate</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control-number" name="shaReport_usdExRate" />
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="shaReport_accountStatement"><span class="k-icon k-i-excel"></span>生成对账单</span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "SHA / CN Reports", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.kendo.renderFormControl_kendoUI(formSetting);
+        $(`#${utils.getFormId()} [name="shaReport_chargeTemplate"]`).kendoDropDownList({
+            dataSource: { data: ["SHA_1", "SZX_1", "TAO_1"] }
+        });
+
+        $(`#${utils.getFormId()} [name="shaReport_account"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            let dateStr = kendo.toString($(`#${utils.getMasterFormId()} [name=dateRange]`).data("kendoDateRangePicker").range().start, "yyyy-MM")
+            utils.getExcelReport("AirInvoiceReport_SHA_Account", paras, `${dateStr}开票`);
+        });
+        $(`#${utils.getFormId()} [name="shaReport_accountImport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            let dateStr = kendo.toString($(`#${utils.getMasterFormId()} [name=dateRange]`).data("kendoDateRangePicker").range().start, "yyyy-MM")
+            utils.getExcelReport("AirInvoiceReport_SHA_Account_Import", paras, `${dateStr}进口开票`);
+        });
+        $(`#${utils.getFormId()} [name="shaReport_payment"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            let dateStr = kendo.toString($(`#${utils.getMasterFormId()} [name=dateRange]`).data("kendoDateRangePicker").range().start, "yyyy-MM")
+            paras.push({ name: "USD", value: $(`#${utils.getFormId()} [name=shaReport_usdExRate]`).data("kendoNumericTextBox").value() ?? 0 });
+            utils.getExcelReport("AirPaymentReport_SHA_Account", paras, `${dateStr}付款账单明细`);
+        });
+        $(`#${utils.getFormId()} [name="shaReport_accountStatement"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            let hawbNo = $(`#${utils.getFormId()} [name=shaReport_hawb]`).data("kendoDropDownList").value();
+
+            if (utils.isEmptyString(hawbNo)) {
+                utils.showValidateNotification("Please select HAWB#", $(`#${utils.getFormId()} [name=shaReport_hawb]`).parent());
+                return;
+            }
+            paras.push({ name: "HawbNo", value: hawbNo });
+            paras.push({ name: "ChargeTemplateName", value: $(`#${utils.getFormId()} [name=shaReport_chargeTemplate]`).data("kendoDropDownList").value() });
+            utils.getExcelReport("AirInvoiceReport_SHA_DN", paras, `${hawbNo}账单`);
+        });
+    }
+
     getCommonParas = function (dateFormat = "yyyy/M/d") {
-        var id = utils.getMasterFormId();
-        var companyName = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COMPANY_NAME;
+        let id = utils.getMasterFormId();
+        let companyName = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COMPANY_NAME;
         return [
             { name: "CompanyId", value: data.companyId },
             { name: "FrtMode", value: utils.getFrtMode() },
