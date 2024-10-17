@@ -734,7 +734,7 @@ var indexPages = [
             columns: [
                 { field: "BOOKING_NO", title: "Booking#", attributes: { "class": "link-cell" } },
                 { field: "SHIPPER_DESC", title: "Shipper" },
-                { field: "AGENT_DESC", title: "Consignee" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
                 { field: "ORIGIN_CODE", title: "Origin" },
                 { field: "DEST_CODE", title: "Destination" },
                 { field: "PACKAGE", title: "Packages" },
@@ -1773,7 +1773,7 @@ var masterForms = [
                             STYLE_NO: { type: "string" },
                             MATERIAL_NO: { type: "string" },
                             SKU: { type: "string" },
-                            QTY: { type: "number", validation: { required: true } },
+                            QTY: { type: "number" },
                             UNIT: { validation: { required: true } },
                             PCS: { type: "number" },
                             GWTS: { type: "number" },

@@ -537,27 +537,38 @@ namespace DbUtils
 
         public List<CustomerView> GetRecentCustomers()
         {
-            string sqlCmd = @"select shipper_code customer_code, shipper_desc customer_desc, shipper_branch branch_code, shipper_short_desc short_desc,
-                shipper_addr1 addr1, shipper_addr2 addr2, shipper_addr3 addr3, shipper_addr4 addr4
-                from a_hawb
-                where create_date > sysdate - 60 and frt_mode = 'AE'
+            //string sqlCmd = @"select shipper_code customer_code, shipper_desc customer_desc, shipper_branch branch_code, shipper_short_desc short_desc,
+            //    shipper_addr1 addr1, shipper_addr2 addr2, shipper_addr3 addr3, shipper_addr4 addr4
+            //    from a_hawb
+            //    where create_date > sysdate - 60 and frt_mode = 'AE'
+            //    union
+            //    select consignee_code customer_code, consignee_desc customer_desc, consignee_branch branch_code, consignee_short_desc short_desc,
+            //    consignee_addr1 addr1, consignee_addr2 addr2, consignee_addr3 addr3, consignee_addr4 addr4
+            //    from a_hawb
+            //    where create_date > sysdate - 60 and frt_mode = 'AE'
+            //    union
+            //    select agent_code customer_code, agent_desc customer_desc, agent_branch branch_code, agent_short_desc short_desc,
+            //    agent_addr1 addr1, agent_addr2 addr2, agent_addr3 addr3, agent_addr4 addr4
+            //    from a_hawb
+            //    where create_date > sysdate - 60 and frt_mode = 'AE'
+            //    union
+            //    select n.customer_code, n.customer_desc, n.branch_code, n.short_desc, 
+            //    c.addr1, c.addr2, c.addr3, c.addr4
+            //    from customer
+            //    left outer join customer_name n on customer.customer_code = n.customer_code
+            //    left outer join customer_contact c on n.customer_code = c.customer_code and n.branch_code = c.branch_code and c.addr_type = 'D'
+            //    where modify_date > sysdate - 30";
+
+            string sqlCmd = @"select customer.customer_code, n.customer_desc, n.branch_code, c.short_desc, c.addr1, c.addr2, c.addr3, c.addr4
+                from (select shipper_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
                 union
-                select consignee_code customer_code, consignee_desc customer_desc, consignee_branch branch_code, consignee_short_desc short_desc,
-                consignee_addr1 addr1, consignee_addr2 addr2, consignee_addr3 addr3, consignee_addr4 addr4
-                from a_hawb
-                where create_date > sysdate - 60 and frt_mode = 'AE'
+                select consignee_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
                 union
-                select agent_code customer_code, agent_desc customer_desc, agent_branch branch_code, agent_short_desc short_desc,
-                agent_addr1 addr1, agent_addr2 addr2, agent_addr3 addr3, agent_addr4 addr4
-                from a_hawb
-                where create_date > sysdate - 60 and frt_mode = 'AE'
+                select agent_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
                 union
-                select n.customer_code, n.customer_desc, n.branch_code, n.short_desc, 
-                c.addr1, c.addr2, c.addr3, c.addr4
-                from customer
-                left outer join customer_name n on customer.customer_code = n.customer_code
-                left outer join customer_contact c on n.customer_code = c.customer_code and n.branch_code = c.branch_code and c.addr_type = 'D'
-                where modify_date > sysdate - 30";
+                select customer_code from customer where modify_date > sysdate - 30) customer
+                join customer_name n on customer.customer_code = n.customer_code
+                join customer_contact c on n.customer_code = c.customer_code and n.branch_code = c.branch_code and c.addr_type = 'D'";
 
             var customers = db.Database.SqlQuery<CustomerView>(sqlCmd);
             return customers.Take(Utils.DefaultMaxQueryRows).ToList();

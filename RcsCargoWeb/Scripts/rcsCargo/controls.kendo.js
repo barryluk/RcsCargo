@@ -103,6 +103,7 @@
                         }
                     });
                 }
+                console.log(result.substring(0, result.length - 2));
                 return result.substring(0, result.length - 2);
             }
 
@@ -168,6 +169,7 @@
             //Get the masterForm settings from id element
             masterForm = utils.getMasterForm();
             if (!validator.validate()) {
+                utils.showNotification("Validation failed, please verify the data entry", "warning");
                 return;
             } else {
                 var model = controls.getValuesFromFormControls(masterForm);
