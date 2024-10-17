@@ -2549,7 +2549,7 @@ var masterForms = [
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airPv.selectLot", colWidth: 3 },
-                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
+                    { label: "Customer", type: "customerAddr", name: "CUSTOMER", colWidth: 4 },
                     { label: "", type: "emptyBlock", colWidth: 8 },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
                     { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },

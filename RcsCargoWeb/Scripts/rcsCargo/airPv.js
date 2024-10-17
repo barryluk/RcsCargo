@@ -135,21 +135,21 @@
             <div class="row col-sm-12" id="${utils.getFormId()}_saveAsInvoice" style="width: 460px">
                 <label class="col-sm-3 col-form-label">Invoice Payer</label>
                 <div class="col-md-9">
-                    <input type="customerAddr" class="form-control-dropdownlist" name="invoicePayer" required />
+                    <input type="customerAddrEditable" class="form-control-dropdownlist" name="invoicePayer" required />
                     <input type="hidden" name="invoicePayer_CODE" />
                     <input type="hidden" name="invoicePayer_BRANCH" />
                     <input type="hidden" name="invoicePayer_SHORT_DESC" />
-                    <input type="text" class="form-control" name="invoicePayer_ADDR1" readonly />
-                    <input type="text" class="form-control" name="invoicePayer_ADDR2" readonly />
-                    <input type="text" class="form-control" name="invoicePayer_ADDR3" readonly />
-                    <input type="text" class="form-control" name="invoicePayer_ADDR4" readonly style="margin-bottom: 4px" />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR1" />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR2" />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR3" />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR4" style="margin-bottom: 4px" />
                 </div>
                 <div class="col-sm-12 dialogFooter">
                     <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="saveAsInvoice_save"><span class="k-icon k-i-save"></span>Save</span>
                 </div>
             </div>`;
 
-        utils.alertMessage(html, "Save as Invoice", null, null, false);
+        var dialog = utils.alertMessage(html, "Save as Invoice", null, null, false);
         let formSetting = { id: utils.getFormId() };
         controls.kendo.renderFormControl_kendoUI(formSetting);
 
@@ -159,6 +159,50 @@
                 utils.showValidateNotification("Please select the invoice payer.", $("input[name='invoicePayer']").parent());
                 return;
             }
+            model.INV_NO = "";
+            model.INV_TYPE = "I";
+            model.INV_CATEGORY = model.PV_CATEGORY;
+            model.INV_DATE = utils.convertDateToISOString(new Date());
+            model.FLIGHT_DATE = utils.convertDateToISOString(kendo.parseDate(model.FLIGHT_DATE));
+            model.CUSTOMER_CODE = $(`[name="invoicePayer_CODE"]`).val().split("-")[0];
+            model.CUSTOMER_DESC = $(`[name="invoicePayer"]`).data("kendoDropDownList").text()
+                .replace(`${$(`[name="invoicePayer"]`).val().split("-")[0]} - `, ``)
+                .replace(` - ${$(`[name="invoicePayer_BRANCH"]`).val()}`, ``);
+            model.CUSTOMER_BRANCH = $(`[name="invoicePayer_BRANCH"]`).val();
+            model.CUSTOMER_SHORT_DESC = $(`[name="invoicePayer_SHORT_DESC"]`).val();
+            model.ADDR1 = $(`[name="invoicePayer_ADDR1"]`).val();
+            model.ADDR2 = $(`[name="invoicePayer_ADDR2"]`).val();
+            model.ADDR3 = $(`[name="invoicePayer_ADDR3"]`).val();
+            model.ADDR4 = $(`[name="invoicePayer_ADDR4"]`).val();
+            model.SHOW_DATE_TYPE = "F";
+            model.IS_TRANSFERRED = "N";
+            model.IS_VAT = "N";
+            model.CREATE_USER = data.user.USER_ID;;
+            model.CREATE_DATE = utils.convertDateToISOString(new Date());
+            model.MODIFY_USER = data.user.USER_ID;;
+            model.MODIFY_DATE = utils.convertDateToISOString(new Date());
+            model.InvoiceItems = model.PvItems;
+            console.log(model);
+            //return;
+            $.ajax({
+                url: utils.getMasterFormByName("airInvoice").updateUrl,
+                type: "post",
+                data: { model: model, mode: "create" },
+                beforeSend: function () {
+                    kendo.ui.progress($(".wrapper"), true);
+                },
+                success: function (result) {
+                    utils.showNotification(`Invoice# ${result["INV_NO"]} created.`, "success");
+                },
+                error: function (err) {
+                    console.log(err);
+                    utils.showNotification("Save failed, please contact system administrator!", "error");
+                },
+                complete: function () {
+                    kendo.ui.progress($(".wrapper"), false);
+                    dialog.destroy();
+                }
+            });
         });
     }
 }
