@@ -225,6 +225,11 @@
             }
         });
 
+        //Void button click event
+        $(`#${masterForm.id} button .k-i-cancel`).parent().bind("click", function () {
+            utils.confirmMessage("Are you sure to void this record?", "", "controls.kendo.voidConfirmClick");
+        });
+
         //kendoDatePicker
         $(`#${masterForm.id} input[type=date]`).each(function () {
             $(this).kendoDatePicker({
@@ -465,6 +470,7 @@
                 },
                 select: function (e) {
                     //console.log(masterForm.id);
+                    masterForm.id = utils.getFormId();
                     if (!masterForm.id.endsWith("_createInvoice"))
                         masterForm.id = utils.getFormId(this.element);
                     var item = e.dataItem;
@@ -1407,5 +1413,38 @@
         });
 
         //}, 100);
+    }
+
+    voidConfirmClick = function () {
+        let masterForm = utils.getMasterForm();
+        let modelData = JSON.parse($(`#${masterForm.id}`).attr("modelData"));
+        if (modelData[masterForm.idField] != null) {
+            let model = {
+                COMPANY_ID: data.companyId,
+                FRT_MODE: utils.getFrtMode(),
+                IS_VOIDED: "Y",
+                VOIDED_USER: data.user.USER_ID,
+                VOIDED_DATE: utils.convertDateToISOString(new Date()),
+            };
+            $.ajax({
+                url: masterForm.voidUrl,
+                type: "post",
+                data: { id: modelData[masterForm.idField], model: model },
+                beforeSend: function () {
+                    kendo.ui.progress($(`#${masterForm.id}`), true);
+                },
+                success: function (result) {
+                    utils.addVoidOverlay(`#${masterForm.id}`);
+                    utils.showNotification("Record voided.", "success");
+                },
+                error: function (err) {
+                    console.log(err);
+                    utils.showNotification("Save failed, please contact system administrator!", "error");
+                },
+                complete: function () {
+                    kendo.ui.progress($(`#${masterForm.id}`), false);
+                }
+            });
+        }
     }
 }

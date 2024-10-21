@@ -219,6 +219,7 @@ namespace DbUtils.Models.Air
         public DateTime? ETA { get; set; }
         public string CREATE_USER { get; set; }
         public DateTime CREATE_DATE { get; set; }
+        public string IS_VOIDED { get; set; }
     }
 
     public class JobDetailView

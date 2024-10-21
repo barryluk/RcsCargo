@@ -42,6 +42,127 @@
         //Very important to init the treeview to ensure expand / collapse working
         $('[data-widget="treeview"]').Treeview('init');
         $(".sidebar .user-name").text(data.user.NAME);
+
+        //Power search
+        $("button.btn.btn-sidebar").click(function () {
+            let html = `
+                <div class="row col-sm-12" id="dialog_powerSearch" style="width: 650px">
+                    <div class="col-sm-8">
+                        <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md" style="max-width: 340px; margin: 2px; padding: 0px">
+                            <input class="k-input-inner" id="powerSearch_searchValue" placeholder="Search" style="max-width: 100%" />
+                            <span class="k-input-separator k-input-separator-vertical"></span>
+                            <span class="k-input-suffix k-input-suffix-horizontal">
+                                <span class="k-icon k-i-search" aria-hidden="true" id="powerSearch_btnSearch"></span>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Days from now:</label>
+                        <input class="form-control-dropdownlist" id="powerSearch_days" style="width: 100px" />
+                    </div>
+                    <div id="powerSearch_result" style="height: 400px; overflow: auto;"></div>
+                </div>
+            `;
+            utils.alertMessage(html, "Power search");
+            $("#powerSearch_searchValue").val($("input.form-control-sidebar").val());
+            $("#powerSearch_days").kendoDropDownList({
+                dataTextField: "text",
+                dataValueField: "value",
+                dataSource: {
+                    data: [{ text: "30", value: 30 },
+                        { text: "60", value: 60 },
+                        { text: "90", value: 90 },
+                        { text: "180", value: 180 },
+                        { text: "1 year", value: 365 },
+                        { text: "2 years", value: 730 },]
+                }
+            });
+
+            $("#powerSearch_btnSearch").click(function () {
+                let searchValue = $("#powerSearch_searchValue").val();
+                if (utils.isEmptyString(searchValue))
+                    return;
+
+                $.ajax({
+                    url: "../MasterRecord/PowerSearch/Search",
+                    data: {
+                        searchValue: searchValue,
+                        companyId: data.companyId,
+                        days: $("#powerSearch_days").data("kendoDropDownList").value()
+                    },
+                    beforeSend: function () { kendo.ui.progress($(".wrapper"), true); },
+                    complete: function () { kendo.ui.progress($(".wrapper"), false); },
+                    success: function (result) {
+                        let resultHtml = "";
+                        for (var item in result)
+                            resultHtml += `<p data-id="${result[item].TABLE_NAME}-${result[item].FRT_MODE}-${result[item].ID}-${result[item].ID_FIELD}"></p>`;
+
+                        $("#powerSearch_result").html(resultHtml);
+
+                        for (var item in result) {
+                            let template = data.masterRecords.powerSearchTemplates.filter(a => a.TABLE_NAME == result[item].TABLE_NAME)[0];
+                            let frtMode = result[item].FRT_MODE;
+                            let tableName = result[item].TABLE_NAME;
+                            let id = result[item].ID;
+                            let idFieldName = result[item].ID_FIELD;
+
+                            template.TEMPLATE = template.TEMPLATE.replaceAll("\r", "").replaceAll("\n", "");
+
+                            $.ajax({
+                                url: "../MasterRecord/PowerSearch/GetSearchResultDetail",
+                                data: {
+                                    companyId: data.companyId,
+                                    frtMode: frtMode,
+                                    tableName: tableName,
+                                    id: id,
+                                    idFieldName: idFieldName,
+                                },
+                                success: function (detailResult) {
+                                    detailResult = JSON.parse(detailResult);
+                                    let templateHtml = template.TEMPLATE;
+                                    templateHtml = templateHtml.replace("{id}", `${tableName}-${frtMode}-${id}`);
+                                    template.TEMPLATE.split("{").forEach(function (val) {
+                                        let key = val.substring(0, val.indexOf("}"));
+                                        let value = detailResult[0][key];
+                                        if (!utils.isEmptyString(key))
+                                            templateHtml = templateHtml.replaceAll(`{${key}}`, value);
+                                    });
+                                    let contentHtml = templateHtml.substring(templateHtml.indexOf("<br>"));
+                                    contentHtml = contentHtml.replaceAll(utils.formatText(searchValue), `<span class="highlight">${utils.formatText(searchValue)}</span>`)
+                                        .replaceAll("T00:00:00", "");
+
+                                    //console.log(`#powerSearch_result p[data-id="${tableName}-${frtMode}-${id}-${idFieldName}"]`);
+                                    $(`#powerSearch_result p[data-id="${tableName}-${frtMode}-${id}-${idFieldName}"]`)
+                                        .append(`${templateHtml.substring(0, templateHtml.indexOf("<br>"))}${contentHtml}`);
+
+                                    $(`#powerSearch_result p[data-id="${tableName}-${frtMode}-${id}-${idFieldName}"] .link-text`).click(function () {
+                                        //console.log($(this).attr("data-id"));
+                                        let controller = "";
+                                        let tabTitle = "";
+                                        let id = $(this).attr("data-id").split("-")[2];
+                                        let frtMode = $(this).attr("data-id").split("-")[1];
+                                        switch ($(this).attr("data-id").split("-")[0]) {
+                                            case "A_MAWB": tabTitle = "MAWB#"; controller = "airMawb"; break;
+                                            case "A_HAWB": tabTitle = "HAWB#"; controller = "airHawb"; break;
+                                            case "A_BOOKING": tabTitle = "Booking#"; controller = "airBooking"; break;
+                                            case "A_INVOICE": tabTitle = "Invoice#"; controller = "airInvoice"; break;
+                                            case "A_PV": tabTitle = "PV#"; controller = "airPv"; break;
+                                        }
+
+                                        if (controller != "") {
+                                            controls.append_tabStripMain(`${tabTitle} ${id}`, `${controller}_${id}_${data.companyId}_${frtMode}`, controller);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+
+            if (!utils.isEmptyString($("input.form-control-sidebar").val()))
+                $("#powerSearch_btnSearch").trigger("click");
+        });
     }
 
     //ControlSidebar
@@ -278,7 +399,8 @@
 
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
-        //console.log(masterForm, model);
+        masterForm.id = utils.getFormId();
+        console.log(masterForm.id);
         if (masterForm.mode == "create") {
             masterForm.schema.fields.forEach(function (field) {
                 if (field.defaultValue != null) {
@@ -288,7 +410,7 @@
         }
 
         //Status info
-        if (masterForm.mode == "edit") {
+        if (masterForm.mode == "edit" && !partialUpdate) {
             $(`#${masterForm.id} span.toolbar-status`).html(`Create: ${model.CREATE_USER} - ${kendo.toString(kendo.parseDate(model.CREATE_DATE), data.dateTimeLongFormat)}<br> 
             Modify: ${model.MODIFY_USER} - ${kendo.toString(kendo.parseDate(model.MODIFY_DATE), data.dateTimeLongFormat)}`)
         }
@@ -306,6 +428,8 @@
         for (var i in masterForm.formGroups) {
             for (var j in masterForm.formGroups[i].formControls) {
                 var control = masterForm.formGroups[i].formControls[j];
+                masterForm.id = utils.getFormId();
+                //console.log(`#${masterForm.id} [name=${control.name}]`);
                 //Check the existence of the control (name$: ends with value, special case for grid_)
                 if ($(`#${masterForm.id} [name$=${control.name}]`).length == 0)
                     continue;
@@ -430,7 +554,8 @@
                 }
             }
         }
-
+        if (model["IS_VOIDED"] == "Y")
+            utils.addVoidOverlay(`#${masterForm.id}`);
     }
 
     //Get values from form controls

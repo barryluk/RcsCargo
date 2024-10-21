@@ -72,6 +72,14 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [Route("VoidBooking")]
+        public ActionResult VoidBooking(string id, Booking model)
+        {
+            model.BOOKING_NO = id;
+            air.VoidBooking(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
         [Route("GetWarehouseHistory")]
         public ActionResult GetWarehouseHistory(string id, string companyId, string frtMode)
         {

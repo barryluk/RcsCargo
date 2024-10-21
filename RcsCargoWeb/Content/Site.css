@@ -166,15 +166,24 @@ li.k-list-item {
     max-width: 280px;
 }
 
-    .k-grid .link-cell {
+    .k-grid .link-cell, .link-text {
         cursor: pointer;
     }
 
-    .k-grid .link-cell:hover {
-        text-decoration: underline;
-        color: white;
-        background-color: cornflowerblue;
-    }
+        .k-grid .link-cell:hover, .link-text:hover {
+            text-decoration: underline;
+            color: white;
+            background-color: cornflowerblue;
+        }
+
+.link-text {
+    font-weight: 700;
+    margin: 4px 10px 4px 0px;
+}
+
+#powerSearch_result p:hover {
+    background-color: gainsboro;
+}
 
 .card form, .col-form-label {
     font-size: 12px;
@@ -412,4 +421,8 @@ span.menuButton {
 
 .k-loading-mask {
     z-index: 99999;
+}
+
+.highlight {
+    background-color: yellow;
 }

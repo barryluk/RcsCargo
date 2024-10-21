@@ -4,7 +4,7 @@
 
     initAirPv = function (masterForm) {
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
-        //console.log(masterForm.id);
+        masterForm.id = utils.getFormId();
         let pvNo = masterForm.id.split("_")[1];
         let companyId = masterForm.id.split("_")[2];
         let frtMode = masterForm.id.split("_")[3];

@@ -16,6 +16,8 @@ using System.ComponentModel.Design;
 using System.Web.Configuration;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using DbUtils.Models.Admin;
+using Newtonsoft.Json;
 
 namespace DbUtils
 {
@@ -109,7 +111,7 @@ namespace DbUtils
         {
             var selectCmd = @"job, job as job_no, mawb, mawb as mawb_no, lot_no, origin_code, dest_code, flight_date, 
                     job_type, airline_code, flight_no, eta, shipper_desc, agent_desc, create_user, create_date,
-                    gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, ctns as package, package_unit, company_id, frt_mode";
+                    gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, ctns as package, package_unit, company_id, frt_mode, is_voided";
             var fromCmd = "a_mawb";
             var dbParas = new List<DbParameter>
             {
@@ -263,6 +265,19 @@ namespace DbUtils
             catch (Exception ex)
             {
                 log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void VoidMawb(Mawb mawb)
+        {
+            var mawbModel = db.Mawbs.Where(a => a.MAWB == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE).FirstOrDefault();
+            if (mawbModel != null)
+            {
+                mawbModel.IS_VOIDED = "Y";
+                mawbModel.VOIDED_DATE = mawb.VOIDED_DATE;
+                mawbModel.VOIDED_USER = mawb.VOIDED_USER;
+                db.Entry(mawbModel).State = EntityState.Modified;
+                db.SaveChanges();
             }
         }
 
@@ -452,7 +467,7 @@ namespace DbUtils
         {
             var selectCmd = @"booking_no, company_id, frt_mode, origin_code, dest_code,
                 shipper_code, shipper_desc, consignee_code, consignee_desc, cargo_ready_date, cargo_rec_date,
-                package, gwts, vwts, create_user, create_date";
+                package, gwts, vwts, create_user, create_date, is_voided";
             var fromCmd = "a_booking";
             var dbParas = new List<DbParameter>
             {
@@ -528,6 +543,19 @@ namespace DbUtils
             }
         }
 
+        public void VoidBooking(Booking booking)
+        {
+            var bookingModel = db.Bookings.Where(a => a.BOOKING_NO == booking.BOOKING_NO && a.COMPANY_ID == booking.COMPANY_ID && a.FRT_MODE == booking.FRT_MODE).FirstOrDefault();
+            if (bookingModel != null)
+            {
+                bookingModel.IS_VOIDED = "Y";
+                bookingModel.VOIDED_DATE = booking.VOIDED_DATE;
+                bookingModel.VOIDED_USER = booking.VOIDED_USER;
+                db.Entry(bookingModel).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+        }
+
         public List<WarehouseHistory> GetWarehouseHistory(string bookingNo, string companyId, string frtMode)
         {
             var records = db.WarehouseHistories.Where(a => a.BOOKING_NO == bookingNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
@@ -570,7 +598,7 @@ namespace DbUtils
                 m.airline_code, m.flight_no, m.flight_date, h.origin_code, h.dest_code,
                 h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc, h.frt_payment_pc,
                 case when h.gwts > h.vwts then h.gwts else h.vwts end as cwts,
-                h.package, h.gwts, h.vwts, h.cbm, h.package_unit, h.create_user, h.create_date";
+                h.package, h.gwts, h.vwts, h.cbm, h.package_unit, h.create_user, h.create_date, h.is_voided";
             var fromCmd = $@"a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode
                 where h.create_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
                 and h.create_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD') ";
@@ -720,6 +748,19 @@ namespace DbUtils
             catch (Exception ex)
             {
                 log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void VoidHawb(Hawb hawb)
+        {
+            var hawbModel = db.Hawbs.Where(a => a.HAWB_NO == hawb.HAWB_NO && a.COMPANY_ID == hawb.COMPANY_ID && a.FRT_MODE == hawb.FRT_MODE).FirstOrDefault();
+            if (hawbModel != null)
+            {
+                hawbModel.IS_VOIDED = "Y";
+                hawbModel.VOIDED_DATE = hawb.VOIDED_DATE;
+                hawbModel.VOIDED_USER = hawb.VOIDED_USER;
+                db.Entry(hawbModel).State = EntityState.Modified;
+                db.SaveChanges();
             }
         }
 
@@ -896,6 +937,19 @@ namespace DbUtils
             }
         }
 
+        public void VoidInvoice(Invoice invoice)
+        {
+            var invoiceModel = db.Invoices.Where(a => a.INV_NO == invoice.INV_NO && a.COMPANY_ID == invoice.COMPANY_ID && a.FRT_MODE == invoice.FRT_MODE).FirstOrDefault();
+            if (invoiceModel != null)
+            {
+                invoiceModel.IS_VOIDED = "Y";
+                invoiceModel.VOIDED_DATE = invoice.VOIDED_DATE;
+                invoiceModel.VOIDED_USER = invoice.VOIDED_USER;
+                db.Entry(invoiceModel).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+        }
+
         public bool IsExistingInvNo(string invNo, string companyId, string frtMode)
         {
             return db.Invoices.Count(a => a.INV_NO == invNo &&
@@ -978,6 +1032,19 @@ namespace DbUtils
             catch (Exception ex)
             {
                 log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void VoidPv(Pv pv)
+        {
+            var pvModel = db.Pvs.Where(a => a.PV_NO == pv.PV_NO && a.COMPANY_ID == pv.COMPANY_ID && a.FRT_MODE == pv.FRT_MODE).FirstOrDefault();
+            if (pvModel != null)
+            {
+                pvModel.IS_VOIDED = "Y";
+                pvModel.VOIDED_DATE = pv.VOIDED_DATE;
+                pvModel.VOIDED_USER = pv.VOIDED_USER;
+                db.Entry(pvModel).State = EntityState.Modified;
+                db.SaveChanges();
             }
         }
 
@@ -1078,6 +1145,88 @@ namespace DbUtils
         {
             return db.OtherJobs.Count(a => a.JOB_NO == jobNo &&
                 a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Power Search
+
+        public List<PowerSearchResult> PowerSearch(string searchValue, string companyId, int days, int take)
+        {
+            var results = new List<PowerSearchResult>();
+            var settings = db.PowerSearchSettings.ToList();
+            foreach (var tableName in settings.Select(a => a.TABLE_NAME).Distinct())
+            {
+                var sqlCmd = $"select * from (select result.* from (";
+                var filter = $"and company_id = '{companyId}' and modify_date > sysdate - {days}";
+                var resultDateField = "modify_date";
+                var frtModeField = "frt_mode";
+
+                //special case for PDD_BOOKING_DETAIL
+                if (tableName == "PDD_BOOKING_DETAIL")
+                {
+                    resultDateField = "process_date";
+                    frtModeField = "'' frt_mode";
+                    filter = string.Empty;
+                }
+
+                foreach (var setting in settings.Where(a => a.TABLE_NAME == tableName))
+                {
+                    sqlCmd += $"select {resultDateField} RESULT_DATE, {frtModeField}, {setting.ID_FIELD} ID, {setting.SEARCH_FIELD} RESULT_VALUE, " +
+                        $"'{tableName}' TABLE_NAME, '{setting.ID_FIELD}' ID_FIELD from {setting.TABLE_NAME} where {setting.SEARCH_FIELD} like '{searchValue}' {filter} union ";
+                }
+                sqlCmd = sqlCmd.Substring(0, sqlCmd.LastIndexOf("union"));
+                sqlCmd += $") result order by result_date desc) where rownum <= {take}";
+
+                //log.Debug(sqlCmd);
+                var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
+                if (result.Count > 0)
+                    results.AddRange(result);
+            }
+            return results.OrderByDescending(a => a.RESULT_DATE).ToList();
+        }
+
+        public PowerSearchTemplate GetPowerSearchTemplate(string tableName)
+        {
+            var template = db.PowerSearchTemplates.FirstOrDefault(a => a.TABLE_NAME == tableName);
+            return template ?? new PowerSearchTemplate();
+        }
+
+        public DataTable GetPowerSearchDetails(string tableName, string id, string idFieldName, string companyId, string frtMode)
+        {
+            var template = GetPowerSearchTemplate(tableName);
+            DataTable dt = new DataTable();
+            OracleConnection conn = new OracleConnection(db.Database.Connection.ConnectionString + ";Password=RCSHKG");
+            OracleCommand cmd = new OracleCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = $"select {template.FIELDS} from {template.TABLE_NAME} " +
+                $"where {idFieldName} = '{id}' and company_id = '{companyId}' and frt_mode = '{frtMode}'";
+
+            if (tableName == "PDD_BOOKING_DETAIL")
+                cmd.CommandText = $"select {template.FIELDS} from {template.TABLE_NAME} " +
+                $"where {idFieldName} = '{id}'";
+
+            OracleDataAdapter adapter = new OracleDataAdapter(cmd);
+            //log.Debug(cmd.CommandText);
+            try
+            {
+                if (conn.State != ConnectionState.Open)
+                {
+                    conn.Open();
+                }
+                adapter.Fill(dt);
+            }
+            catch (Exception ex)
+            {
+                dt.Columns.Add("Error");
+                dt.Rows.Add(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return dt;
         }
 
         #endregion

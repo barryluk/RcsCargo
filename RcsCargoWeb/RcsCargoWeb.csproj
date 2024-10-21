@@ -189,6 +189,7 @@
     <Compile Include="Controllers\MasterRecord\AirlineController.cs" />
     <Compile Include="Controllers\MasterRecord\ChargeTemplateController.cs" />
     <Compile Include="Controllers\MasterRecord\CurrencyController.cs" />
+    <Compile Include="Controllers\MasterRecord\PowerSearchController.cs" />
     <Compile Include="Controllers\MasterRecord\PortController.cs" />
     <Compile Include="Controllers\MasterRecord\CountryController.cs" />
     <Compile Include="Controllers\MasterRecord\ChargeController.cs" />
@@ -270,6 +271,7 @@
     <Content Include="Content\img\user6-128x128.jpg" />
     <Content Include="Content\img\user7-128x128.jpg" />
     <Content Include="Content\img\user8-128x128.jpg" />
+    <Content Include="Content\img\void.png" />
     <Content Include="Content\kendo.bootstrap-main.min.css" />
     <Content Include="Content\kendo.default-ocean-blue.min.css" />
     <Content Include="Content\main.css" />

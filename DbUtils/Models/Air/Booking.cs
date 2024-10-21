@@ -201,6 +201,7 @@ namespace DbUtils.Models.Air
         public DateTime? CARGO_REC_DATE { get; set; }
         public DateTime CREATE_DATE { get; set; }
         public string CREATE_USER { get; set; }
+        public string IS_VOIDED { get; set; }
     }
 
 }

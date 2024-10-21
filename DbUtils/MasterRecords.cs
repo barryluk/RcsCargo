@@ -633,9 +633,27 @@ namespace DbUtils
 
         #endregion
 
+        #region HAWB Equip
+
         public List<string> GetEquipCodes()
         {
             return db.HawbEquips.Select(a => a.EQUIP_CODE).Distinct().ToList();
         }
+
+        #endregion
+
+        #region Power Search Setting
+
+        public List<PowerSearchSetting> GetPowerSearchSettings()
+        {
+            return db.PowerSearchSettings.ToList();
+        }
+
+        public List<PowerSearchTemplate> GetPowerSearchTemplates()
+        {
+            return db.PowerSearchTemplates.ToList();
+        }
+
+        #endregion
     }
 }

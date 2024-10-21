@@ -130,6 +130,14 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [Route("VoidMawb")]
+        public ActionResult VoidMawb(string id, Mawb model)
+        {
+            model.MAWB = id;
+            air.VoidMawb(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
         private Mawb AddBatchMawbs(Mawb model)
         {
             var mawbNos = model.MAWB.Split(',');

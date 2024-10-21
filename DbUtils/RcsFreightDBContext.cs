@@ -14,6 +14,8 @@ namespace DbUtils
     {
         public RcsFreightDBContext() : base("name=RcsFreightDbContext") { }
 
+        public DbSet<PowerSearchSetting> PowerSearchSettings { get; set; }
+        public DbSet<PowerSearchTemplate> PowerSearchTemplates { get; set; }
         public DbSet<Airline> Airlines { get; set; }
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Country> Countries { get; set; }

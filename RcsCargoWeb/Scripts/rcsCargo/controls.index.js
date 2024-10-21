@@ -222,7 +222,6 @@
             dataBound: function (e) {
                 var grid = this;
                 var formId = utils.getFormId(grid.element);
-                controls.kendo.gridAutoFitColumns(grid);
 
                 $(`#${formId} .k-grid-content.k-auto-scrollable`).height($(`#${formId} .k-grid-content.k-auto-scrollable`).height() - 7);
 
@@ -255,34 +254,44 @@
                     })
                 }
 
+                //remove the link-cell attribute if no data in the cell
+                let rowIndex = 0;
+                grid.items().each(function () {
+                    let tr = $(this);
+                    let dataItem = grid.dataItems()[rowIndex];
+                    tr.children().each(function () {
+                        let td = $(this);
+                        if (td.hasClass("link-cell") && utils.isEmptyString(td.text()))
+                            td.removeClass("link-cell");
+
+                        if (td.hasClass("link-cell") && !td.text().endsWith("VOID") && dataItem["IS_VOIDED"] == "Y") {
+                            td.append(`<span class="right badge badge-warning" style="margin-left: 4px">VOID</span>`);
+                        }
+                    });
+                    rowIndex++;
+                });
+
+                //Auto resize columns width
+                controls.kendo.gridAutoFitColumns(grid);
+
                 //override the column width after autoFitColumns function
                 pageSetting.gridConfig.columns.forEach(function (col) {
                     if (col.width != null) {
                         grid.resizeColumn(grid.columns[pageSetting.gridConfig.columns.indexOf(col)], col.width);
                     }
                 });
-
-                //remove the link-cell attribute if no data in the cell
-                grid.items().each(function () {
-                    var tr = $(this);
-                    tr.children().each(function () {
-                        var td = $(this);
-                        if (td.hasClass("link-cell") && utils.isEmptyString(td.text()))
-                            td.removeClass("link-cell");
-                    });
-                })
             },
             change: function (e) {
                 var grid = this;
                 var selectedCell = this.select()[0];
                 if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
-                    var id = $(selectedCell).text();
+                    var id = $(selectedCell).text().replace("VOID", "");
                     if ($(selectedCell).attr("callbackFunction") != null) {
                         eval(`${$(selectedCell).attr("callbackFunction")}(e.sender, id)`);
                     } else {
                         id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
-                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text()}`, id, pageSetting.pageName);
+                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOID", "") }`, id, pageSetting.pageName);
                     }
                     grid.clearSelection();
                 }

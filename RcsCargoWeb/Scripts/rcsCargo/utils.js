@@ -135,14 +135,14 @@
     }
 
     getMasterForm = function (selector) {
-        var formId = utils.getFormId(selector);
+        let formId = utils.getFormId(selector);
         if (formId.indexOf("Index") == -1) {
-            var masterForm = data.masterForms.filter(a => a.formName == formId.split("_")[0])[0];
+            let masterForm = data.masterForms.filter(a => a.formName == formId.split("_")[0])[0];
             masterForm.id = formId;
             masterForm.mode = utils.getEditMode(selector);
             return masterForm;
         } else {
-            var indexPage = data.indexPages.filter(a => a.pageName == formId.split("_")[0].replace("Index", ""))[0];
+            let indexPage = data.indexPages.filter(a => a.pageName == formId.split("_")[0].replace("Index", ""))[0];
             indexPage.id = formId;
             return indexPage;
         }
@@ -578,6 +578,18 @@
             $("#notification").data("kendoNotification").options.position.left = left;
         }
         $("#notification").data("kendoNotification").show(msg, type);
+    }
+
+    addVoidOverlay = function (element) {
+        if (element != null) {
+            let height = $(element).height();
+            let html = `
+                <div class="voidOverlay" style="z-index: 10000; position: absolute; width: calc(100% - 20px); height: ${height}px; background-color: rgb(128, 128, 128, 0.2);">
+                    <img src="../Content/img/void.png" style="position: absolute; opacity: 0.5; top: 20%; left: calc(50% - 200px); width: 300px"/>
+                </div>`;
+            $(element).before(html);
+            $(element).parent().css("background-color", "rgb(128, 128, 128, 0.2)");
+        }
     }
 
     //type: "info", "warning", "error", size: "small", "medium", "large"

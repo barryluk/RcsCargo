@@ -70,6 +70,7 @@
     <Compile Include="Models\Admin\ReportData.cs" />
     <Compile Include="Models\Admin\SysCompany.cs" />
     <Compile Include="Models\Admin\SeqFormat.cs" />
+    <Compile Include="Models\MasterRecords\PowerSearchSetting.cs" />
     <Compile Include="Models\Admin\User.cs" />
     <Compile Include="Models\Admin\UserLog.cs" />
     <Compile Include="Models\Air\OtherJob.cs" />

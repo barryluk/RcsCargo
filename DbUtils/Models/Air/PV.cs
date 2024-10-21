@@ -122,6 +122,7 @@ namespace DbUtils.Models.Air
         public decimal AMOUNT_HOME { get; set; }
         public DateTime CREATE_DATE { get; set; }
         public string CREATE_USER { get; set; }
+        public string IS_VOIDED { get; set; }
     }
 
 }

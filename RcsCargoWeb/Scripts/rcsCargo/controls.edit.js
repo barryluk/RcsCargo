@@ -5,15 +5,12 @@
     initEditPage = function (id, para) {
         //linkIdPrefix: airMawb / airBooking
         //id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
-        var formName = id.split("_")[0];
+        let formName = id.split("_")[0];
         this.keyValue = id.split("_")[1];
         this.companyId = id.indexOf("RCSHKG_OFF") == -1 ? id.split("_")[2] : "RCSHKG_OFF";
         this.frtMode = id.substring(id.lastIndexOf("_") + 1);
-
-        console.log(id);
-
-        var masterForm = utils.getMasterForm();
-        //console.log(masterForm);
+        let masterForm = utils.getMasterForm();
+        masterForm.id = utils.getFormId();
         $(`#${id}`).html(data.htmlElements.editPage(`${masterForm.title} ${formName == "airMawb" ? utils.formatMawbNo(this.keyValue) : utils.decodeId(this.keyValue)}`));
         this.renderFormControls(masterForm);
         this.getModelData(masterForm, para);
@@ -21,6 +18,9 @@
 
     //Get model data
     getModelData = function (masterForm, para) {
+        let formId = utils.getFormId();
+        masterForm.id = utils.getFormId();
+        //console.log(masterForm);
         var requestParas = {
             id: utils.decodeId(this.keyValue),
             companyId: this.companyId,
@@ -34,7 +34,7 @@
                 url: masterForm.readUrl,
                 data: requestParas,
                 success: function (result) {
-                    $(`#${masterForm.id}`).attr("modelData", JSON.stringify(result));
+                    $(`#${formId}`).attr("modelData", JSON.stringify(result));
                     //masterForm.modelData = result;
                     controls.setValuesToFormControls(masterForm, result);
                     if (masterForm.additionalScript != null)

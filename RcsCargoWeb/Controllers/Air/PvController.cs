@@ -72,6 +72,14 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [Route("VoidPv")]
+        public ActionResult VoidPv(string id, Pv model)
+        {
+            model.PV_NO = id;
+            air.VoidPv(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
         [Route("IsExistingPvNo")]
         public ActionResult IsExistingPvNo(string id, string companyId, string frtMode)
         {

@@ -144,6 +144,14 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [Route("VoidHawb")]
+        public ActionResult VoidHawb(string id, Hawb model)
+        {
+            model.HAWB_NO = id;
+            air.VoidHawb(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
         [Route("IsExistingHawbNo")]
         public ActionResult IsExistingHawbNo(string id, string companyId, string frtMode)
         {

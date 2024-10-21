@@ -4,7 +4,7 @@
 
     initAirInvoice = function (masterForm) {
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
-        //console.log(masterForm.id);
+        masterForm.id = utils.getFormId();
         var invNo = masterForm.id.split("_")[1];
         var companyId = masterForm.id.split("_")[2];
         var frtMode = masterForm.id.split("_")[3];

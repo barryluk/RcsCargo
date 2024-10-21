@@ -86,6 +86,14 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [Route("VoidInvoice")]
+        public ActionResult VoidInvoice(string id, Invoice model)
+        {
+            model.INV_NO = id;
+            air.VoidInvoice(model);
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
         [Route("IsExistingInvNo")]
         public ActionResult IsExistingInvNo(string id, string companyId, string frtMode)
         {

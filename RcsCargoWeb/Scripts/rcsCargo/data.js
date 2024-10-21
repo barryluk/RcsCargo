@@ -28,7 +28,8 @@ var masterRecords = {
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
-    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {},
+    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
@@ -54,7 +55,7 @@ var frameworkHtmlElements = {
                     </div>
 
                     <div class="form-inline">
-                        <div class="input-group" data-widget="sidebar-search">
+                        <div class="input-group"> <!-- data-widget="sidebar-search" -->
                             <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" style="margin: 0px; font-size: 12pt; height: 37px">
                             <div class="input-group-append">
                                 <button class="btn btn-sidebar">
@@ -1228,6 +1229,7 @@ var masterForms = [
         title: "MAWB#",
         readUrl: "../Air/Mawb/GetMawb",
         updateUrl: "../Air/Mawb/UpdateMawb",
+        voidUrl: "../Air/Mawb/VoidMawb",
         additionalScript: "initAirMawb",
         idField: "MAWB",
         id: "",
@@ -1235,6 +1237,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "printMawb", text: "Print MAWB", icon: "file-txt" },
@@ -1641,6 +1644,7 @@ var masterForms = [
         title: "Booking#",
         readUrl: "../Air/Booking/GetBooking",
         updateUrl: "../Air/Booking/UpdateBooking",
+        voidUrl: "../Air/Booking/VoidBooking",
         additionalScript: "initAirBooking",
         idField: "BOOKING_NO",
         id: "",
@@ -1648,6 +1652,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "printBooking", text: "Booking", icon: "file-report" },
@@ -1871,6 +1876,7 @@ var masterForms = [
         title: "HAWB#",
         readUrl: "../Air/Hawb/GetHawb",
         updateUrl: "../Air/Hawb/UpdateHawb",
+        voidUrl: "../Air/Hawb/VoidHawb",
         additionalScript: "initAirHawb",
         idField: "HAWB_NO",
         id: "",
@@ -1878,6 +1884,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "AirHawb", text: "Print HAWB", icon: "file-pdf", type: "pdf" },
@@ -1923,6 +1930,7 @@ var masterForms = [
                 { name: "FLIGHT_DATE", readonly: "always" },
                 { name: "COMPANY_ID", hidden: "true" },
                 { name: "FRT_MODE", hidden: "true" },
+                { name: "BOOKING_TYPE", hidden: "true", defaultValue: "F" },
                 { name: "IS_MASTER_HAWB", hidden: "true", defaultValue: "N" },
                 { name: "IS_SEA_AIR_JOB", hidden: "true", defaultValue: "N" },
                 { name: "IS_PICKUP", hidden: "true", defaultValue: "N" },
@@ -2263,7 +2271,7 @@ var masterForms = [
                             STYLE_NO: { type: "string" },
                             MATERIAL_NO: { type: "string" },
                             SKU: { type: "string" },
-                            QTY: { type: "number", validation: { required: true } },
+                            QTY: { type: "number" },
                             UNIT: { validation: { required: true } },
                             PCS: { type: "number" },
                             GWTS: { type: "number" },
@@ -2347,6 +2355,7 @@ var masterForms = [
         title: "Invoice#",
         readUrl: "../Air/Invoice/GetInvoice",
         updateUrl: "../Air/Invoice/UpdateInvoice",
+        voidUrl: "../Air/Invoice/VoidInvoice",
         additionalScript: "initAirInvoice",
         idField: "INV_NO",
         id: "",
@@ -2354,6 +2363,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "AirInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
@@ -2490,6 +2500,7 @@ var masterForms = [
         title: "PV#",
         readUrl: "../Air/Pv/GetPv",
         updateUrl: "../Air/Pv/UpdatePv",
+        voidUrl: "../Air/Pv/VoidPv",
         additionalScript: "initAirPv",
         idField: "PV_NO",
         id: "",
@@ -2497,6 +2508,7 @@ var masterForms = [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
             { type: "button", text: "Save as Invoice", icon: "track-changes", click: function () { controllers.airPv.saveAsInvoiceDialog() } },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
@@ -3058,6 +3070,20 @@ export default class {
             url: "../Home/GetGroupCodes",
             success: function (result) {
                 masterRecords.groupCodes = result;
+            }
+        });
+
+        await $.ajax({
+            url: "../MasterRecord/PowerSearch/GetPowerSearchSettings",
+            success: function (result) {
+                masterRecords.powerSearchSettings = result;
+            }
+        });
+
+        await $.ajax({
+            url: "../MasterRecord/PowerSearch/GetPowerSearchTemplates",
+            success: function (result) {
+                masterRecords.powerSearchTemplates = result;
             },
             complete: function () {
                 masterRecords.lastUpdateTime = new Date();
