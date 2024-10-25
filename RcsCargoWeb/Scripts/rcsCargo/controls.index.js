@@ -20,7 +20,7 @@
                 eval(`controllers.masterRecords.${pageSetting.additionalScript}(pageSetting)`);
         }
 
-        kendo.ui.progress($(".container-fluid"), false);
+        //kendo.ui.progress($(".container-fluid"), false);
     }
 
     renderControls = function (pageSetting) {
@@ -147,8 +147,17 @@
                 $(`#${pageSetting.id} [name=${pageSetting.gridConfig.gridName}]`).data("kendoGrid").setDataSource(ds);
             });
 
-            if (initKendoControls)
-                controls.kendo.renderFormControl_kendoUI(pageSetting);
+            if (initKendoControls) {
+                try {
+                    controls.kendo.renderFormControl_kendoUI(pageSetting);
+                }
+                catch {
+                    setTimeout(function () {
+                        console.log("err: controls.kendo.renderFormControl_kendoUI", utils.getFormId());
+                        $(`#btnRefresh_${utils.getFormId() }`).trigger("click");
+                    }, 500);
+                }
+            }
         }
     }
 

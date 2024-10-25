@@ -5,6 +5,7 @@
     //Render form controls (KendoUI)
     renderFormControl_kendoUI = function (masterForm, enableValidation = false) {
         masterForm.id = utils.getFormId();
+        //console.log(masterForm);
         //kendoValidator
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
         if (validator == null && enableValidation) {

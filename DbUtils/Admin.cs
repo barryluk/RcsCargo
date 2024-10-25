@@ -32,6 +32,8 @@ namespace DbUtils
                 COMPANY_NAME = a.COMPANY_NAME,
                 COUNTRY_CODE = a.COUNTRY_CODE,
                 PORT_CODE = a.PORT_CODE,
+                EX_P_CURR_CODE = a.EX_P_CURR_CODE,
+                EX_C_CURR_CODE = a.EX_C_CURR_CODE,
             }).ToList();
         }
 

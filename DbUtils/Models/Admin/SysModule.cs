@@ -20,5 +20,6 @@ namespace DbUtils.Models.Admin
         public string DATA_ID { get; set; }
         public string ICON { get; set; }
         public string ENABLE { get; set; }
+        public string USER_TYPE { get; set; }
     }
 }

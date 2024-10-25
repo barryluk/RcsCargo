@@ -29,7 +29,7 @@ var masterRecords = {
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {},
-    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}
+    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
@@ -81,11 +81,11 @@ var frameworkHtmlElements = {
             if (folder.TYPE == "folder") {
                 html += `
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="#" class="nav-link" data-controller="${folder.CONTROLLER}" data-action="${folder.ACTION}" data-id="${folder.DATA_ID}" data-userType="${folder.USER_TYPE}">
                             <i class="nav-icon fa ${folder.ICON}"></i>
                             <p>
                                 ${folder.DISPLAY_NAME}
-                                <i class="fas fa-angle-left right"></i>
+                                <i class="${data.isEmptyString(folder.CONTROLLER) ? "fas fa-angle-left right" : ""}"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">`;
@@ -94,7 +94,7 @@ var frameworkHtmlElements = {
                     if (item.TYPE == "menu" && item.PARENT_ID == folder.MODULE_ID && !data.isEmptyString(item.CONTROLLER) && item.ENABLE == "Y") {
                         html += `
                             <li class="nav-item">
-                                <a href="javascript:void(0)" data-controller="${item.CONTROLLER}" data-action="${item.ACTION}" data-id="${item.DATA_ID}" class="nav-link">
+                                <a href="javascript:void(0)" data-controller="${item.CONTROLLER}" data-action="${item.ACTION}" data-id="${item.DATA_ID}" data-userType="${folder.USER_TYPE}" class="nav-link">
                                     <i class="far ${(data.isEmptyString(item.ICON) ? defaultIcon : item.ICON)} nav-icon"></i>
                                     <p>${item.DISPLAY_NAME}</p>
                                 </a>
@@ -995,10 +995,10 @@ var indexPages = [
         ],
     },
     {
-        pageName: "log",
+        pageName: "sysConsole",
         id: "",
-        title: "System Log",
-        additionalScript: "initLog",
+        title: "System Console",
+        //additionalScript: "initsysConsole",
         controls: [
             { label: "Log file", type: "logFiles", name: "logFiles", colWidth: 4 },
             { type: "emptyBlock", name: "logContent", colWidth: 12 },
@@ -1689,6 +1689,8 @@ var masterForms = [
                 { name: "ORIGIN_CODE", required: "true" },
                 { name: "DEST_CODE", required: "true" },
                 { name: "VWTS_FACTOR", required: "true", defaultValue: "6000" },
+                { name: "P_CURR_CODE", defaultValue: "currency" },
+                { name: "C_CURR_CODE", defaultValue: "currency" },
             ],
             validation: {
                 rules: {
@@ -1737,6 +1739,8 @@ var masterForms = [
                     { label: "Cubic Feet", type: "number", name: "CUFT", colWidth: 6 },
                     { label: "Incoterm", type: "incoterm", name: "INCOTERM_2012", colWidth: 6 },
                     { label: "Port", type: "port", name: "INCOTERM_2012_PORT", colWidth: 6 },
+                    { label: "Prepaid Curr.", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 6 },
+                    { label: "Collect Curr.", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 6 },
                     { label: "Notify Party 1", type: "customerAddr", name: "NOTIFY1", colWidth: 6 },
                     { label: "Notify Party 2", type: "customerAddr", name: "NOTIFY2", colWidth: 6 },
                     { label: "Handle Information", type: "textArea", name: "HANDLE_INFO", colWidth: 6 },
@@ -1941,8 +1945,8 @@ var masterForms = [
                 { name: "CONSIGNEE", required: "true" },
                 { name: "ORIGIN_CODE", required: "true" },
                 { name: "DEST_CODE", required: "true" },
-                { name: "P_CURR_CODE", required: "true" },
-                { name: "C_CURR_CODE", required: "true" },
+                { name: "P_CURR_CODE", required: "true", defaultValue: "currency" },
+                { name: "C_CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "OTHER_PAYMENT_PC", required: "true" },
             ],
@@ -2849,6 +2853,7 @@ export default class {
                             $.ajax({
                                 url: "../Home/GetSysModules",
                                 success: function (menuItems) {
+                                    data.masterRecords.menuItems = menuItems;
                                     controls.initNavbar();
                                     controls.initControlSidebar();
                                     controls.initSidebar(menuItems);
@@ -2867,7 +2872,7 @@ export default class {
                                         $(this).find(".fa-house-user").toggleClass("fa-shake");
                                     });
                                     $(".dropdown.sysCompany .dropdown-item").bind("click", function (sender) {
-                                        console.log(sender.target);
+                                        //console.log(sender.target);
                                         data.companyId = $(sender.target).text().trim();
                                         localStorage.companyId = data.companyId;
                                         $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
@@ -2986,6 +2991,13 @@ export default class {
         });
 
         await $.ajax({
+            url: "../Home/GetSysCompanies",
+            success: function (result) {
+                masterRecords.sysCompanies = result;
+            }
+        });
+
+        $.ajax({
             url: "../Home/GetCurrencies",
             data: { companyId: this.companyId },
             success: function (result) {
@@ -2993,14 +3005,7 @@ export default class {
             }
         });
 
-        await $.ajax({
-            url: "../Home/GetSysCompanies",
-            success: function (result) {
-                masterRecords.sysCompanies = result;
-            }
-        });
-
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetChargeTemplates",
             data: { companyId: this.companyId },
             success: function (result) {
@@ -3008,7 +3013,7 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetChargesView",
             success: function (result) {
                 for (var i in result) {
@@ -3018,14 +3023,14 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetEquipCodes",
             success: function (result) {
                 masterRecords.equipCodes = result;
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetCountriesView",
             success: function (result) {
                 for (var i in result) {
@@ -3035,7 +3040,7 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetPortsView",
             success: function (result) {
                 for (var i in result) {
@@ -3045,7 +3050,7 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetAirlinesView",
             success: function (result) {
                 for (var i in result) {
@@ -3055,7 +3060,7 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetRecentCustomers",
             success: function (result) {
                 for (var i in result) {
@@ -3066,21 +3071,21 @@ export default class {
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../Home/GetGroupCodes",
             success: function (result) {
                 masterRecords.groupCodes = result;
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../MasterRecord/PowerSearch/GetPowerSearchSettings",
             success: function (result) {
                 masterRecords.powerSearchSettings = result;
             }
         });
 
-        await $.ajax({
+        $.ajax({
             url: "../MasterRecord/PowerSearch/GetPowerSearchTemplates",
             success: function (result) {
                 masterRecords.powerSearchTemplates = result;

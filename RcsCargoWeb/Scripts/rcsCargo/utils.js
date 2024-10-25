@@ -592,7 +592,7 @@
         }
     }
 
-    //type: "info", "warning", "error", size: "small", "medium", "large"
+    //type: "info", "warning", "error", "confirm", size: "small", "medium", "large"
     alertMessage = function (msg, title, type = "info", size, showCloseButtons = true, callbackFunction) {
         var contentHeight = "100%";
         if (showCloseButtons)
@@ -620,6 +620,8 @@
             icon = "<i class='k-icon k-i-warning fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
         else if (type == "error")
             icon = "<i class='k-icon k-i-x-outline fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
+        else if (type == "confirm")
+            icon = "<i class='k-icon question-circle fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
 
         if (utils.isEmptyString(title))
             title = "RCS Cargo System";

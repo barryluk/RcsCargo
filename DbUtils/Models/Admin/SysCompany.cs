@@ -61,5 +61,7 @@ namespace DbUtils.Models.Admin
         public string COMPANY_NAME { get; set; }
         public string COUNTRY_CODE { get; set; }
         public string PORT_CODE { get; set; }
+        public string EX_P_CURR_CODE { get; set; }
+        public string EX_C_CURR_CODE { get; set; }
     }
 }

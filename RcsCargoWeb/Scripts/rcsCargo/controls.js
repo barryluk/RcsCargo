@@ -24,17 +24,23 @@
 
     //Sidebar
     initSidebar = function (menuItems) {
-        var html = data.frameworkHtmlElements.sidebar(menuItems);
+        let html = data.frameworkHtmlElements.sidebar(menuItems);
         $("div.wrapper").prepend(html);
-        $(".nav.nav-treeview a.nav-link").each(function () {
-            var link = $(this);
-            if (link.attr("data-controller") != null) {
+        $(".nav a.nav-link").each(function () {
+            let link = $(this);
+            //console.log(link.text(), link.attr("data-controller"), utils.isEmptyString(link.attr("data-controller")));
+            if (!utils.isEmptyString(link.attr("data-controller")) && link.attr("data-controller") != "null") {
                 link.click(function () {
-                    var controller = link.attr("data-controller");
-                    var action = link.attr("data-action");
-                    var id = link.attr("data-id");
-                    var tabTitle = link.text().trim();
-                    controls.append_tabStripMain(tabTitle, id + "_" + data.companyId, controller);
+                    let controller = link.attr("data-controller");
+                    let action = link.attr("data-action");
+                    let id = link.attr("data-id");
+                    let userType = link.attr("data-userType");
+                    let tabTitle = link.text().trim();
+
+                    if ((userType == "A" && data.user.USER_TYPE == "A") || userType == "null")
+                        controls.append_tabStripMain(tabTitle, id + "_" + data.companyId, controller);
+                    else
+                        utils.alertMessage("System administrator login is required for this module.<br><br>", "Access Restricted", "warning", null, true);
                 });
             }
         });
@@ -294,6 +300,7 @@
     };
 
     append_tabStripMain = function (text, id, controller) {
+        //console.log(id);
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
         if (pageSetting == null) {
@@ -314,7 +321,8 @@
                 encoded: false,
                 content: `<div id="${id}"></div>`
             });
-            kendo.ui.progress($(`#${id}`).parent(), true);
+            if (id.indexOf("Index") == -1)
+                kendo.ui.progress($(`#${id}`).parent(), true);
 
             $("#btnClose_" + id).click(function () {
                 try {
@@ -325,7 +333,8 @@
 
             $("#btnRefresh_" + id).click(function () {
                 controls.activate_tabStripMain(id);
-                kendo.ui.progress($(`#${id}`).parent(), true);
+                if (id.indexOf("Index") == -1)
+                    kendo.ui.progress($(`#${id}`).parent(), true);
                 if (id.indexOf("Index") != -1) {
                     pageSetting = utils.getMasterForm(`#${id}`);
                     pageSetting.id = id;
@@ -359,13 +368,16 @@
         }
 
         //tabStrip.activateTab(tabStrip.tabGroup.find("[id='btnClose_" + id + "']").parent().parent());
-        tabStrip.activateTab("li:last");
-        if (id.indexOf("Index") != -1)
+        //tabStrip.activateTab("li:last");
+        if (id.indexOf("Index") != -1) {
+            controls.activate_tabStripMain(id);
             controls.index.initIndexPage(pageSetting);
-        else
+        }
+        else {
+            controls.activate_tabStripMain(id);
             controls.edit.initEditPage(id);
+        }
 
-        controls.activate_tabStripMain(id);
     }
 
     activate_tabStripMain = function (id) {
@@ -404,7 +416,14 @@
         if (masterForm.mode == "create") {
             masterForm.schema.fields.forEach(function (field) {
                 if (field.defaultValue != null) {
-                    model[field.name] = field.defaultValue;
+                    if (field.defaultValue == "currency") {
+                        let currCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0][`${utils.getFrtMode() == "AE" ? "EX" : "IM"}_${field.name}`];
+                        let exRate = data.masterRecords.currencies.filter(a => a.CURR_CODE == currCode)[0].EX_RATE;
+                        model[field.name] = currCode;
+                        model[field.name.replace("CURR_CODE", "EX_RATE")] = exRate;
+                    }
+                    else
+                        model[field.name] = field.defaultValue;
                 }
             });
         }
