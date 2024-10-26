@@ -2,7 +2,22 @@
     constructor() {
     }
 
-    initLog = function (pageSetting) {
+    initSysConsole = function (pageSetting) {
+        $(`#${pageSetting.id} .menuButton`).each(function () {
+            $(this).click(function () {
+                switch ($(this).attr("name")) {
+                    case "sysLogs":
+                        controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs");
+                        break;
+                }
+            });
+        });
+    }
+
+    initSysLogs = function () {
+        let pageSetting = data.indexPages.filter(a => a.pageName == "sysLogs")[0];
+        pageSetting.id = "sysLogsIndex";
+
         $(`#${pageSetting.id} [name="logFiles"]`).parent().after(`
             <span class="k-icon k-i-refresh handCursor" style="font-size: 10pt"></span>
             <div class="form-group">
@@ -14,6 +29,7 @@
                 <span class="logFilter">[FATAL]</span>&nbsp&nbsp
                 <span><i class="k-icon k-i-arrow-end-down handCursor" name="toBottom"></i></span>
             </div>`);
+
         $(`#${pageSetting.id} [name="logContent"]`).after(`
             <i id="systemLog-main-footer" />
             <div><img name="toTop" src="../Content/img/top.png" alt="back to top" /></div>`);

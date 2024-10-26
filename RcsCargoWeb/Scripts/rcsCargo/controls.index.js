@@ -13,6 +13,9 @@
             this.renderControls(pageSetting);
         }
 
+        if (pageSetting.initScript != null)
+            eval(`${pageSetting.initScript}(pageSetting)`);
+
         if (pageSetting.additionalScript != null) {
             if (["country", "port", "airline", "currency", "charge", "chargeTemplate"].indexOf(pageSetting.pageName) == -1)
                 eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
@@ -31,13 +34,16 @@
             pageSetting.groups.forEach(function (group) {
                 var ctrlHtml = "";
                 $(`#${pageSetting.id} div[name="main"]`).append(`<div name="${group.name}" class="row col-xl-${group.colWidth} col-lg-6"></div>`);
-                group.controls.forEach(function (control) {
-                    var iconHtml = "";
-                    if (control.icon != null)
-                        iconHtml = `<span class="k-icon ${control.icon} k-button-icon"></span>`;
-                    ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${iconHtml}${control.label}</span>`;
-                });
-                $(`#${pageSetting.id} [name="${group.name}"]`).append(data.htmlElements.card(group.title, ctrlHtml, 12, "info", "center"));
+                if (group.controls != null) {
+                    group.controls.forEach(function (control) {
+                        var iconHtml = "";
+                        if (control.icon != null)
+                            iconHtml = `<span class="k-icon ${control.icon} k-button-icon"></span>`;
+                        ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${iconHtml}${control.label}</span>`;
+                    });
+                }
+                if (group.name != "emptyGroup")
+                    $(`#${pageSetting.id} [name="${group.name}"]`).append(data.htmlElements.card(group.title, ctrlHtml, 12, "info", "center"));
             });
         }
 

@@ -998,7 +998,59 @@ var indexPages = [
         pageName: "sysConsole",
         id: "",
         title: "System Console",
-        //additionalScript: "initsysConsole",
+        additionalScript: "initSysConsole",
+        groups: [
+            {
+                name: "userCompanies",
+                title: "Users / User Group / Companies",
+                colWidth: 4,
+                controls: [
+                    { label: "Users", name: "users" },
+                    { label: "User Group", name: "userGroups" },
+                    { label: "System Companies", name: "sysCompanies" },
+                ]
+            },
+            {
+                name: "systemSetting",
+                title: "System Setting",
+                colWidth: 4,
+                controls: [
+                    { label: "System Module", name: "sysModules" },
+                    { label: "Sequence Number Setup", name: "seqNoSetup" },
+                    { label: "System Parameters", name: "sysParas" },
+                ]
+            },
+            {
+                name: "emptyGroup",
+                colWidth: 4,
+            },
+            {
+                name: "serverStatus",
+                title: "Server Status",
+                colWidth: 4,
+                controls: [
+                    { label: "User Logs", name: "userLogs" },
+                    { label: "System Logs", name: "sysLogs" },
+                    { label: "Database", name: "database" },
+                ]
+            },
+            {
+                name: "tools",
+                title: "Tools",
+                colWidth: 4,
+                controls: [
+                    { label: "SQL Developer", name: "sqlDeveloper" },
+                    { label: "Guid / Password / Encrypt", name: "stringTools" },
+                    { label: "Get Sequence Numbers", name: "getSeqNo" },
+                ]
+            },
+        ],
+    },
+    {
+        pageName: "sysLogs",
+        id: "",
+        title: "System Logs",
+        initScript: "controllers.sysConsole.initSysLogs",
         controls: [
             { label: "Log file", type: "logFiles", name: "logFiles", colWidth: 4 },
             { type: "emptyBlock", name: "logContent", colWidth: 12 },

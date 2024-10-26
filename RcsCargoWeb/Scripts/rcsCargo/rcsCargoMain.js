@@ -36,7 +36,7 @@ async function loadScripts() {
     controllers.airInvoice = new ((await import(`../../Scripts/rcsCargo/airInvoice.js?v=${version}`)).default);
     controllers.airPv = new ((await import(`../../Scripts/rcsCargo/airPv.js?v=${version}`)).default);
     controllers.airReport = new ((await import(`../../Scripts/rcsCargo/airReport.js?v=${version}`)).default);
-    controllers.log = new ((await import(`../../Scripts/rcsCargo/log.js?v=${version}`)).default);
+    controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js?v=${version}`)).default);
 
     $.ajax({
         url: "../Home/GetScriptVersion",
