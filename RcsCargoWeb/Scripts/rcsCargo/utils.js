@@ -819,6 +819,8 @@
             formControlClass = "form-control-textArea";
         } else if (type == "switch") {
             formControlClass = "";
+        } else if (type == "button") {
+            formControlClass = "menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
         }
         return formControlClass;
     }
@@ -832,6 +834,8 @@
             formControlType = "textarea";
         } else if (type == "dateRange" || type == "buttonGroup") {
             formControlType = "div";
+        } else if (type == "button") {
+            formControlType = "span"
         }
         return formControlType;
     }

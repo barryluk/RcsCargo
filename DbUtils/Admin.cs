@@ -272,6 +272,11 @@ namespace DbUtils
 
         #region Sequence Numbers
 
+        public List<string> GetSeqTypes()
+        {
+            return db.SeqFormats.Select(a => a.SEQ_TYPE).Distinct().ToList();
+        }
+
         public string GetSequenceNumber(string seqType, string companyId, string origin, string dest, DateTime? date, int seqNoCount = 1)
         {
             string formattedNumber = string.Empty;

@@ -13,6 +13,9 @@ namespace RcsCargoWeb.Controllers.Admin
     public class SystemController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        DbUtils.Admin admin = new DbUtils.Admin();
+
+        #region Log
 
         [Route("GetLogFiles")]
         public ActionResult GetLogFiles()
@@ -84,5 +87,23 @@ namespace RcsCargoWeb.Controllers.Admin
             logContent = sb.ToString();
             return logContent;
         }
+
+        #endregion
+
+        #region Sequence number
+
+        [Route("GetSeqTypes")]
+        public ActionResult GetSeqTypes()
+        {
+            return Json(admin.GetSeqTypes(), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetSeqNo")]
+        public ActionResult GetSeqNo(string seqType, string companyId, string origin, string dest, DateTime? date, int seqNoCount = 1)
+        {
+            return Content(admin.GetSequenceNumber(seqType, companyId, origin, dest, date, seqNoCount), "plain/text");
+        }
+
+        #endregion
     }
 }

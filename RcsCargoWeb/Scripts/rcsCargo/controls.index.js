@@ -49,20 +49,24 @@
 
         if (pageSetting.controls != null) {
             pageSetting.controls.forEach(function (control) {
-                var colWidth = "";
-                var callbackFunction = "";
-                var controlHtml = "";
-                var formControlType = "input";
-                var formControlClass = "form-control";
+                let colWidth = "";
+                let callbackFunction = "";
+                let controlHtml = "";
+                let formControlType = utils.getFormControlType(control.type);
+                let formControlClass = utils.getFormControlClass(control.type);
+                let readonlyAttr = control.readonly == null ? "" : "readonly";
 
                 if (control.colWidth != null)
                     colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
-                if (data.dropdownlistControls.includes(control.type))
-                    formControlClass = "form-control-dropdownlist";
+
                 if (control.callbackFunction != null)
                     callbackFunction = `callbackFunction="${control.callbackFunction}"`;
-                if (control.type != "emptyBlock")
-                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} />`;
+                if (control.type != "emptyBlock") {
+                    if (control.type == "button")
+                        controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction}>${control.text}</${formControlType}>`;
+                    else
+                        controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
+                }
                 else {
                     if (control.name != null)
                         controlHtml = `<div name="${control.name}" />`;

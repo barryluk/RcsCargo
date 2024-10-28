@@ -6,9 +6,8 @@
         $(`#${pageSetting.id} .menuButton`).each(function () {
             $(this).click(function () {
                 switch ($(this).attr("name")) {
-                    case "sysLogs":
-                        controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs");
-                        break;
+                    case "sysLogs": controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs"); break;
+                    case "getSeqNo": controls.append_tabStripMain("Generate Sequence #", "getSeqNoIndex", "getSeqNo"); break;
                 }
             });
         });
@@ -57,6 +56,34 @@
 
         $(`#${pageSetting.id} [name="toTop"]`).click(function () {
             $(`#${pageSetting.id}`).parent().scrollTop(0);
+        });
+    }
+
+    initGetSeqNo = function () {
+        let pageSetting = data.indexPages.filter(a => a.pageName == "getSeqNo")[0];
+        pageSetting.id = "getSeqNoIndex";
+
+        $(`#${utils.getFormId()} [name="sysCompanyId"]`).data("kendoDropDownList").value(data.companyId);
+        $(`#${utils.getFormId()} [name="origin"]`).data("kendoDropDownList").value(data.companyId.substring(3, 6));
+        $(`#${utils.getFormId()} [name="date"]`).data("kendoDatePicker").value(new Date());
+        $(`#${utils.getFormId()} [name="seqNoCount"]`).data("kendoNumericTextBox").value(1);
+
+        $(`#${utils.getFormId()} [name="genSeqNo"]`).click(function () {
+            $.ajax({
+                url: "../Admin/System/GetSeqNo",
+                dataType: "text",
+                data: {
+                    seqType: $(`#${utils.getFormId()} [name="seqType"]`).data("kendoDropDownList").value(),
+                    companyId: $(`#${utils.getFormId()} [name="sysCompanyId"]`).data("kendoDropDownList").value(),
+                    origin: $(`#${utils.getFormId()} [name="origin"]`).data("kendoDropDownList").value(),
+                    dest: $(`#${utils.getFormId()} [name="dest"]`).data("kendoDropDownList").value(),
+                    date: $(`#${utils.getFormId()} [name="date"]`).data("kendoDatePicker").value(),
+                    seqNoCount: $(`#${utils.getFormId()} [name="seqNoCount"]`).data("kendoNumericTextBox").value(),
+                },
+                success: function (result) {
+                    $(`#${utils.getFormId()} [name="seqNoResult"]`).val(result.replaceAll(",", "\r\n"));
+                }
+            });
         });
     }
 }

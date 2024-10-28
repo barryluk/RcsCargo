@@ -98,6 +98,11 @@
             masterForm.mode = "create";
             let model = controls.getValuesFromFormControls(masterForm);
             model.BOOKING_NO = utils.formatText(assignedBookingNo) ?? "";
+            if (model.BookingPos != null) {
+                model.BookingPos.forEach(function (po) {
+                    po.BOOKING_NO = utils.formatText(assignedBookingNo) ?? "";
+                });
+            }
             console.log(masterForm, model);
             //return;
 

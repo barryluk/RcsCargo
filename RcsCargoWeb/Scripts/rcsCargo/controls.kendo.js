@@ -592,6 +592,22 @@
             });
         });
 
+        //kendoDropDownList for seqType
+        $(`#${masterForm.id} input[type=seqType]`).each(function () {
+            $(this).kendoDropDownList({
+                dataSource: data.masterRecords.seqTypes
+            });
+        });
+
+        //kendoDropDownList for seqType
+        $(`#${masterForm.id} input[type=sysCompany]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "COMPANY_ID",
+                dataValueField: "COMPANY_ID",
+                dataSource: data.masterRecords.sysCompanies
+            });
+        });
+
         //kendoDropDownList for selectMawb
         $(`#${masterForm.id} input[type=selectMawb]`).each(function () {
             var filterValue = "";

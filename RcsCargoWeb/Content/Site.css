@@ -52,7 +52,7 @@ li {
     margin: 2px;
 }
 
-    .k-input.k-disabled {
+    .k-input.k-disabled, textarea[readonly="readonly"] {
         background-color: #E9ECEF
     }
 

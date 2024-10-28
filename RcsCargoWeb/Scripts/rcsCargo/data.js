@@ -29,11 +29,11 @@ var masterRecords = {
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {},
-    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}
+    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
-    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles"];
+    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -1056,6 +1056,29 @@ var indexPages = [
             { type: "emptyBlock", name: "logContent", colWidth: 12 },
         ],
     },
+    {
+        pageName: "getSeqNo",
+        id: "",
+        title: "Generate Sequence #",
+        initScript: "controllers.sysConsole.initGetSeqNo",
+        controls: [
+            { label: "Sequence # Type", type: "seqType", name: "seqType", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Company ID", type: "sysCompany", name: "sysCompanyId", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Origin", type: "port", name: "origin", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Destination", type: "port", name: "dest", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Flight Date", type: "date", name: "date", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Seq. number count", type: "numberInt", name: "seqNoCount", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "", text: "Generate Number", type: "button", name: "genSeqNo", colWidth: 4 },
+            { type: "emptyBlock", colWidth: 8 },
+            { label: "Sequence Number(s)", type: "textArea", name: "seqNoResult", readonly: true, colWidth: 4 },
+        ],
+    },
 ];
 
 var masterForms = [
@@ -1337,7 +1360,7 @@ var masterForms = [
                 { name: "ISSUE_DATE", required: "true" },
                 { name: "ORIGIN_CODE", required: "true" },
                 { name: "DEST_CODE", required: "true" },
-                { name: "VWTS_FACTOR", required: "true" },
+                { name: "VWTS_FACTOR", required: "true", defaultValue: "6000" },
             ],
             validation: {
                 rules: {
@@ -3127,6 +3150,13 @@ export default class {
             url: "../Home/GetGroupCodes",
             success: function (result) {
                 masterRecords.groupCodes = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Admin/System/GetSeqTypes",
+            success: function (result) {
+                masterRecords.seqTypes = result;
             }
         });
 
