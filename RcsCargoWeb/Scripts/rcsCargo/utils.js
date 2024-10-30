@@ -68,7 +68,7 @@
 
     getFormId = function (selector) {
         if ($(".kendo-window-alertMessage").length == 1) {
-            if ($(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").length == 1) {
+            if ($(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").length >= 1) {
                 return $(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").attr("id");
             }
         }
@@ -424,12 +424,57 @@
         return serverResult == "True" ? true : false;
     }
 
+    isExistingSeaPortCode = function (portCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/SeaPort/IsExistingSeaPortCode",
+            dataType: "text",
+            data: { id: utils.formatText(portCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isExistingAirlineCode = function (airlineCode) {
         var serverResult = "";
         $.ajax({
             url: "../MasterRecord/Airline/IsExistingAirlineCode",
             dataType: "text",
             data: { id: utils.formatText(airlineCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingCarrierCode = function (carrierCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Carrier/IsExistingCarrierCode",
+            dataType: "text",
+            data: { id: utils.formatText(carrierCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingVesselCode = function (vesCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Vessel/IsExistingVesselCode",
+            dataType: "text",
+            data: { id: utils.formatText(vesCode) },
             async: false,
             success: function (result) {
                 serverResult = result;

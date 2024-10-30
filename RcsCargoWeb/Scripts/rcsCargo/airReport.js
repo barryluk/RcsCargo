@@ -128,7 +128,7 @@
 
         utils.alertMessage(html, "Daily Booking", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value(2);
 
@@ -186,7 +186,7 @@
 
         utils.alertMessage(html, "Daily Booking For Overseas", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
         $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value(new Date());
         $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value(2);
         $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value(2);
@@ -246,7 +246,7 @@
 
         utils.alertMessage(html, "Shipment Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
         $(`[name="shipmentReport_sortingOrder"]`).kendoDropDownList({
             dataTextField: "text",
             dataValueField: "value",
@@ -311,7 +311,7 @@
 
         utils.alertMessage(html, "Shipment Tracking Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="shipmentTrackingReport_Print"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
@@ -358,7 +358,7 @@
 
         utils.alertMessage(html, "Customize Shipment Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="customizeShipmentReport_sortingOrder"]`).kendoDropDownList({
             dataTextField: "text",
@@ -510,7 +510,7 @@
 
         utils.alertMessage(html, "Job Profit & Loss Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
     }
 
     dialogJobProfitLossReport = function () {
@@ -532,7 +532,7 @@
 
         utils.alertMessage(html, "Job Profit & Loss Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="jobProfitLossReport_Print"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
@@ -562,7 +562,7 @@
 
         utils.alertMessage(html, "Other Job Profit & Loss Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="otherJobProfitLossReport_Print"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
@@ -589,7 +589,7 @@
 
         utils.alertMessage(html, "Lot Profit & Loss Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="lotProfitLossReport_Print"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
@@ -618,7 +618,7 @@
 
         utils.alertMessage(html, "Summary Profit & Loss Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name^="summaryProfitLossReport_Print"]`).click(function () {
             let buttonName = $(this).attr("name");
@@ -708,7 +708,7 @@
 
         utils.alertMessage(html, "Invoice Reports", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`#${utils.getFormId()} [name="invoiceReport_print"]`).click(function () {
             let paras = controllers.airReport.getCommonParas("yyyyMMdd");
@@ -755,7 +755,7 @@
 
         utils.alertMessage(html, "Payment Voucher Report", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`#${utils.getFormId()} [name="pvReport_originInvType"]`).kendoDropDownList({
             dataTextField: "text",
@@ -814,7 +814,7 @@
 
         utils.alertMessage(html, "SHA / CN Reports", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
         $(`#${utils.getFormId()} [name="shaReport_chargeTemplate"]`).kendoDropDownList({
             dataSource: { data: ["SHA_1", "SZX_1", "TAO_1"] }
         });

@@ -70,6 +70,9 @@
     <Compile Include="Models\Admin\ReportData.cs" />
     <Compile Include="Models\Admin\SysCompany.cs" />
     <Compile Include="Models\Admin\SeqFormat.cs" />
+    <Compile Include="Models\MasterRecords\Vessel.cs" />
+    <Compile Include="Models\MasterRecords\Carrier.cs" />
+    <Compile Include="Models\MasterRecords\SeaPort.cs" />
     <Compile Include="Models\MasterRecords\PowerSearchSetting.cs" />
     <Compile Include="Models\Admin\User.cs" />
     <Compile Include="Models\Admin\UserLog.cs" />

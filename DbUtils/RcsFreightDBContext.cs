@@ -20,6 +20,9 @@ namespace DbUtils
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<Port> Ports { get; set; }
+        public DbSet<SeaPort> SeaPorts { get; set; }
+        public DbSet<Carrier> Carriers { get; set; }
+        public DbSet<Vessel> Vessels { get; set; }
         public DbSet<Charge> Charges { get; set; }
         public DbSet<ChargeTemplate> ChargeTemplates { get; set; }
         public DbSet<Customer> Customers { get; set; }

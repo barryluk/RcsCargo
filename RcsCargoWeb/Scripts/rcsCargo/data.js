@@ -442,6 +442,61 @@ var indexPages = [
         },
     },
     {
+        pageName: "seaPort",
+        id: "",
+        title: "Sea Port",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/SeaPort/UpdateSeaPort",
+        deleteUrl: "../MasterRecord/SeaPort/DeleteSeaPort",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Port Code / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridSeaPortIndex",
+            dataSourceUrl: "../MasterRecord/SeaPort/GridSeaPort_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "PORT_CODE", title: "Code" },
+                { field: "PORT_DESC", title: "Name" },
+                {
+                    field: "COUNTRY_CODE", title: "Country", template: function (dataItem) {
+                        var country = data.masterRecords.countries.filter(a => a.COUNTRY_CODE == dataItem.COUNTRY_CODE)[0];
+                        return country == null ? "" : country.COUNTRY_DESC;
+                    }
+                },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ PORT_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${PORT_CODE}"></i>`, width: 30 },
+                { template: ({ PORT_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${PORT_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "PORT_CODE",
+            fields: [
+                { name: "PORT_CODE", label: "Port Code", readonly: "edit", required: "true" },
+                { name: "PORT_DESC", label: "Port Name", required: "true" },
+                { name: "COUNTRY_CODE", label: "Country", type: "country", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    seaPortCodeExistsRule: function (input) {
+                        if (input.is("[name=PORT_CODE]")) {
+                            return !utils.isExistingSeaPortCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { seaPortCodeExistsRule: "Port code already exists in the database!", },
+            },
+        },
+    },
+    {
         pageName: "airline",
         id: "",
         title: "Airline",
@@ -491,6 +546,110 @@ var indexPages = [
                     }
                 },
                 messages: { airlineCodeExistsRule: "Airline code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "carrier",
+        id: "",
+        title: "Carrier",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Carrier/UpdateCarrier",
+        deleteUrl: "../MasterRecord/Carrier/DeleteCarrier",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Carrier Code / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridCarrierIndex",
+            dataSourceUrl: "../MasterRecord/Carrier/GridCarrier_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CARRIER_CODE", title: "Code" },
+                { field: "CARRIER_DESC", title: "Name" },
+                { field: "SCAC", title: "SCAC" },
+                { field: "CW1_CODE", title: "CW1 Code" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ CARRIER_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${CARRIER_CODE}"></i>`, width: 30 },
+                { template: ({ CARRIER_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${CARRIER_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "CARRIER_CODE",
+            fields: [
+                { name: "CARRIER_CODE", label: "Carrier Code", readonly: "edit", required: "true" },
+                { name: "CARRIER_DESC", label: "Carrier Name", required: "true" },
+                { name: "SCAC", label: "SCAC" },
+                { name: "CW1_CODE", label: "CW1 Code" },
+            ],
+            validation: {
+                rules: {
+                    carrierCodeExistsRule: function (input) {
+                        if (input.is("[name=CARRIER_CODE]")) {
+                            return !utils.isExistingCarrierCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { carrierCodeExistsRule: "Carrier code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "vessel",
+        id: "",
+        title: "Vessel",
+        additionalScript: "initMasterRecords",
+        updateUrl: "../MasterRecord/Vessel/UpdateVessel",
+        deleteUrl: "../MasterRecord/Vessel/DeleteVessel",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Vessel Code / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridVesselIndex",
+            dataSourceUrl: "../MasterRecord/Vessel/GridVessel_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "VES_CODE", title: "Code" },
+                { field: "VES_DESC", title: "Name" },
+                { field: "LLOYD_CODE", title: "Lloyd Code" },
+                { field: "COUNTRY_FLAG", title: "Country Flag" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ VES_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${VES_CODE}"></i>`, width: 30 },
+                { template: ({ VES_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${VES_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "VES_CODE",
+            fields: [
+                { name: "VES_CODE", label: "Vessel Code", readonly: "edit", required: "true" },
+                { name: "VES_DESC", label: "Vessel Name", required: "true" },
+                { name: "LLOYD_CODE", label: "Lloyd Code" },
+                { name: "COUNTRY_FLAG", label: "Country Flag", type: "country" },
+            ],
+            validation: {
+                rules: {
+                    vesselCodeExistsRule: function (input) {
+                        if (input.is("[name=VES_CODE]")) {
+                            return !utils.isExistingVesselCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { vesselCodeExistsRule: "Vessel code already exists in the database!", },
             },
         },
     },
@@ -1121,16 +1280,16 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Price", field: "PRICE", width: 90 },
                             {
                                 title: "Unit", field: "UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_AMOUNT", width: 90 },
                             { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
@@ -1191,11 +1350,11 @@ var masterForms = [
                         columns: [
                             {
                                 title: "Country", field: "COUNTRY_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCountry(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCountry(container, options) }
                             },
                             {
                                 title: "Port", field: "PORT_CODE", width: 90,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPort(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPort(container, options) }
                             },
                             { title: "Branch", field: "BRANCH_CODE", width: 90 },
                             { title: "Name", field: "CUSTOMER_DESC", width: 280 },
@@ -1224,11 +1383,11 @@ var masterForms = [
                         columns: [
                             {
                                 title: "Branch", field: "BRANCH_CODE", width: 90,
-                                editor: function (container, options) { controls.kendo.renderGridEditorBranch(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorBranch(container, options) }
                             },
                             {
                                 title: "Short Name", field: "SHORT_DESC", width: 160,
-                                editor: function (container, options) { controls.kendo.renderGridEditorShortDesc(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorShortDesc(container, options) }
                             },
                             {
                                 title: "Contact/Email", field: "CONTACT",
@@ -1462,18 +1621,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -1513,18 +1672,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -1586,7 +1745,7 @@ var masterForms = [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Length", field: "LENGTH", width: 90 },
                             { title: "Width", field: "WIDTH", width: 90 },
@@ -1685,17 +1844,17 @@ var masterForms = [
                         columns: [
                             {
                                 title: "HAWB #", field: "HAWB_NO", width: 100,
-                                editor: function (container, options) { controls.kendo.renderGridEditorLoadplanEquipHawbNos(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorLoadplanEquipHawbNos(container, options) }
                             },
                             {
                                 title: "Equipment", field: "EQUIP_CODE", width: 250,
                                 template: function (dataItem) { return `${dataItem.EQUIP_CODE} / ${dataItem.EQUIP_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorLoadplanEquips(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorLoadplanEquips(container, options) }
                             },
                             { title: "Packages", field: "PACKAGE", width: 100 },
                             {
                                 title: "Type", field: "PACKAGE_UNIT", width: 100,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "G/Wts", field: "GWTS", width: 100 },
                             { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
@@ -1843,7 +2002,7 @@ var masterForms = [
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Pcs", field: "PCS", width: 80 },
                             { title: "G/Wts", field: "GWTS", width: 80 },
@@ -1880,7 +2039,7 @@ var masterForms = [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Date/Time", field: "CREATE_DATE", width: 120, template: ({ CREATE_DATE }) => `${kendo.toString(CREATE_DATE, data.dateTimeFormat)}` },
                             { title: "G/Wts", field: "GWTS", width: 80 },
@@ -1891,7 +2050,7 @@ var masterForms = [
                             { title: "Dimension", field: "DIMENSION", width: 160 },
                             {
                                 title: "Pickup", field: "IS_PICKUP", width: 60,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                editor: function (container, options) { controls.renderGridEditorCheckBox(container, options) },
                                 template: function (dataItem) {
                                     if (dataItem.IS_PICKUP == "true" || dataItem.IS_PICKUP == "Y")
                                         return "Y";
@@ -1901,7 +2060,7 @@ var masterForms = [
                             },
                             {
                                 title: "Delivered", field: "IS_DEL", width: 60,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                editor: function (container, options) { controls.renderGridEditorCheckBox(container, options) },
                                 template: function (dataItem) {
                                     if (dataItem.IS_DEL == "true" || dataItem.IS_DEL == "Y")
                                         return "Y";
@@ -1911,7 +2070,7 @@ var masterForms = [
                             },
                             {
                                 title: "Damaged", field: "IS_DAM", width: 60,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCheckBox(container, options) },
+                                editor: function (container, options) { controls.renderGridEditorCheckBox(container, options) },
                                 template: function (dataItem) {
                                     if (dataItem.IS_DAM == "true" || dataItem.IS_DAM == "Y")
                                         return "Y";
@@ -2126,7 +2285,7 @@ var masterForms = [
                             { title: "Ctns", field: "CTNS", width: 90 },
                             {
                                 title: "Type", field: "PACKAGE_TYPE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Length", field: "LENGTH", width: 90 },
                             { title: "Width", field: "WIDTH", width: 90 },
@@ -2212,18 +2371,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -2263,18 +2422,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -2336,7 +2495,7 @@ var masterForms = [
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorPackageQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "Pcs", field: "PCS", width: 80 },
                             { title: "G/Wts", field: "GWTS", width: 80 },
@@ -2529,18 +2688,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -2672,18 +2831,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
@@ -2780,18 +2939,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -2829,18 +2988,18 @@ var masterForms = [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
                                 template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
-                                editor: function (container, options) { controls.kendo.renderGridEditorCharges(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
                             { title: "Qty", field: "QTY", width: 90 },
                             {
                                 title: "Unit", field: "QTY_UNIT", width: 80,
-                                editor: function (container, options) { controls.kendo.renderGridEditorChargeQtyUnit(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
@@ -2915,7 +3074,7 @@ export default class {
                             localStorage.removeItem("sessionId");
                             window.open("../Home/Login", "_self");
                         }
-                        if (!utils.isEmptyString(localStorage.companyId)) {
+                        if (!data.isEmptyString(localStorage.companyId)) {
                             companyId = localStorage.companyId;
                         } else {
                             if (data.isEmptyString(user.DEFAULT_COMPANY))

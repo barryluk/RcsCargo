@@ -79,6 +79,17 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetLoadplanHawbListByBookingNo")]
+        public ActionResult GetLoadplanHawbListByBookingNo(string[] bookingNos, string companyId, string frtMode)
+        {
+            var hawbs = new List<HawbView>();
+            foreach(var bookingNo in bookingNos)
+            {
+                hawbs.Add(air.GetLoadplanHawbByBookingNo(bookingNo, companyId, frtMode));
+            }
+            return Json(hawbs, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetLoadplanHawbEquipList")]
         public ActionResult GetLoadplanHawbEquipList(string id, string companyId, string frtMode)
         {

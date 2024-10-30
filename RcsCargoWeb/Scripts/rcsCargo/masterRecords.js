@@ -13,7 +13,7 @@
         $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] .k-grid-new`).click(function () {
             utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "create"),
                 `Create`, null, null, true, "controllers.masterRecords.editSaveClick");
-            controls.kendo.renderFormControl_kendoUI({
+            controls.renderFormControl_kendoUI({
                 id: `${utils.getFormId()}`,
                 schema: pageSetting.schema,
             }, true);
@@ -33,7 +33,7 @@
                     } else {
                         utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "edit"),
                             `Edit: ${key}`, null, null, true, "controllers.masterRecords.editSaveClick");
-                        controls.kendo.renderFormControl_kendoUI({
+                        controls.renderFormControl_kendoUI({
                             id: `${utils.getFormId()}`,
                             schema: pageSetting.schema,
                         }, true);

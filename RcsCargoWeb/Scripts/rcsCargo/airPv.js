@@ -151,7 +151,7 @@
 
         var dialog = utils.alertMessage(html, "Save as Invoice", null, null, false);
         let formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`[name="saveAsInvoice_save"]`).click(function () {
             let model = JSON.parse($(`#${utils.getMasterFormId()}`).attr("modelData"));

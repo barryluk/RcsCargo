@@ -228,14 +228,8 @@ namespace DbUtils
                 var dims = db.MawbDims.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
                 var charges = db.MawbCharges.Where(a => a.MAWB_NO == mawb.MAWB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
                 var bookingList = db.LoadplanBookingLists.Where(a => a.JOB_NO == mawb.JOB && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
-                
-                var dbParas = new List<DbParameter>
-                {
-                    new DbParameter { FieldName = "job_no", ParaName = "job_no", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.JOB },
-                    new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.COMPANY_ID },
-                    new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = mawb.FRT_MODE },
-                };
-                var hawbNos = Utils.GetSqlQueryResult<string>("a_hawb", "hawb_no", dbParas);
+                var hawbNos = mawb.LoadplanHawbListViews.Select(a => a.HAWB_NO).ToList();
+                var hawbs = db.Hawbs.Where(a => hawbNos.Contains(a.HAWB_NO) && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
                 var hawbEquips = db.HawbEquips.Where(a => hawbNos.Contains(a.HAWB_NO) && a.COMPANY_ID == mawb.COMPANY_ID && a.FRT_MODE == mawb.FRT_MODE);
 
                 if (dims != null)
@@ -253,6 +247,15 @@ namespace DbUtils
                 {
                     db.LoadplanBookingLists.RemoveRange(bookingList);
                     db.LoadplanBookingLists.AddRange(mawb.LoadplanBookingLists);
+                }
+                if (hawbs != null)
+                {
+                    foreach(var hawb in hawbs)
+                    {
+                        hawb.JOB_NO = mawb.JOB;
+                        hawb.MAWB_NO = mawb.MAWB;
+                        db.Entry(hawb).State = EntityState.Modified;
+                    }
                 }
                 if (hawbEquips != null)
                 {
@@ -397,6 +400,21 @@ namespace DbUtils
             }
 
             return loadplanView;
+        }
+
+        public HawbView GetLoadplanHawbByBookingNo(string bookingNo, string companyId, string frtMode)
+        {
+            var sqlCmd = @"select hawb_no, company_id, frt_mode, shipper_code, shipper_desc, 
+                consignee_code, consignee_desc, package, gwts, vwts, cbm,
+                case when gwts > vwts then gwts else vwts end as cwts
+                from a_hawb where booking_no = :bookingNo and company_id = :companyId and frt_mode = :frtMode";
+
+            var hawb = db.Database.SqlQuery<HawbView>(sqlCmd, new[] {
+                new OracleParameter("bookingNo", bookingNo),
+                new OracleParameter("companyId", companyId),
+                new OracleParameter("frtMode", frtMode), }).FirstOrDefault();
+
+            return hawb;
         }
 
         public List<HawbView> GetLoadplanHawbListView(string jobNo, string companyId, string frtMode)

@@ -183,6 +183,87 @@ namespace DbUtils
 
         #endregion
 
+        #region Sea Port
+
+        public List<SeaPortView> GetSeaPortsView()
+        {
+            var sqlCmd = @"select a.port_code, b.port_desc from
+                (select port_code from sea_port where modify_date > sysdate - 30
+                union select port_code from s_voyage_detail where nvl(arrival_date, departure_date) > sysdate - 730) a, port b
+                where a.port_code = b.port_code";
+            return db.Database.SqlQuery<SeaPortView>(sqlCmd).ToList();
+        }
+
+        public List<SeaPort> GetSeaPorts(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "port_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "port_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<SeaPort>("sea_port", "*", dbParas);
+            return result.ToList();
+        }
+
+        public SeaPort GetSeaPort(string portCode)
+        {
+            var port = db.SeaPorts.FirstOrDefault(a => a.PORT_CODE == portCode);
+            if (port == null)
+                return new SeaPort();
+            else
+                return port;
+        }
+
+        public void AddSeaPort(SeaPort port)
+        {
+            try
+            {
+                db.SeaPorts.Add(port);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateSeaPort(SeaPort port)
+        {
+            try
+            {
+                db.Entry(port).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteSeaPort(string portCode)
+        {
+            try
+            {
+                var port = db.SeaPorts.FirstOrDefault(a => a.PORT_CODE.Equals(portCode));
+                if (port != null)
+                {
+                    db.SeaPorts.Remove(port);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingSeaPortCode(string portCode)
+        {
+            return db.SeaPorts.Count(a => a.PORT_CODE == portCode) == 1 ? true : false;
+        }
+
+        #endregion
+
         #region Airline
 
         public List<AirlineView> GetAirlinesView()
@@ -265,6 +346,168 @@ namespace DbUtils
         public bool IsExisitingAirlineCode(string airlineCode)
         {
             return db.Airlines.Count(a => a.AIRLINE_CODE == airlineCode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Carrier
+
+        public List<CarrierView> GetCarriersView()
+        {
+            var sqlCmd = @"select a.carrier_code, b.carrier_desc from
+                (select carrier_code from carrier where modify_date > sysdate - 30
+                union select carrier_code from s_voyage where create_date > sysdate - 730) a, carrier b
+                where a.carrier_code = b.carrier_code";
+            return db.Database.SqlQuery<CarrierView>(sqlCmd).ToList();
+        }
+
+        public List<Carrier> GetCarriers(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "carrier_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "carrier_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Carrier>("carrier", "*", dbParas);
+            return result.ToList();
+        }
+
+        public Carrier GetCarrier(string carrierCode)
+        {
+            var carrier = db.Carriers.FirstOrDefault(a => a.CARRIER_CODE == carrierCode);
+            if (carrier == null)
+                return new Carrier();
+            else
+                return carrier;
+        }
+
+        public void AddCarrier(Carrier carrier)
+        {
+            try
+            {
+                db.Carriers.Add(carrier);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCarrier(Carrier carrier)
+        {
+            try
+            {
+                db.Entry(carrier).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCarrier(string carrierCode)
+        {
+            try
+            {
+                var carrier = db.Carriers.FirstOrDefault(a => a.CARRIER_CODE.Equals(carrierCode));
+                if (carrier != null)
+                {
+                    db.Carriers.Remove(carrier);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingCarrierCode(string carrierCode)
+        {
+            return db.Carriers.Count(a => a.CARRIER_CODE == carrierCode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Vessel
+
+        public List<VesselView> GetVesselsView()
+        {
+            var sqlCmd = @"select a.ves_code, b.ves_desc from
+                (select ves_code from vessel where modify_date > sysdate - 30
+                union select ves_code from s_voyage where create_date > sysdate - 730) a, vessel b
+                where a.ves_code = b.ves_code";
+            return db.Database.SqlQuery<VesselView>(sqlCmd).ToList();
+        }
+
+        public List<Vessel> GetVessels(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "ves_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Vessel>("vessel", "*", dbParas);
+            return result.ToList();
+        }
+
+        public Vessel GetVessel(string vesselCode)
+        {
+            var vessel = db.Vessels.FirstOrDefault(a => a.VES_CODE == vesselCode);
+            if (vessel == null)
+                return new Vessel();
+            else
+                return vessel;
+        }
+
+        public void AddVessel(Vessel vessel)
+        {
+            try
+            {
+                db.Vessels.Add(vessel);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateVessel(Vessel vessel)
+        {
+            try
+            {
+                db.Entry(vessel).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteVessel(string vesselCode)
+        {
+            try
+            {
+                var vessel = db.Vessels.FirstOrDefault(a => a.VES_CODE.Equals(vesselCode));
+                if (vessel != null)
+                {
+                    db.Vessels.Remove(vessel);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingVesselCode(string vesselCode)
+        {
+            return db.Vessels.Count(a => a.VES_CODE == vesselCode) == 1 ? true : false;
         }
 
         #endregion

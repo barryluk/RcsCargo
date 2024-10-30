@@ -202,7 +202,7 @@
         var formSetting = {
             id: `${utils.getFormId()}_lotAssignment`
         };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`.kendo-window-alertMessage span.k-i-search`).click(function () {
             $(`.kendo-window-alertMessage [name="grid_mawbListForLotAssignment"]`).data("kendoGrid").dataSource.read();
@@ -412,7 +412,7 @@
         utils.alertMessage(html, "Create Invoice", null, null, true, "controllers.airMawb.createInvoice");
         var formSetting = {};
         formSetting.id = `${utils.getFormId()}_createInvoice`;
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
 
         $(`#${utils.getFormId()}_createInvoice`).kendoValidator({ errorTemplate: ({ message }) => utils.validatorErrorTemplate(message) });
     }
@@ -515,97 +515,115 @@
     }
 
     searchBookingClick = function (selector) {
-        var formId = utils.getFormId(selector);
-        var targetGridName = "grid_LoadplanBookingListViews";
+        let formId = utils.getFormId(selector);
+        let targetGridName = "grid_LoadplanBookingListViews";
+        let targetHawbGridName = "grid_LoadplanHawbListViews";
 
-            var html = `<div class='kendo-window-loadplan-booking'>
-                <div name="gridSearchBooking"></div>
-            </div>`;
+        let html = `<div class='kendo-window-loadplan-booking'>
+            <div name="gridSearchBooking"></div>
+        </div>`;
 
-            $(".content-wrapper").append(html);
-            var searchWin = $(".kendo-window-loadplan-booking").kendoWindow({
-                title: "Search Booking",
-                modal: true,
-                //content: html,
-                width: "40%",
-                height: "40%",
-                close: function (e) {
-                    searchWin.destroy();
-                },
-            }).data("kendoWindow");
+        $(".content-wrapper").append(html);
+        let searchWin = $(".kendo-window-loadplan-booking").kendoWindow({
+            title: "Search Booking",
+            modal: true,
+            //content: html,
+            width: "40%",
+            height: "40%",
+            close: function (e) {
+                searchWin.destroy();
+            },
+        }).data("kendoWindow");
 
-            searchWin.center().open();
+        searchWin.center().open();
 
-            kendo.ui.progress($(`.kendo-window-loadplan-booking`), true);
-            $.ajax({
-                url: "../Air/Mawb/SearchBooking",
-                data: { dest: utils.getFormValue("DEST_CODE"), companyId: data.companyId },
-                success: function (result) {
-                    setTimeout(function () {
-                        var grid = $(`.kendo-window-loadplan-booking [name="gridSearchBooking"]`).kendoGrid({
-                            toolbar: [
-                                { name: "selectAll", text: "Select All", iconClass: "k-icon k-i-tick" },
-                                { name: "selectBooking", text: "Add to loadplan", iconClass: "k-icon k-i-plus" }],
-                            columns: [
-                                {
-                                    template: `<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md" />`
-                                },
-                                { field: "BOOKING_NO", title: "Booking #" },
-                                { field: "SHIPPER_DESC", title: "Shipper" },
-                                { field: "CONSIGNEE_DESC", title: "Consignee" },
-                                { field: "PACKAGE", title: "Packages" },
-                                { field: "GWTS", title: "G/Wts" },
-                                { field: "VWTS", title: "V/Wts" },
-                                { field: "IS_DOC_REC", title: "Doc Rcvd?" },
-                                { field: "IS_BOOKING_APP", title: "Approved?" },
-                                { field: "IS_RECEIVED", title: "Rcvd?" },
-                            ],
-                            dataSource: { data: result },
-                            resizable: true,
-                            height: $(".kendo-window-loadplan-booking.k-window-content").height(),
-                            dataBound: function (e) {
-                                $("[name=gridSearchBooking]").data("kendoGrid").autoFitColumns();
+        kendo.ui.progress($(`.kendo-window-loadplan-booking`), true);
+        $.ajax({
+            url: "../Air/Mawb/SearchBooking",
+            data: { dest: utils.getFormValue("DEST_CODE"), companyId: data.companyId },
+            success: function (result) {
+                setTimeout(function () {
+                    let grid = $(`.kendo-window-loadplan-booking [name="gridSearchBooking"]`).kendoGrid({
+                        toolbar: [
+                            { name: "selectAll", text: "Select All", iconClass: "k-icon k-i-tick" },
+                            { name: "selectBooking", text: "Add to loadplan", iconClass: "k-icon k-i-plus" }],
+                        columns: [
+                            {
+                                template: `<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md" />`
+                            },
+                            { field: "BOOKING_NO", title: "Booking #" },
+                            { field: "SHIPPER_DESC", title: "Shipper" },
+                            { field: "CONSIGNEE_DESC", title: "Consignee" },
+                            { field: "PACKAGE", title: "Packages" },
+                            { field: "GWTS", title: "G/Wts" },
+                            { field: "VWTS", title: "V/Wts" },
+                            { field: "IS_DOC_REC", title: "Doc Rcvd?" },
+                            { field: "IS_BOOKING_APP", title: "Approved?" },
+                            { field: "IS_RECEIVED", title: "Rcvd?" },
+                        ],
+                        dataSource: { data: result },
+                        resizable: true,
+                        height: $(".kendo-window-loadplan-booking.k-window-content").height(),
+                        dataBound: function (e) {
+                            $("[name=gridSearchBooking]").data("kendoGrid").autoFitColumns();
+                        }
+                    });
+                    
+                    kendo.ui.progress($(`.kendo-window-loadplan-booking`), false);
+
+                    $(".kendo-window-loadplan-booking .k-grid-selectAll").bind("click", function (e) {
+                        $(".kendo-window-loadplan-booking [name=gridSearchBooking] tbody .k-checkbox").attr("checked", "checked");
+                    });
+
+                    $(".kendo-window-loadplan-booking .k-grid-selectBooking").bind("click", function (e) {
+                        let bookingData = $("[name=gridSearchBooking]").data("kendoGrid").dataSource.data();
+                        let selectedBookings = [];
+                        let bookingNos = [];
+                        $(".kendo-window-loadplan-booking [name=gridSearchBooking] tbody .k-checkbox").each(function () {
+                            if ($(this).is(":checked")) {
+                                let dataRow = bookingData.filter(a => a.BOOKING_NO == $(this).parent().next().text())[0];
+                                bookingNos.push(dataRow.BOOKING_NO);
+
+                                selectedBookings.push({
+                                    BOOKING_NO: dataRow.BOOKING_NO,
+                                    SHIPPER_DESC: dataRow.SHIPPER_DESC,
+                                    CONSIGNEE_DESC: dataRow.CONSIGNEE_DESC,
+                                    ORIGIN_CODE: dataRow.ORIGIN_CODE,
+                                    DEST_CODE: dataRow.DEST_CODE,
+                                    PACKAGE: dataRow.PACKAGE,
+                                    GWTS: dataRow.GWTS,
+                                    VWTS: dataRow.VWTS,
+                                    IS_DOC_REC: dataRow.IS_DOC_REC,
+                                    IS_BOOKING_APP: dataRow.IS_BOOKING_APP,
+                                    IS_RECEIVED: dataRow.IS_RECEIVED,
+                                });
                             }
                         });
-                    
-                        kendo.ui.progress($(`.kendo-window-loadplan-booking`), false);
 
-                        $(".kendo-window-loadplan-booking .k-grid-selectAll").bind("click", function (e) {
-                            $(".kendo-window-loadplan-booking [name=gridSearchBooking] tbody .k-checkbox").attr("checked", "checked");
+                        let targetGrid = $(`#${formId} [name="${targetGridName}"]`).data("kendoGrid");
+                        let dataSource = targetGrid.dataSource;
+                        dataSource.data(selectedBookings);
+                        targetGrid.setDataSource(dataSource);
+
+                        //grid_LoadplanHawbListViews
+                        $.ajax({
+                            url: "../Air/Mawb/GetLoadplanHawbListByBookingNo",
+                            data: { bookingNos: bookingNos, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                            success: function (hawbs) {
+                                console.log(`#${formId} [name="${targetHawbGridName}"]`);
+                                targetGrid = $(`#${formId} [name="${targetHawbGridName}"]`).data("kendoGrid");
+                                dataSource = targetGrid.dataSource;
+                                dataSource.data(hawbs);
+                                targetGrid.setDataSource(dataSource);
+
+                                searchWin.close();
+                            }
                         });
-
-                        $(".kendo-window-loadplan-booking .k-grid-selectBooking").bind("click", function (e) {
-                            var bookingData = $("[name=gridSearchBooking]").data("kendoGrid").dataSource.data();
-                            var selectedBookings = [];
-                            $(".kendo-window-loadplan-booking [name=gridSearchBooking] tbody .k-checkbox").each(function () {
-                                if ($(this).is(":checked")) {
-                                    var dataRow = bookingData.filter(a => a.BOOKING_NO == $(this).parent().next().text())[0];
-                                    selectedBookings.push({
-                                        BOOKING_NO: dataRow.BOOKING_NO,
-                                        SHIPPER_DESC: dataRow.SHIPPER_DESC,
-                                        CONSIGNEE_DESC: dataRow.CONSIGNEE_DESC,
-                                        ORIGIN_CODE: dataRow.ORIGIN_CODE,
-                                        DEST_CODE: dataRow.DEST_CODE,
-                                        PACKAGE: dataRow.PACKAGE,
-                                        GWTS: dataRow.GWTS,
-                                        VWTS: dataRow.VWTS,
-                                        IS_DOC_REC: dataRow.IS_DOC_REC,
-                                        IS_BOOKING_APP: dataRow.IS_BOOKING_APP,
-                                        IS_RECEIVED: dataRow.IS_RECEIVED,
-                                    });
-                                }
-                            });
-
-                            var targetGrid = $(`#${formId} [name="${targetGridName}"]`).data("kendoGrid");
-                            var dataSource = targetGrid.dataSource;
-                            dataSource.data(selectedBookings);
-                            targetGrid.setDataSource(dataSource);
-                            searchWin.close();
-                        });
-                    }, 500);
+                    });
+                }, 500);
                     
-                }
-            });
+            }
+        });
     }
 
     checkDataClick = function (selector) {

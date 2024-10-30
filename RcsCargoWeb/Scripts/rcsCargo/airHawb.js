@@ -85,7 +85,7 @@
 
         utils.alertMessage(html, "K4 Security Letter", null, null, false);
         var formSetting = { id: utils.getFormId() };
-        controls.kendo.renderFormControl_kendoUI(formSetting);
+        controls.renderFormControl_kendoUI(formSetting);
         $(`#${utils.getFormId()} [name="k4securityletter_LetterDate"]`).data("kendoDatePicker").value(new Date());
 
         $(`[name="k4securityletter_Print"]`).click(function () {
