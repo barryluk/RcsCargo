@@ -90,6 +90,24 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetPorts(searchValue).Take(take), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetSeaPortsView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetSeaPortsView(), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetCarriersView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetCarriersView(), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetVesselsView()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetVesselsView(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetAirlinesView()
         {
             var masterRecords = new MasterRecords();

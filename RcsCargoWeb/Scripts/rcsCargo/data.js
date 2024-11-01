@@ -28,12 +28,12 @@ var masterRecords = {
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
-    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {},
-    customers: {}, groupCodes: {}, powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, 
+    powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, vessels: {}
 };
-var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
+var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType",
-    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany"];
+    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany", "carrier", "vessel"];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -1152,6 +1152,38 @@ var indexPages = [
                 ]
             },
         ],
+    },
+    {
+        pageName: "seaVoyage",
+        id: "",
+        title: "Vessel Voyage",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "seaFrtMode" },
+            { label: "Departure Date", type: "dateRange", name: "departureDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Vessel / Voyage" },
+        ],
+        gridConfig: {
+            gridName: "gridSeaVoyageIndex",
+            dataSourceUrl: "../Sea/Voyage/GridVoyage_Read",
+            linkIdPrefix: "seaVoyage",
+            linkTabTitle: "Vessel / Voyage ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "VES_CODE", title: "Vessel", template: ({ VES_CODE, VES_DESC }) => `${VES_CODE} - ${VES_DESC}`, attributes: { "class": "link-cell" } },
+                { field: "VOYAGE", title: "Voyage" },
+                { field: "LOADING_PORT", title: "Loading Port" },
+                { field: "DISCHARGE_PORT", title: "Discharge Port" },
+                { field: "LOADING_PORT_DATE", title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE, "date") },
+                { field: "DISCHARGE_PORT_DATE", title: "Arrival Date", template: ({ DISCHARGE_PORT_DATE }) => data.formatDateTime(DISCHARGE_PORT_DATE, "date") },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+            ],
+        },
     },
     {
         pageName: "sysConsole",
@@ -3285,12 +3317,42 @@ export default class {
         });
 
         $.ajax({
+            url: "../Home/GetSeaPortsView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].PORT_DESC_DISPLAY = result[i].PORT_CODE + " - " + result[i].PORT_DESC;
+                }
+                masterRecords.seaPorts = result;
+            }
+        });
+
+        $.ajax({
             url: "../Home/GetAirlinesView",
             success: function (result) {
                 for (var i in result) {
                     result[i].AIRLINE_DESC_DISPLAY = result[i].AIRLINE_CODE + " - " + result[i].AIRLINE_DESC;
                 }
                 masterRecords.airlines = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetCarriersView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].CARRIER_DESC_DISPLAY = result[i].CARRIER_CODE + " - " + result[i].CARRIER_DESC;
+                }
+                masterRecords.carriers = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetVesselsView",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].VES_DESC_DISPLAY = result[i].VES_CODE + " - " + result[i].VES_DESC;
+                }
+                masterRecords.vessels = result;
             }
         });
 

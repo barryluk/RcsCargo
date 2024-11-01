@@ -199,7 +199,11 @@
                 model.HawbDims = result;
                 result.forEach(function (item) {
                     gwts += item.GWTS;
-                    vwts += item.VWTS;
+                    if (["RCSSHA", "RCSTAO", "RCSSZX"].indexOf(data.companyId) != -1)
+                        vwts += Math.ceil(item.VWTS);
+                    else
+                        vwts += item.VWTS;
+
                     pkgs += item.CTNS;
                     vol += utils.roundUp(item.LENGTH * item.WIDTH * item.HEIGHT * item.CTNS, 2);
                 });

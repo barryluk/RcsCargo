@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Sea.cs" />
     <Compile Include="MasterRecords.cs" />
     <Compile Include="Air.cs" />
     <Compile Include="Admin.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Models\MasterRecords\Currency.cs" />
     <Compile Include="Models\MasterRecords\Country.cs" />
     <Compile Include="Models\MasterRecords\Port.cs" />
+    <Compile Include="Models\Sea\Voyage.cs" />
     <Compile Include="RcsFreightDBContext.cs" />
     <Compile Include="Models\Admin\SysModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

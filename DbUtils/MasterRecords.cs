@@ -187,7 +187,7 @@ namespace DbUtils
 
         public List<SeaPortView> GetSeaPortsView()
         {
-            var sqlCmd = @"select a.port_code, b.port_desc from
+            var sqlCmd = @"select a.port_code, b.port_desc, b.country_code from
                 (select port_code from sea_port where modify_date > sysdate - 30
                 union select port_code from s_voyage_detail where nvl(arrival_date, departure_date) > sysdate - 730) a, port b
                 where a.port_code = b.port_code";

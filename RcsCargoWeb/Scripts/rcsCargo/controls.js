@@ -618,6 +618,10 @@
                                 model[`${control.name}_BRANCH`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_BRANCH]`).val());
                                 model[`${control.name}_SHORT_DESC`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_SHORT_DESC]`).val());
                                 model[`${control.name}_DESC`] = utils.formatText(text);
+                                model[`${control.name}_ADDR1`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR1]`).val());
+                                model[`${control.name}_ADDR2`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR2]`).val());
+                                model[`${control.name}_ADDR3`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR3]`).val());
+                                model[`${control.name}_ADDR4`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR4]`).val());
                             }
                         } else if (control.type == "buttonGroup") {
                             if (control.dataType == "customerType") {
@@ -951,12 +955,18 @@
                                 sort: options.data.sort,
                             };
                         } else {
+                            let frtMode = "";
+                            if ($(`#${pageSetting.id} div.search-control div[name=frtMode]`).attr("datatype") == "seaFrtMode")
+                                frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "SE" : "SI";
+                            else
+                                frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
+
                             searchData = {
                                 searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
                                 dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
                                 dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                                 companyId: data.companyId,
-                                frtMode: $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI",
+                                frtMode: frtMode,
                                 take: data.indexGridPageSize,
                                 skip: options.data.skip,
                                 sort: options.data.sort,
@@ -1619,6 +1629,20 @@
                 select: function (e) {
                     var frtMode = this.current().text() == "Export" ? "AE" : "AI";
                     $(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
+                }
+            });
+        });
+
+        //kendoButtonGroup for seaFrtMode
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=seaFrtMode], #${masterForm.id} .toolbar-seaFrtMode`).each(function () {
+            $(this).kendoButtonGroup({
+                items: [
+                    { text: "Export", iconClass: "k-icon k-i-export", selected: true },
+                    { text: "Import", iconClass: "k-icon k-i-import" },
+                ],
+                select: function (e) {
+                    var seaFrtMode = this.current().text() == "Export" ? "SE" : "SI";
+                    $(`#${masterForm.id} input[name="FRT_MODE"]`).val(seaFrtMode);
                 }
             });
         });

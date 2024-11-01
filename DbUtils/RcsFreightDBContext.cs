@@ -7,6 +7,7 @@ using System.Data.Entity;
 using DbUtils.Models.Admin;
 using DbUtils.Models.Air;
 using DbUtils.Models.MasterRecords;
+using DbUtils.Models.Sea;
 
 namespace DbUtils
 {
@@ -51,6 +52,9 @@ namespace DbUtils
         public DbSet<PvItem> PvItems { get; set; }
         public DbSet<OtherJob> OtherJobs { get; set; }
         public DbSet<OtherJobCharge> OtherJobCharges { get; set; }
+
+        public DbSet<Voyage> Voyages { get; set; }
+        public DbSet<VoyageDetail> VoyageDetails { get; set; }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }

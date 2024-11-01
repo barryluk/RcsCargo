@@ -106,13 +106,19 @@
         }
         //Index page frtMode
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
-            return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`)
-                .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
+            let frtModeCtrl = $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`);
+            if (frtModeCtrl.attr("datatype") == "seaFrtMode")
+                return frtModeCtrl.find(".k-selected .k-button-text").text() == "Export" ? "SE" : "SI";
+            else
+                return frtModeCtrl.find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
         }
         //Edit page frtMode
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active span.toolbar-frtMode`).length == 1) {
-            return $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active span.toolbar-frtMode`)
-                .find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
+            let frtModeCtrl = $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active span.toolbar-frtMode`);
+            if (frtModeCtrl.attr("datatype") == "seaFrtMode")
+                return frtModeCtrl.find(".k-selected .k-button-text").text() == "Export" ? "SE" : "SI";
+            else
+                return frtModeCtrl.find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
         }
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).length > 0) {
             frtMode = $(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active input[name=FRT_MODE]`).first().val();
