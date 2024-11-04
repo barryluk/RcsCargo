@@ -356,7 +356,7 @@ td.k-edit-cell {
     font-size: 0.7rem;
 }
 
-.toolbar.k-toolbar .toolbar-frtMode {
+.toolbar.k-toolbar .toolbar-frtMode, .toolbar.k-toolbar .toolbar-seaFrtMode {
     margin-left: 100px;
 }
 

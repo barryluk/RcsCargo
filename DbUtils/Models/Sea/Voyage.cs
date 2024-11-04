@@ -27,11 +27,14 @@ namespace DbUtils.Models.Sea
         public string MODIFY_USER { get; set; }
         public DateTime MODIFY_DATE { get; set; }
         [NotMapped]
-        public List<VoyageDetail> VoyageDetails { get; set; }
+        public List<VoyageDetail> LoadingPorts { get; set; }
+        [NotMapped]
+        public List<VoyageDetail> DischargePorts { get; set; }
 
         public Voyage()
         {
-            VoyageDetails = new List<VoyageDetail>();
+            LoadingPorts = new List<VoyageDetail>();
+            DischargePorts = new List<VoyageDetail>();
         }
     }
 

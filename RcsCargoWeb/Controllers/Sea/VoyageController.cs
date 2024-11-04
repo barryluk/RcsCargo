@@ -57,6 +57,17 @@ namespace RcsCargoWeb.Sea.Controllers
         [Route("UpdateVoyage")]
         public ActionResult UpdateVoyage(Voyage model, string mode)
         {
+            foreach(var item in model.LoadingPorts)
+            {
+                item.VES_CODE = model.VES_CODE;
+                item.VOYAGE = model.VOYAGE;
+            }
+            foreach (var item in model.DischargePorts)
+            {
+                item.VES_CODE = model.VES_CODE;
+                item.VOYAGE = model.VOYAGE;
+            }
+
             if (mode == "edit")
                 sea.UpdateVoyage(model);
             else if (mode == "create")

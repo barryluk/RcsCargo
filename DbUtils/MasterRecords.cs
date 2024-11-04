@@ -354,11 +354,7 @@ namespace DbUtils
 
         public List<CarrierView> GetCarriersView()
         {
-            var sqlCmd = @"select a.carrier_code, b.carrier_desc from
-                (select carrier_code from carrier where modify_date > sysdate - 30
-                union select carrier_code from s_voyage where create_date > sysdate - 730) a, carrier b
-                where a.carrier_code = b.carrier_code";
-            return db.Database.SqlQuery<CarrierView>(sqlCmd).ToList();
+            return db.Database.SqlQuery<CarrierView>("select carrier_code, carrier_desc from carrier").ToList();
         }
 
         public List<Carrier> GetCarriers(string searchValue)

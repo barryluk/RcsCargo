@@ -200,6 +200,24 @@
         return formControl;
     }
 
+    showHawbAttachedList = function (goodDesc, marksNo, notify2, notify3, dimCount) {
+        let show = false;
+        if (goodDesc.split("\n").length > data.hawbGoodDescLineCount)
+            show = true;
+        if (marksNo.split("\n").length > data.hawbMarksNoLineCount)
+            show = true;
+        if (dimCount > data.hawbDimDisplayCount)
+            show = true;
+        if (!this.isEmptyString(marksNo))
+            show = true;
+        if (!this.isEmptyString(notify2))
+            show = true;
+        if (!this.isEmptyString(notify3))
+            show = true;
+
+        return show;
+    }
+
     calcVwts = function (length, width, height, ctns) {
         var vwtsFactor = utils.getFormValue("VWTS_FACTOR") == null ? 6000 : utils.getFormValue("VWTS_FACTOR");
         var vwts = utils.roundUp(((length * width * height * ctns) / vwtsFactor), 3);

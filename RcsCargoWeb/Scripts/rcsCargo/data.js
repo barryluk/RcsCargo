@@ -10,6 +10,9 @@ var dateFormat = "M/d/yyyy";
 var dateTimeFormat = "M/d/yyyy HH:mm";
 var dateTimeLongFormat = "M/d/yyyy HH:mm:ss";
 var lastActiveTabId = "";
+var hawbGoodDescLineCount = 9;
+var hawbMarksNoLineCount = 12;
+var hawbDimDisplayCount = 6;
 var masterRecords = {
     lastUpdateTime: null,
     region: [{ text: "NORTH AMERICA", value: "1" }, { text: "EUROPE", value: "2" }, { text: "ASIA", value: "3" }, { text: "OCEANIA", value: "4" }, { text: "AFRICA", value: "5" }, { text: "SOUTH AMERICA", value: "6" }, { text: "ANTARCTICA", value: "7" }],
@@ -1174,8 +1177,7 @@ var indexPages = [
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
             ],
             columns: [
-                { field: "VES_CODE", title: "Vessel", template: ({ VES_CODE, VES_DESC }) => `${VES_CODE} - ${VES_DESC}`, attributes: { "class": "link-cell" } },
-                { field: "VOYAGE", title: "Voyage" },
+                { title: "Vessel / Voyage", template: ({ VES_CODE, VES_DESC, VOYAGE }) => `${VES_CODE} / ${VES_DESC} / ${VOYAGE}`, attributes: { "class": "link-cell" } },
                 { field: "LOADING_PORT", title: "Loading Port" },
                 { field: "DISCHARGE_PORT", title: "Discharge Port" },
                 { field: "LOADING_PORT_DATE", title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE, "date") },
@@ -3079,6 +3081,113 @@ var masterForms = [
             },
         ],
     },
+    {
+        formName: "seaVoyage",
+        mode: "edit",   //create / edit
+        title: "Vessel / Voyage:",
+        readUrl: "../Sea/Voyage/GetVoyage",
+        updateUrl: "../Sea/Voyage/UpdateVoyage",
+        //additionalScript: "initAirOtherJob",
+        idField: "VES_CODE,VOYAGE",
+        id: "",
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+        ],
+        schema: {
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "VES_CODE", required: "true", readonly: "edit" },
+                { name: "VOYAGE", required: "true", readonly: "edit" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["vesselVoy", "loadingPort", "dischargePort"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "vesselVoy",
+                title: "Vessel Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "Vessel", type: "vessel", name: "VES_CODE", colWidth: 4 },
+                    { label: "Voyage", type: "text", name: "VOYAGE", colWidth: 2 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Carrier", type: "carrier", name: "CARRIER_CODE", colWidth: 4 },
+                ]
+            },
+            {
+                name: "loadingPort",
+                title: "Loading Port",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "LoadingPorts",
+                        columns: [
+                            {
+                                title: "Country", field: "COUNTRY_CODE", width: 180,
+                                template: function (dataItem) { return data.masterRecords.countries.filter(a => a.COUNTRY_CODE == dataItem.COUNTRY_CODE)[0].COUNTRY_DESC_DISPLAY; },
+                                editor: function (container, options) { controls.renderGridEditorCountry(container, options) }
+                            },
+                            {
+                                title: "Port", field: "PORT_CODE", width: 180,
+                                template: function (dataItem) { return data.masterRecords.seaPorts.filter(a => a.PORT_CODE == dataItem.PORT_CODE)[0].PORT_DESC_DISPLAY; },
+                                editor: function (container, options) { controls.renderGridEditorSeaPort(container, options) }
+                            },
+                            { title: "Arrival Date", field: "ARRIVAL_DATE", format: `{0: ${dateFormat}}`, width: 120 },
+                            { title: "Departure Date", field: "DEPARTURE_DATE", format: `{0: ${dateFormat}}`, width: 120 },
+                            { title: "Closing Date (CY)", field: "CY_CLOSING_DATE", format: `{0: ${dateFormat}}`, width: 120 },
+                            { title: "Closing Date (CFS)", field: "CFS_CLOSING_DATE", format: `{0: ${dateFormat}}`, width: 120 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            COUNTRY_CODE: { validation: { required: true } },
+                            PORT_CODE: { validation: { required: true } },
+                            ORIGIN_DEST: { defaultValue: "O" },
+                            ARRIVAL_DATE: { type: "date", validation: { required: true } },
+                            DEPARTURE_DATE: { type: "date", validation: { required: true } },
+                            CY_CLOSING_DATE: { type: "date" },
+                            CFS_CLOSING_DATE: { type: "date" },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "dischargePort",
+                title: "Discharge Port",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "DischargePorts",
+                        columns: [
+                            {
+                                title: "Country", field: "COUNTRY_CODE", width: 180,
+                                editor: function (container, options) { controls.renderGridEditorCountry(container, options) }
+                            },
+                            {
+                                title: "Port", field: "PORT_CODE", width: 180,
+                                editor: function (container, options) { controls.renderGridEditorPort(container, options) }
+                            },
+                            { title: "Arrival Date", field: "ARRIVAL_DATE", format: `{0: ${dateFormat}}`, width: 120 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            COUNTRY_CODE: { validation: { required: true } },
+                            PORT_CODE: { validation: { required: true } },
+                            ORIGIN_DEST: { defaultValue: "D" },
+                            ARRIVAL_DATE: { type: "date", validation: { required: true } },
+                        },
+                    },
+                ]
+            },
+        ],
+    },
 ];
 
 export default class {
@@ -3219,6 +3328,9 @@ export default class {
     set dateTimeFormat(val) { dateTimeFormat = val; }
     set dateTimeLongFormat(val) { dateTimeLongFormat = val; }
     set lastActiveTabId(val) { lastActiveTabId = val; }
+    set hawbGoodDescLineCount(val) { hawbGoodDescLineCount = val; }
+    set hawbMarksNoLineCount(val) { hawbMarksNoLineCount = val; }
+    set hawbDimDisplayCount(val) { hawbDimDisplayCount = val; }
     set masterRecords(val) { masterRecords = val; }
     set frameworkHtmlElements(val) { frameworkHtmlElements = val; }
     set htmlElements(val) { htmlElements = val; }
@@ -3244,6 +3356,7 @@ export default class {
         else if (format == "dateTimeLong")
             format = data.dateTimeLongFormat;
 
+        console.log(kendo.toString(kendo.parseDate(dataItem), format));
         return data.isEmptyString(dataItem) ? "" : kendo.toString(kendo.parseDate(dataItem), format);
     }
 

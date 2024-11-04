@@ -4,22 +4,22 @@
 
     //Navbar
     initNavbar = function () {
-        function timeout() {
-            setTimeout(function () {
-                //if the sysCompanies is not loaded, then recall the parent function to create a recursive loop.
-                if (!$.isEmptyObject(data.masterRecords.sysCompanies) && !controls.isEmptyString(data.companyId)) {
-                    $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
-                    return;
-                }
-                timeout();
-            }, 100);
-        }
+        //function timeout() {
+        //    setTimeout(function () {
+        //        //if the sysCompanies is not loaded, then recall the parent function to create a recursive loop.
+        //        if (!$.isEmptyObject(data.masterRecords.sysCompanies) && !controls.isEmptyString(data.companyId)) {
+        //            $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
+        //            return;
+        //        }
+        //        timeout();
+        //    }, 100);
+        //}
 
-        if ($.isEmptyObject(data.masterRecords.sysCompanies) || controls.isEmptyString(data.companyId)) {
-            timeout();
-        } else {
+        //if ($.isEmptyObject(data.masterRecords.sysCompanies) || controls.isEmptyString(data.companyId)) {
+        //    timeout();
+        //} else {
             $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
-        }
+        //}
     }
 
     //Sidebar
@@ -436,12 +436,21 @@
 
         //Frt Mode buttonGroup control
         if (model.FRT_MODE != null) {
-            var buttonGroup = $(`#${masterForm.id} .toolbar-frtMode`).data("kendoButtonGroup");
-            var buttonText = model.FRT_MODE == "AE" ? "Export" : "Import";
-            buttonGroup.select($(`#${masterForm.id} .toolbar-frtMode span:contains('${buttonText}')`).parent());
+            if (model.FRT_MODE.startsWith("A")) {
+                var buttonGroup = $(`#${masterForm.id} .toolbar-frtMode`).data("kendoButtonGroup");
+                var buttonText = model.FRT_MODE == "AE" ? "Export" : "Import";
+                buttonGroup.select($(`#${masterForm.id} .toolbar-frtMode span:contains('${buttonText}')`).parent());
 
-            if (masterForm.mode == "edit")
-                buttonGroup.enable(false);
+                if (masterForm.mode == "edit")
+                    buttonGroup.enable(false);
+            } else {
+                var buttonGroup = $(`#${masterForm.id} .toolbar-seaFrtMode`).data("kendoButtonGroup");
+                var buttonText = model.FRT_MODE == "SE" ? "Export" : "Import";
+                buttonGroup.select($(`#${masterForm.id} .toolbar-seaFrtMode span:contains('${buttonText}')`).parent());
+
+                if (masterForm.mode == "edit")
+                    buttonGroup.enable(false);
+            }
         }
 
         for (var i in masterForm.formGroups) {
@@ -1072,11 +1081,24 @@
                 if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
                     var id = $(selectedCell).text().replace("VOID", "");
+
+                    //special case for sea Voyage
+                    if (grid.element.attr("name") == "gridSeaVoyageIndex") {
+                        let vesCode = $(selectedCell).text().split("/")[0].trim();
+                        let voyage = $(selectedCell).text().split("/")[2].trim();
+                        id = `${vesCode}-${voyage}`;
+                    }
+
                     if ($(selectedCell).attr("callbackFunction") != null) {
                         eval(`${$(selectedCell).attr("callbackFunction")}(e.sender, id)`);
                     } else {
                         id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
-                        controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOID", "")}`, id, pageSetting.pageName);
+                        if (grid.element.attr("name") == "gridSeaVoyageIndex") {
+                            let title = `${$(selectedCell).text().split("/")[1].trim()} / ${$(selectedCell).text().split("/")[2].trim()}`;
+                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}: ${title}`, id, pageSetting.pageName);
+                        }
+                        else
+                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOID", "")}`, id, pageSetting.pageName);
                     }
                     grid.clearSelection();
                 }
@@ -1113,6 +1135,14 @@
             companyId: this.companyId,
             frtMode: this.frtMode
         };
+        if (formId.startsWith("seaVoyage_")) {
+            requestParas = {
+                vesCode: utils.decodeId(this.keyValue).split("-")[0],
+                voy: utils.decodeId(this.keyValue).split("-")[1],
+                companyId: this.companyId,
+                frtMode: this.frtMode
+            };
+        }
         if (para != null)
             $.extend(requestParas, para);
 
@@ -1496,8 +1526,12 @@
         if (masterForm.schema != null) {
             if (masterForm.schema.fields.filter(a => a.name == "FRT_MODE").length == 0)
                 $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-status"></span>`);
-            else
-                $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
+            else {
+                if (masterForm.id.startsWith("air"))
+                    $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-frtMode"></span><span class="toolbar-status"></span>`);
+                else
+                    $(`#${masterForm.id} .toolbar.k-toolbar`).append(`<span class="toolbar-seaFrtMode"></span><span class="toolbar-status"></span>`);
+            }
         }
 
         //New button click event
@@ -1891,6 +1925,17 @@
             });
         });
 
+        //kendoDropDownList for SeaPort
+        $(`#${masterForm.id} input[type=seaPort]`).each(function () {
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "PORT_DESC_DISPLAY",
+                dataValueField: "PORT_CODE",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: { data: data.masterRecords.seaPorts },
+            });
+        });
+
         //kendoDropDownList for Airline
         $(`#${masterForm.id} input[type=airline]`).each(function () {
             $(this).kendoDropDownList({
@@ -1900,7 +1945,29 @@
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
                 dataSource: { data: data.masterRecords.airlines },
             });
-        })
+        });
+
+        //kendoDropDownList for Vessel
+        $(`#${masterForm.id} input[type=vessel]`).each(function () {
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "VES_DESC_DISPLAY",
+                dataValueField: "VES_CODE",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: { data: data.masterRecords.vessels },
+            });
+        });
+
+        //kendoDropDownList for Vessel
+        $(`#${masterForm.id} input[type=carrier]`).each(function () {
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "CARRIER_DESC_DISPLAY",
+                dataValueField: "CARRIER_CODE",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: { data: data.masterRecords.carriers },
+            });
+        });
 
         //kendoDropDownList for EDI Terminal
         $(`#${masterForm.id} input[type=ediTerminal]`).each(function () {
@@ -1959,7 +2026,7 @@
             });
         });
 
-        //kendoDropDownList for seqType
+        //kendoDropDownList for sysCompany
         $(`#${masterForm.id} input[type=sysCompany]`).each(function () {
             $(this).kendoDropDownList({
                 dataTextField: "COMPANY_ID",
@@ -2641,7 +2708,7 @@
 
         ddl.kendoDropDownList({
             filter: "startswith",
-            dataTextField: "COUNTRY_CODE",
+            dataTextField: "COUNTRY_DESC_DISPLAY",
             dataValueField: "COUNTRY_CODE",
             dataSource: data.masterRecords.countries,
         });
@@ -2654,9 +2721,22 @@
 
         ddl.kendoDropDownList({
             filter: "startswith",
-            dataTextField: "PORT_CODE",
+            dataTextField: "PORT_DESC_DISPLAY",
             dataValueField: "PORT_CODE",
             dataSource: data.masterRecords.ports,
+        });
+    }
+
+    //kendoGrid kendoDropDownList for SeaPort
+    renderGridEditorSeaPort = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+
+        ddl.kendoDropDownList({
+            filter: "startswith",
+            dataTextField: "PORT_DESC_DISPLAY",
+            dataValueField: "PORT_CODE",
+            dataSource: data.masterRecords.seaPorts,
         });
     }
 

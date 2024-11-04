@@ -17,6 +17,12 @@
             var reportName = e.id;
             var reportType = buttonConfig.type;
             var filename = `HAWB# ${hawbNo}`;
+            if (reportName == "AirHawbPreview") {
+                let masterForm = utils.getMasterForm();
+                let model = controls.getValuesFromFormControls(masterForm);
+                if (utils.showHawbAttachedList(model.GOOD_DESC, model.MARKS_NO, model.NOTIFY2_DESC, model.NOTIFY3_DESC, model.HawbDims.length))
+                    reportName = "AirHawbPreview_NEW";
+            }
             
             if (e.id == "AirHawbAttachList_RCSLON") {
                 filename = `HAWB Attached List - ${hawbNo}`;

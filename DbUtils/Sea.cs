@@ -53,7 +53,13 @@ namespace DbUtils
         {
             var voyage = db.Voyages.Where(a => a.VES_CODE == vesCode && a.VOYAGE == voy && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).FirstOrDefault();
             if (voyage != null)
-                voyage.VoyageDetails = db.VoyageDetails.Where(a => a.VES_CODE == vesCode && a.VOYAGE == voy && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+            {
+                voyage.LoadingPorts = db.VoyageDetails.Where(a => a.VES_CODE == vesCode && a.VOYAGE == voy 
+                    && a.ORIGIN_DEST == "O" && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+
+                voyage.DischargePorts = db.VoyageDetails.Where(a => a.VES_CODE == vesCode && a.VOYAGE == voy
+                    && a.ORIGIN_DEST == "D" && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+            }
 
             if (voyage == null)
                 return new Voyage();
@@ -66,7 +72,8 @@ namespace DbUtils
             try
             {
                 db.Voyages.Add(voyage);
-                db.VoyageDetails.AddRange(voyage.VoyageDetails);
+                db.VoyageDetails.AddRange(voyage.LoadingPorts);
+                db.VoyageDetails.AddRange(voyage.DischargePorts);
                 db.SaveChanges();
             }
             catch (Exception ex)
@@ -85,7 +92,8 @@ namespace DbUtils
                 if (voyageDetails != null)
                 {
                     db.VoyageDetails.RemoveRange(voyageDetails);
-                    db.VoyageDetails.AddRange(voyage.VoyageDetails);
+                    db.VoyageDetails.AddRange(voyage.LoadingPorts);
+                    db.VoyageDetails.AddRange(voyage.DischargePorts);
                 }
 
                 db.SaveChanges();
