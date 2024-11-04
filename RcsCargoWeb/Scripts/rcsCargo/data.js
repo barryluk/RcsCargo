@@ -3310,6 +3310,9 @@ export default class {
     get dateTimeFormat() { return dateTimeFormat; }
     get dateTimeLongFormat() { return dateTimeLongFormat; }
     get lastActiveTabId() { return lastActiveTabId; }
+    get hawbGoodDescLineCount() { return hawbGoodDescLineCount; }
+    get hawbMarksNoLineCount() { return hawbMarksNoLineCount; }
+    get hawbDimDisplayCount() { return hawbDimDisplayCount; }
     get masterRecords() { return masterRecords; }
     get dropdownlistControls() { return dropdownlistControls; }
     get frameworkHtmlElements() { return frameworkHtmlElements; }
@@ -3328,9 +3331,6 @@ export default class {
     set dateTimeFormat(val) { dateTimeFormat = val; }
     set dateTimeLongFormat(val) { dateTimeLongFormat = val; }
     set lastActiveTabId(val) { lastActiveTabId = val; }
-    set hawbGoodDescLineCount(val) { hawbGoodDescLineCount = val; }
-    set hawbMarksNoLineCount(val) { hawbMarksNoLineCount = val; }
-    set hawbDimDisplayCount(val) { hawbDimDisplayCount = val; }
     set masterRecords(val) { masterRecords = val; }
     set frameworkHtmlElements(val) { frameworkHtmlElements = val; }
     set htmlElements(val) { htmlElements = val; }
@@ -3356,7 +3356,6 @@ export default class {
         else if (format == "dateTimeLong")
             format = data.dateTimeLongFormat;
 
-        console.log(kendo.toString(kendo.parseDate(dataItem), format));
         return data.isEmptyString(dataItem) ? "" : kendo.toString(kendo.parseDate(dataItem), format);
     }
 
