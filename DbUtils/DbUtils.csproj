@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Sea\Booking.cs" />
     <Compile Include="Sea.cs" />
     <Compile Include="MasterRecords.cs" />
     <Compile Include="Air.cs" />

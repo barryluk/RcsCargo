@@ -881,6 +881,16 @@ namespace DbUtils
 
         #endregion
 
+        #region Cargo Unit
+
+        public List<string> GetCargoUnits()
+        {
+            var sqlCmd = @"select distinct unit from s_booking_cargo where unit in (select base_code from base)";
+            return db.Database.SqlQuery<string>(sqlCmd).ToList();
+        }
+
+        #endregion
+
         #region Power Search Setting
 
         public List<PowerSearchSetting> GetPowerSearchSettings()

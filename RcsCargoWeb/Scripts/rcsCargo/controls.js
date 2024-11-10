@@ -1086,6 +1086,7 @@
                     if (grid.element.attr("name") == "gridSeaVoyageIndex") {
                         let vesCode = $(selectedCell).text().split("/")[0].trim();
                         let voyage = $(selectedCell).text().split("/")[2].trim();
+                        voyage = $(selectedCell).text().substring($(selectedCell).text().indexOf(voyage));
                         id = `${vesCode}-${voyage}`;
                     }
 
@@ -1094,7 +1095,9 @@
                     } else {
                         id = `${pageSetting.gridConfig.linkIdPrefix}_${id}_${data.companyId}_${utils.getFrtMode()}`;
                         if (grid.element.attr("name") == "gridSeaVoyageIndex") {
-                            let title = `${$(selectedCell).text().split("/")[1].trim()} / ${$(selectedCell).text().split("/")[2].trim()}`;
+                            let voyage = $(selectedCell).text().split("/")[2].trim();
+                            voyage = $(selectedCell).text().substring($(selectedCell).text().indexOf(voyage));
+                            let title = `${$(selectedCell).text().split("/")[1].trim()} / ${voyage}`;
                             controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}: ${title}`, id, pageSetting.pageName);
                         }
                         else
@@ -2019,6 +2022,13 @@
             });
         });
 
+        //kendoDropDownList for sea service type
+        $(`#${masterForm.id} input[type=seaServiceType]`).each(function () {
+            $(this).kendoDropDownList({
+                dataSource: data.masterRecords.seaServiceType
+            });
+        });
+
         //kendoDropDownList for seqType
         $(`#${masterForm.id} input[type=seqType]`).each(function () {
             $(this).kendoDropDownList({
@@ -2764,6 +2774,37 @@
         ddl.appendTo(container);
         ddl.kendoDropDownList({
             dataSource: data.masterRecords.chargeQtyUnit
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Cargo Unit
+    renderGridEditorCargoUnits = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataSource: data.masterRecords.cargoUnits
+        });
+    }
+
+    //kendoGrid kendoNumericTextBox
+    renderGridEditorNumericTextBox = function (container, options, decimals = 2) {
+        var format = decimals == 0 ? "n0" : "n";
+        var input = $(`<input name="${options.field}" style="width: calc(100% - 3px);" />`);
+        input.appendTo(container);
+        input.kendoNumericTextBox({
+            decimals: decimals,
+            restrictDecimals: true,
+            format: format,
+        });
+    }
+
+    //kendoGrid kendoTextArea
+    renderGridEditorTextArea = function (container, options) {
+        var textArea = $(`<textarea name="${options.field}" style="height: 100%; width: calc(100% - 3px);" />`);
+        textArea.appendTo(container);
+        textArea.kendoTextArea({
+            rows: 8,
+            maxLength: 1000
         });
     }
 

@@ -189,6 +189,25 @@
                 result.HAWB_NO = result.BOOKING_NO;
                 result.PACKAGE2 = result.SEC_PACKAGE;
                 result.PACKAGE_UNIT2 = result.SEC_PACKAGE_UNIT;
+
+                //Manifest Shipper / Consignee
+                result.MAN_SHIPPER_CODE = result.SHIPPER_CODE;
+                result.MAN_SHIPPER_DESC = result.SHIPPER_DESC;
+                result.MAN_SHIPPER_BRANCH = result.SHIPPER_BRANCH;
+                result.MAN_SHIPPER_SHORT_DESC = result.SHIPPER_SHORT_DESC;
+                result.MAN_SHIPPER_ADDR1 = result.SHIPPER_ADDR1;
+                result.MAN_SHIPPER_ADDR2 = result.SHIPPER_ADDR2;
+                result.MAN_SHIPPER_ADDR3 = result.SHIPPER_ADDR3;
+                result.MAN_SHIPPER_ADDR4 = result.SHIPPER_ADDR4;
+                result.MAN_CONSIGNEE_CODE = result.CONSIGNEE_CODE;
+                result.MAN_CONSIGNEE_DESC = result.CONSIGNEE_DESC;
+                result.MAN_CONSIGNEE_BRANCH = result.CONSIGNEE_BRANCH;
+                result.MAN_CONSIGNEE_SHORT_DESC = result.CONSIGNEE_SHORT_DESC;
+                result.MAN_CONSIGNEE_ADDR1 = result.CONSIGNEE_ADDR1;
+                result.MAN_CONSIGNEE_ADDR2 = result.CONSIGNEE_ADDR2;
+                result.MAN_CONSIGNEE_ADDR3 = result.CONSIGNEE_ADDR3;
+                result.MAN_CONSIGNEE_ADDR4 = result.CONSIGNEE_ADDR4;
+
                 controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], result, true);
             }
         });

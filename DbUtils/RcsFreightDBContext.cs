@@ -34,8 +34,8 @@ namespace DbUtils
         public DbSet<MawbCharge> MawbCharges { get; set; }
         public DbSet<MawbDim> MawbDims { get; set; }
         public DbSet<LoadplanBookingList> LoadplanBookingLists { get; set; }
-        public DbSet<Booking> Bookings { get; set; }
-        public DbSet<BookingPo> BookingPos { get; set; }
+        public DbSet<DbUtils.Models.Air.Booking> Bookings { get; set; }
+        public DbSet<DbUtils.Models.Air.BookingPo> BookingPos { get; set; }
         public DbSet<WarehouseHistory> WarehouseHistories { get; set; }
         public DbSet<Hawb> Hawbs { get; set; }
         public DbSet<HawbPo> HawbPos { get; set; }
@@ -55,6 +55,10 @@ namespace DbUtils
 
         public DbSet<Voyage> Voyages { get; set; }
         public DbSet<VoyageDetail> VoyageDetails { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaBooking> SeaBookings { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaBookingCargo> SeaBookingCargos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaBookingPo> SeaBookingPos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaBookingSo> SeaBookingSos { get; set; }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }
