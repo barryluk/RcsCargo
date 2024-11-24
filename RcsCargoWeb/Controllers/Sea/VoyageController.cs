@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using DbUtils.Models.Sea;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
+using System.Web.UI;
 
 namespace RcsCargoWeb.Sea.Controllers
 {
@@ -45,6 +46,18 @@ namespace RcsCargoWeb.Sea.Controllers
             }
 
             return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        [Route("GetVoyages")]
+        public ActionResult GetVoyages(string searchValue, string companyId, string frtMode, DateTime? startDate, DateTime? endDate)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!startDate.HasValue)
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+            if (!endDate.HasValue)
+                endDate = DateTime.Now.AddMonths(3);
+
+            return Json(sea.GetVoyages(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetVoyage")]

@@ -23,12 +23,14 @@ namespace DbUtils
         public DbSet<Port> Ports { get; set; }
         public DbSet<SeaPort> SeaPorts { get; set; }
         public DbSet<Carrier> Carriers { get; set; }
+        public DbSet<CarrierContract> CarrierContracts { get; set; }
         public DbSet<Vessel> Vessels { get; set; }
         public DbSet<Charge> Charges { get; set; }
         public DbSet<ChargeTemplate> ChargeTemplates { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CustomerName> CustomerNames { get; set; }
         public DbSet<CustomerContact> CustomerContacts { get; set; }
+        public DbSet<Commodity> Commodities { get; set; }
 
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }
@@ -59,6 +61,20 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Sea.SeaBookingCargo> SeaBookingCargos { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaBookingPo> SeaBookingPos { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaBookingSo> SeaBookingSos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHbl> SeaHbls { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblCargo> SeaHblCargos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblContainer> SeaHblContainers { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblPo> SeaHblPos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblSo> SeaHblSos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblCharge> SeaHblCharges { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblDoc> SeaHblDocs { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaHblStatus> SeaHblStatuses { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaInvoice> SeaInvoices { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaInvoiceRefNo> SeaInvoiceRefNos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaInvoiceItem> SeaInvoiceItems { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaPv> SeaPvs { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaPvRefNo> SeaPvRefNos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SeaPvItem> SeaPvItems { get; set; }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }

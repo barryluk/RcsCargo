@@ -19,6 +19,18 @@ namespace DbUtils.Models.MasterRecords
         public DateTime MODIFY_DATE { get; set; }
     }
 
+    [Table("CARRIER_CONTRACT")]
+    public class CarrierContract
+    {
+        [Key]
+        [Column(Order = 1)]
+        public string CARRIER { get; set; }
+        [Key]
+        [Column(Order = 2)]
+        public string CONTRACT_NO { get; set; }
+        public string TYPE { get; set; }
+    }
+
     public class CarrierView
     {
         public string CARRIER_CODE { get; set; }

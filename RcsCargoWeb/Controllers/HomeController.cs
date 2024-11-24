@@ -102,6 +102,12 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetCarriersView(), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetCarrierContracts()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetCarrierContracts(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetVesselsView()
         {
             var masterRecords = new MasterRecords();
@@ -152,6 +158,18 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetCargoUnits(), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetContainerSize()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetContainerSize(), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetSeaChargeQtyUnit()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetSeaChargeQtyUnit(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetCustomers(string searchValue = "", int take = 50)
         {
             searchValue = searchValue.Trim().ToUpper();
@@ -191,6 +209,13 @@ namespace RcsCargoWeb.Controllers
             var masterRecords = new MasterRecords();
             return Json(masterRecords.GetGroupCodes(), JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult GetCommodities()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetCommoditiesView(), JsonRequestBehavior.AllowGet);
+        }
+
 
         public ActionResult GetOffShoreOrigins()
         {

@@ -117,7 +117,7 @@ namespace DbUtils.Models.Sea
         public decimal QTY { get; set; }
         public string UNIT { get; set; }
         public decimal KGS { get; set; }
-        public decimal CBM { get; set; }
+        public double CBM { get; set; }
     }
 
     [Table("S_BOOKING_PO")]

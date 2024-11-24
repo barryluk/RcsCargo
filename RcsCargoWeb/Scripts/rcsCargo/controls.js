@@ -417,7 +417,7 @@
             masterForm.schema.fields.forEach(function (field) {
                 if (field.defaultValue != null) {
                     if (field.defaultValue == "currency") {
-                        let currCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0][`${utils.getFrtMode() == "AE" ? "EX" : "IM"}_${field.name}`];
+                        let currCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0][`${(utils.getFrtMode() == "AE" || utils.getFrtMode() == "SE") ? "EX" : "IM"}_${field.name}`];
                         let exRate = data.masterRecords.currencies.filter(a => a.CURR_CODE == currCode)[0].EX_RATE;
                         model[field.name] = currCode;
                         model[field.name.replace("CURR_CODE", "EX_RATE")] = exRate;
@@ -467,12 +467,20 @@
                     continue;
 
                 if (control.type == "date") {
-                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoDatePicker").value(kendo.parseDate(model[`${control.name}`]));
-                    $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateFormat));
+                    if (model[`${control.name}`] != null) {
+                        if (kendo.parseDate(model[`${control.name}`]).getFullYear() > 1) {
+                            $(`#${masterForm.id} [name=${control.name}]`).data("kendoDatePicker").value(kendo.parseDate(model[`${control.name}`]));
+                            $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateFormat));
+                        }
+                    }
                 }
                 else if (control.type == "dateTime") {
-                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoDateTimePicker").value(kendo.parseDate(model[`${control.name}`]));
-                    $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
+                    if (model[`${control.name}`] != null) {
+                        if (kendo.parseDate(model[`${control.name}`]).getFullYear() > 1) {
+                            $(`#${masterForm.id} [name=${control.name}]`).data("kendoDateTimePicker").value(kendo.parseDate(model[`${control.name}`]));
+                            $(`#${masterForm.id} [name=${control.name}]`).val(kendo.toString(kendo.parseDate(model[`${control.name}`]), data.dateTimeFormat));
+                        }
+                    }
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
                     if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO" || control.name == "LOT_NO") {
@@ -673,6 +681,10 @@
                             if (control.exRateName != null) {
                                 model[control.exRateName] = $(`#${masterForm.id} [name=${control.exRateName}]`).val();
                             }
+                            //special case for new Job#
+                            if (control.name == "JOB_NO") {
+                                console.log("Job#");
+                            }
                         }
                     }
                 }
@@ -822,7 +834,9 @@
                 let callbackFunction = "";
                 let controlHtml = "";
                 let formControlType = utils.getFormControlType(control.type);
+                let formControlType2 = control.type2 != null ? utils.getFormControlType(control.type2) : "";
                 let formControlClass = utils.getFormControlClass(control.type);
+                let formControlClass2 = control.type2 != null ? utils.getFormControlClass(control.type2) : "";
                 let readonlyAttr = control.readonly == null ? "" : "readonly";
 
                 if (control.colWidth != null)
@@ -833,8 +847,15 @@
                 if (control.type != "emptyBlock") {
                     if (control.type == "button")
                         controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction}>${control.text}</${formControlType}>`;
-                    else
+                    else {
                         controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
+                        if (!utils.isEmptyString(formControlType2)) {
+                            if (formControlClass2 == "form-control")
+                                formControlClass2 = "form-control inline";
+
+                            controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${readonlyAttr} />`;
+                        }
+                    }
                 }
                 else {
                     if (control.name != null)
@@ -1197,7 +1218,9 @@
                         var control = formGroup.formControls[j];
                         var field = masterForm.schema.fields.filter(a => a.name == control.name)[0];
                         var formControlClass = utils.getFormControlClass(control.type);
+                        let formControlClass2 = control.type2 != null ? utils.getFormControlClass(control.type2) : "";
                         var formControlType = utils.getFormControlType(control.type);
+                        let formControlType2 = control.type2 != null ? utils.getFormControlType(control.type2) : "";
                         var required = "";
 
                         //skip for empty blocks
@@ -1314,8 +1337,15 @@
 
                             if (control.callbackFunction != null)
                                 callbackFunction = `callbackFunction="${control.callbackFunction}"`;
-                            if (control.type != "emptyBlock")
+                            if (control.type != "emptyBlock") {
                                 controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
+                                if (!utils.isEmptyString(formControlType2)) {
+                                    if (formControlClass2 == "form-control")
+                                        formControlClass2 = "form-control inline";
+
+                                    controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${required} />`;
+                                } 
+                            }
                             if (control.colWidth != null)
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
 
@@ -1910,7 +1940,7 @@
         $(`#${masterForm.id} input[type=country]`).each(function () {
             $(this).kendoDropDownList({
                 filter: "startswith",
-                dataTextField: "COUNTRY_DESC",
+                dataTextField: "COUNTRY_DESC_DISPLAY",
                 dataValueField: "COUNTRY_CODE",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
                 dataSource: { data: data.masterRecords.countries },
@@ -1961,7 +1991,7 @@
             });
         });
 
-        //kendoDropDownList for Vessel
+        //kendoDropDownList for Carrier
         $(`#${masterForm.id} input[type=carrier]`).each(function () {
             $(this).kendoDropDownList({
                 filter: "startswith",
@@ -1969,6 +1999,17 @@
                 dataValueField: "CARRIER_CODE",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
                 dataSource: { data: data.masterRecords.carriers },
+            });
+        });
+
+        //kendoDropDownList for Carrier Contract
+        $(`#${masterForm.id} input[type=carrierContract]`).each(function () {
+            $(this).kendoDropDownList({
+                filter: "startswith",
+                dataTextField: "CONTRACT_NO_DISPLAY",
+                dataValueField: "CONTRACT_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: { data: data.masterRecords.carrierContracts },
             });
         });
 
@@ -1983,6 +2024,22 @@
         $(`#${masterForm.id} input[type=vwtsFactor]`).each(function () {
             $(this).kendoDropDownList({
                 dataSource: data.masterRecords.vwtsFactor
+            });
+        });
+
+        //kendoDropDownList for to order
+        $(`#${masterForm.id} input[type=toOrder]`).each(function () {
+            $(this).kendoDropDownList({
+                optionLabel: " ",
+                dataSource: data.masterRecords.toOrder
+            });
+        });
+
+        //kendoDropDownList for print on HBL
+        $(`#${masterForm.id} input[type=printOnHbl]`).each(function () {
+            $(this).kendoDropDownList({
+                optionLabel: " ",
+                dataSource: data.masterRecords.printOnHbl
             });
         });
 
@@ -2326,6 +2383,178 @@
                         .formGroups.filter(a => a.name == "mainInfo")[0]
                         .formControls.filter(a => a.name == "BOOKING_NO")[0].callbackFunction;
                     eval(`${callbackFunction}(e)`);
+                },
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectVoyage
+        $(`#${masterForm.id} input[type=selectVoyage]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "VES_DESC",
+                dataValueField: "VES_CODE",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: ({ VES_DESC, VOYAGE, LOADING_PORT, DISCHARGE_PORT }) => `${VES_DESC} / ${VOYAGE} ${LOADING_PORT} - ${DISCHARGE_PORT}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Sea/Voyage/GetVoyages",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
+                select: function (e) {
+                    let voyage = $(e.sender.element).attr("name").replace("VES_CODE", "VOYAGE");
+                    $(`#${masterForm.id} input[name="${voyage}"]`).val(e.dataItem.VOYAGE);
+
+                    let model = {
+                        LOADING_PORT: e.dataItem.LOADING_PORT,
+                        LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
+                        DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
+                        DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
+                    };
+                    controls.setValuesToFormControls(masterForm, model, true);
+                },
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectSeaJob
+        $(`#${masterForm.id} input[type=selectSeaJob]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "JOB_NO",
+                dataValueField: "JOB_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: ({ JOB_NO, VES_DESC, VOYAGE }) => `${JOB_NO} / ${VES_DESC} / ${VOYAGE}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([{ JOB_NO: "New Job#", VES_DESC: "", VOYAGE: "" }]);
+                            else {
+                                $.ajax({
+                                    url: "../Sea/Hbl/GetJobNos",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        let jobNos = [{ JOB_NO: "New Job#", VES_DESC: "", VOYAGE: "" }];
+                                        for (var i in result) {
+                                            jobNos.push(result[i]);
+                                        }
+                                        options.success(jobNos);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
+                //select: function (e) {
+                //    $.ajax({
+                //        url: "../Sea/Booking/GetBooking",
+                //        data: { id: e.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                //        success: function (result) {
+                //            controls.setValuesToFormControls(masterForm, result, true);
+                //        }
+                //    });
+                //},
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for unUsedSeaBooking
+        $(`#${masterForm.id} input[type=unUsedSeaBooking]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "BOOKING_NO",
+                dataValueField: "BOOKING_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: ({ BOOKING_NO, VES_DESC, VOYAGE, LOADING_PORT, DISCHARGE_PORT }) => `${BOOKING_NO} / ${VES_DESC} / ${VOYAGE} ${LOADING_PORT} - ${DISCHARGE_PORT}}`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Sea/Booking/GetUnusedBooking",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
+                select: function (e) {
+                    $.ajax({
+                        url: "../Sea/Booking/GetBooking",
+                        data: { id: e.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                        success: function (result) {
+                            controls.setValuesToFormControls(masterForm, result, true);
+                        }
+                    });
                 },
             }).data("kendoDropDownList");
         });
@@ -2786,6 +3015,46 @@
         });
     }
 
+    //kendoGrid kendoDropDownList for Sea Charge Qty Unit
+    renderGridEditorSeaChargeQtyUnit = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataSource: data.masterRecords.seaChargeQtyUnit
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Container Size
+    renderGridEditorContainerSize = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataSource: data.masterRecords.containerSize
+        });
+    }
+
+    //kendoGrid kendoDropDownList for Commodity
+    renderGridEditorCommodities = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            filter: "startswith",
+            optionLabel: " ",
+            dataTextField: "COMMODITY_DESC",
+            dataValueField: "COMMODITY_DESC",
+            dataSource: data.masterRecords.commodities
+        });
+    }
+
+    //kendoGrid kendoDropDownList for sea service type
+    renderGridEditorService = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataSource: data.masterRecords.seaServiceType
+        });
+    }
+
     //kendoGrid kendoNumericTextBox
     renderGridEditorNumericTextBox = function (container, options, decimals = 2) {
         var format = decimals == 0 ? "n0" : "n";
@@ -2818,6 +3087,19 @@
             dataTextField: "HAWB_NO",
             dataValueField: "HAWB_NO",
             dataSource: gridHawbList.dataSource.data(),
+        });
+    }
+
+    //kendoGrid special controls from HBL container#
+    renderGridEditorHblContainerNo = function (container, options) {
+        let formId = utils.getFormId($(container));
+        let gridHblCargo = $(`#${formId} [name="grid_SeaHblContainers"]`).data("kendoGrid");
+        let ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            dataTextField: "CONTAINER_NO",
+            dataValueField: "CONTAINER_NO",
+            dataSource: gridHblCargo.dataSource.data(),
         });
     }
 

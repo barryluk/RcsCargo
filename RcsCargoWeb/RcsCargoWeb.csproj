@@ -199,7 +199,10 @@
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MasterRecord\CustomerController.cs" />
+    <Compile Include="Controllers\Sea\HblController.cs" />
     <Compile Include="Controllers\Sea\BookingController.cs" />
+    <Compile Include="Controllers\Sea\InvoiceController.cs" />
+    <Compile Include="Controllers\Sea\PvController.cs" />
     <Compile Include="Controllers\Sea\VoyageController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -372,9 +375,11 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\seaBooking.js" />
     <Content Include="Scripts\rcsCargo\masterRecords.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />
     <Content Include="Scripts\rcsCargo\airReport.js" />
+    <Content Include="Scripts\rcsCargo\seaHbl.js" />
     <Content Include="Scripts\rcsCargo\sysConsole.js" />
     <Content Include="Scripts\rcsCargo\airPv.js" />
     <Content Include="Scripts\rcsCargo\airInvoice.js" />

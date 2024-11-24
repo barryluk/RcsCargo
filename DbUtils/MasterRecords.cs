@@ -350,7 +350,7 @@ namespace DbUtils
 
         #endregion
 
-        #region Carrier
+        #region Carrier, Carrier Contract
 
         public List<CarrierView> GetCarriersView()
         {
@@ -423,6 +423,11 @@ namespace DbUtils
         public bool IsExisitingCarrierCode(string carrierCode)
         {
             return db.Carriers.Count(a => a.CARRIER_CODE == carrierCode) == 1 ? true : false;
+        }
+
+        public List<CarrierContract> GetCarrierContracts()
+        {
+            return db.CarrierContracts.OrderBy(a => a.CARRIER).ToList();
         }
 
         #endregion
@@ -881,12 +886,102 @@ namespace DbUtils
 
         #endregion
 
-        #region Cargo Unit
+        #region Cargo Unit / Container Size / Sea Charge Qty Unit
 
         public List<string> GetCargoUnits()
         {
             var sqlCmd = @"select distinct unit from s_booking_cargo where unit in (select base_code from base)";
             return db.Database.SqlQuery<string>(sqlCmd).ToList();
+        }
+
+        public List<string> GetContainerSize()
+        {
+            var sqlCmd = @"select distinct container_size from s_hbl_container where container_size in (select base_code from base)";
+            return db.Database.SqlQuery<string>(sqlCmd).ToList();
+        }
+
+        public List<string> GetSeaChargeQtyUnit()
+        {
+            var sqlCmd = @"select distinct qty_unit from s_invoice_item where qty_unit in (select base_code from base)";
+            return db.Database.SqlQuery<string>(sqlCmd).ToList();
+        }
+
+        #endregion
+
+        #region Commodity
+
+        public List<CommodityView> GetCommoditiesView()
+        {
+            var sqlCmd = @"select commodity_code, commodity_desc from commodity";
+            return db.Database.SqlQuery<CommodityView>(sqlCmd).ToList();
+        }
+
+        public List<Commodity> GetCommodities(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "commodity_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "commodity_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<Commodity>("commodity", "*", dbParas);
+            return result.ToList();
+        }
+
+        public Commodity GetCommodity(string commodityCode)
+        {
+            var commodity = db.Commodities.FirstOrDefault(a => a.COMMODITY_CODE == commodityCode);
+            if (commodity == null)
+                return new Commodity();
+            else
+                return commodity;
+        }
+
+        public void AddCommodity(Commodity commodity)
+        {
+            try
+            {
+                db.Commodities.Add(commodity);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCommodity(Commodity commodity)
+        {
+            try
+            {
+                db.Entry(commodity).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCommodity(string commodityCode)
+        {
+            try
+            {
+                var commodity = db.Commodities.FirstOrDefault(a => a.COMMODITY_CODE.Equals(commodityCode));
+                if (commodity != null)
+                {
+                    db.Commodities.Remove(commodity);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingCommodityCode(string commodityCode)
+        {
+            return db.Commodities.Count(a => a.COMMODITY_CODE == commodityCode) == 1 ? true : false;
         }
 
         #endregion

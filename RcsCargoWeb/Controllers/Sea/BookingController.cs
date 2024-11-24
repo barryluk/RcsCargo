@@ -54,10 +54,26 @@ namespace RcsCargoWeb.Sea.Controllers
             return Json(booking, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetUnusedBooking")]
+        public ActionResult GetUnusedBooking(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now.AddMonths(3);
+
+            var results = sea.GetUnusedBooking(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("UpdateBooking")]
         public ActionResult UpdateBooking(SeaBooking model, string mode)
         {
-            foreach(var item in model.SeaBookingCargos)
+            if (string.IsNullOrEmpty(model.BOOKING_NO))
+                model.BOOKING_NO = admin.GetSequenceNumber("SE_BOOKING", model.COMPANY_ID, model.LOADING_PORT, model.DISCHARGE_PORT, model.CREATE_DATE);
+
+            foreach (var item in model.SeaBookingCargos)
                 item.BOOKING_NO = model.BOOKING_NO;
             foreach (var item in model.SeaBookingPos)
                 item.BOOKING_NO = model.BOOKING_NO;
@@ -72,8 +88,8 @@ namespace RcsCargoWeb.Sea.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
-        [Route("IsExistingVesselBooking")]
-        public ActionResult IsExistingVesselBooking(string id, string companyId, string frtMode)
+        [Route("IsExistingBookingNo")]
+        public ActionResult IsExistingBookingNo(string id, string companyId, string frtMode)
         {
             return Content(sea.IsExisitingBookingNo(id, companyId, frtMode).ToString());
         }

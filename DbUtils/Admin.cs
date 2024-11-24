@@ -279,6 +279,7 @@ namespace DbUtils
 
         public string GetSequenceNumber(string seqType, string companyId, string origin, string dest, DateTime? date, int seqNoCount = 1)
         {
+            db = new RcsFreightDBContext();
             string formattedNumber = string.Empty;
             var seqFormat = db.SeqFormats.Where(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId).FirstOrDefault(); 
             if (string.IsNullOrEmpty(seqFormat.PREFIX))

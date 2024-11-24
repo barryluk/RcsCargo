@@ -576,6 +576,21 @@
         }
     }
 
+    isExistingSeaBookingNo = function (bookingNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Sea/Booking/IsExistingBookingNo",
+            dataType: "text",
+            data: { id: bookingNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isInteger = function (value) {
         var integer = "0123456789";
         for (var i = 0; i < value.toString().length; i++) {

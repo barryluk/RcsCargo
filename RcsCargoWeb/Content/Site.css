@@ -208,6 +208,10 @@ div .row.form-group {
     margin: 0px;
 }
 
+.inline{
+    display: inline;
+}
+
 .form-control, .form-control-dateTime, .form-control-number, .form-control-dropdownlist {
     width: 100%;
     max-width: 270px;
