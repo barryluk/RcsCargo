@@ -93,7 +93,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingCountryCode(string countryCode)
+        public bool IsExistingCountryCode(string countryCode)
         {
             return db.Countries.Count(a => a.COUNTRY_CODE == countryCode) == 1 ? true : false;
         }
@@ -176,7 +176,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingPortCode(string portCode)
+        public bool IsExistingPortCode(string portCode)
         {
             return db.Ports.Count(a => a.PORT_CODE == portCode) == 1 ? true : false;
         }
@@ -257,7 +257,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingSeaPortCode(string portCode)
+        public bool IsExistingSeaPortCode(string portCode)
         {
             return db.SeaPorts.Count(a => a.PORT_CODE == portCode) == 1 ? true : false;
         }
@@ -343,7 +343,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingAirlineCode(string airlineCode)
+        public bool IsExistingAirlineCode(string airlineCode)
         {
             return db.Airlines.Count(a => a.AIRLINE_CODE == airlineCode) == 1 ? true : false;
         }
@@ -420,7 +420,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingCarrierCode(string carrierCode)
+        public bool IsExistingCarrierCode(string carrierCode)
         {
             return db.Carriers.Count(a => a.CARRIER_CODE == carrierCode) == 1 ? true : false;
         }
@@ -506,7 +506,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingVesselCode(string vesselCode)
+        public bool IsExistingVesselCode(string vesselCode)
         {
             return db.Vessels.Count(a => a.VES_CODE == vesselCode) == 1 ? true : false;
         }
@@ -587,7 +587,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingChargeCode(string chargeCode)
+        public bool IsExistingChargeCode(string chargeCode)
         {
             return db.Charges.Count(a => a.CHARGE_CODE == chargeCode) == 1 ? true : false;
         }
@@ -678,7 +678,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingChargeTemplateName(string templateName)
+        public bool IsExistingChargeTemplateName(string templateName)
         {
             return db.ChargeTemplates.Count(a => a.TEMPLATE_NAME == templateName) > 0 ? true : false;
         }
@@ -744,7 +744,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingCurrencyCode(string currencyCode, string companyId)
+        public bool IsExistingCurrencyCode(string currencyCode, string companyId)
         {
             return db.Currencies.Count(a => a.CURR_CODE == currencyCode && a.COMPANY_ID == companyId) == 1 ? true : false;
         }
@@ -875,6 +875,11 @@ namespace DbUtils
             }
         }
 
+        public bool IsExistingCustomerCode(string customerCode)
+        {
+            return db.Customers.Count(a => a.CUSTOMER_CODE == customerCode) == 1 ? true : false;
+        }
+
         #endregion
 
         #region HAWB Equip
@@ -979,7 +984,7 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingCommodityCode(string commodityCode)
+        public bool IsExistingCommodityCode(string commodityCode)
         {
             return db.Commodities.Count(a => a.COMMODITY_CODE == commodityCode) == 1 ? true : false;
         }

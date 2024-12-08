@@ -4,22 +4,7 @@
 
     //Navbar
     initNavbar = function () {
-        //function timeout() {
-        //    setTimeout(function () {
-        //        //if the sysCompanies is not loaded, then recall the parent function to create a recursive loop.
-        //        if (!$.isEmptyObject(data.masterRecords.sysCompanies) && !controls.isEmptyString(data.companyId)) {
-        //            $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
-        //            return;
-        //        }
-        //        timeout();
-        //    }, 100);
-        //}
-
-        //if ($.isEmptyObject(data.masterRecords.sysCompanies) || controls.isEmptyString(data.companyId)) {
-        //    timeout();
-        //} else {
-            $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.masterRecords.sysCompanies));
-        //}
+        $("div.wrapper").prepend(data.frameworkHtmlElements.navbar(data.user.UserCompanies));
     }
 
     //Sidebar
@@ -417,7 +402,8 @@
             masterForm.schema.fields.forEach(function (field) {
                 if (field.defaultValue != null) {
                     if (field.defaultValue == "currency") {
-                        let currCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0][`${(utils.getFrtMode() == "AE" || utils.getFrtMode() == "SE") ? "EX" : "IM"}_${field.name}`];
+                        let sysCompany = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0];
+                        let currCode = sysCompany[`${(utils.getFrtMode() == "AE" || utils.getFrtMode() == "SE") ? "EX" : "IM"}_${field.name}`];
                         let exRate = data.masterRecords.currencies.filter(a => a.CURR_CODE == currCode)[0].EX_RATE;
                         model[field.name] = currCode;
                         model[field.name.replace("CURR_CODE", "EX_RATE")] = exRate;
@@ -639,6 +625,13 @@
                                 model[`${control.name}_ADDR2`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR2]`).val());
                                 model[`${control.name}_ADDR3`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR3]`).val());
                                 model[`${control.name}_ADDR4`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR4]`).val());
+
+                                if (control.name == "CUSTOMER") {
+                                    model[`ADDR1`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR1]`).val());
+                                    model[`ADDR2`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR2]`).val());
+                                    model[`ADDR3`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR3]`).val());
+                                    model[`ADDR4`] = utils.formatText($(`#${masterForm.id} [name=${control.name}_ADDR4]`).val());
+                                }
                             }
                         } else if (control.type == "buttonGroup") {
                             if (control.dataType == "customerType") {
@@ -924,6 +917,22 @@
                             <${formControlType} type="${control.type}" name="${control.name}" dataType="${control.dataType}" />
                         </div>
                     </div>`;
+                } else if (control.type == "emptyBlock") {
+                    let controlHtml = "";
+                    if (control.name != null)
+                        controlHtml = `<div name="${control.name}" />`;
+                    else
+                        controlHtml = `<div />`;
+
+                    html += `
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            &nbsp;
+                        </div>
+                        <div class="col-md-10">
+                            ${controlHtml}
+                        </div>
+                    </div>`;
                 } else {
                     html += `
                     <div class="form-group row">
@@ -976,31 +985,45 @@
 
                         var searchData = {};
 
-                        if (pageSetting.searchControls.length <= 1) {
+                        if (pageSetting.pageName == "airTransfer") {
                             searchData = {
-                                searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
+                                hawbNo: $(`#${pageSetting.id} div.search-control input[name=hawbNo]`).val(),
+                                mawbNo: $(`#${pageSetting.id} div.search-control input[name=mawbNo]`).val(),
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                                 companyId: data.companyId,
+                                frtMode: "AE",
                                 take: data.indexGridPageSize,
                                 skip: options.data.skip,
                                 sort: options.data.sort,
                             };
                         } else {
-                            let frtMode = "";
-                            if ($(`#${pageSetting.id} div.search-control div[name=frtMode]`).attr("datatype") == "seaFrtMode")
-                                frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "SE" : "SI";
-                            else
-                                frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
+                            if (pageSetting.searchControls.length <= 1) {
+                                searchData = {
+                                    searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
+                                    companyId: data.companyId,
+                                    take: data.indexGridPageSize,
+                                    skip: options.data.skip,
+                                    sort: options.data.sort,
+                                };
+                            } else {
+                                let frtMode = "";
+                                if ($(`#${pageSetting.id} div.search-control div[name=frtMode]`).attr("datatype") == "seaFrtMode")
+                                    frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "SE" : "SI";
+                                else
+                                    frtMode = $(`#${pageSetting.id} div.search-control div[name=frtMode]`).find(".k-selected .k-button-text").text() == "Export" ? "AE" : "AI";
 
-                            searchData = {
-                                searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
-                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
-                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
-                                companyId: data.companyId,
-                                frtMode: frtMode,
-                                take: data.indexGridPageSize,
-                                skip: options.data.skip,
-                                sort: options.data.sort,
-                            };
+                                searchData = {
+                                    searchValue: $(`#${pageSetting.id} div.search-control input[name=searchInput]`).val(),
+                                    dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                    dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                    companyId: data.companyId,
+                                    frtMode: frtMode,
+                                    take: data.indexGridPageSize,
+                                    skip: options.data.skip,
+                                    sort: options.data.sort,
+                                };
+                            }
                         }
 
                         $.ajax({
@@ -1688,30 +1711,58 @@
 
         //kendoButtonGroup for frtMode
         $(`#${masterForm.id} div[type=buttonGroup][dataType=frtMode], #${masterForm.id} .toolbar-frtMode`).each(function () {
-            $(this).kendoButtonGroup({
-                items: [
-                    { text: "Export", iconClass: "fa fa-plane-departure", selected: true },
-                    { text: "Import", iconClass: "fa fa-plane-arrival" },
-                ],
-                select: function (e) {
-                    var frtMode = this.current().text() == "Export" ? "AE" : "AI";
-                    $(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
-                }
-            });
+            let countryCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COUNTRY_CODE;
+            if (countryCode == "US") {
+                $(this).kendoButtonGroup({
+                    items: [
+                        { text: "Export", iconClass: "fa fa-plane-departure" },
+                        { text: "Import", iconClass: "fa fa-plane-arrival", selected: true },
+                    ],
+                    select: function (e) {
+                        var frtMode = this.current().text() == "Export" ? "AE" : "AI";
+                        $(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
+                    }
+                });
+            } else {
+                $(this).kendoButtonGroup({
+                    items: [
+                        { text: "Export", iconClass: "fa fa-plane-departure", selected: true },
+                        { text: "Import", iconClass: "fa fa-plane-arrival" },
+                    ],
+                    select: function (e) {
+                        var frtMode = this.current().text() == "Export" ? "AE" : "AI";
+                        $(`#${masterForm.id} input[name="FRT_MODE"]`).val(frtMode);
+                    }
+                });
+            }
         });
 
         //kendoButtonGroup for seaFrtMode
         $(`#${masterForm.id} div[type=buttonGroup][dataType=seaFrtMode], #${masterForm.id} .toolbar-seaFrtMode`).each(function () {
-            $(this).kendoButtonGroup({
-                items: [
-                    { text: "Export", iconClass: "k-icon k-i-export", selected: true },
-                    { text: "Import", iconClass: "k-icon k-i-import" },
-                ],
-                select: function (e) {
-                    var seaFrtMode = this.current().text() == "Export" ? "SE" : "SI";
-                    $(`#${masterForm.id} input[name="FRT_MODE"]`).val(seaFrtMode);
-                }
-            });
+            let countryCode = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0].COUNTRY_CODE;
+            if (countryCode == "US") {
+                $(this).kendoButtonGroup({
+                    items: [
+                        { text: "Export", iconClass: "k-icon k-i-export" },
+                        { text: "Import", iconClass: "k-icon k-i-import", selected: true },
+                    ],
+                    select: function (e) {
+                        var seaFrtMode = this.current().text() == "Export" ? "SE" : "SI";
+                        $(`#${masterForm.id} input[name="FRT_MODE"]`).val(seaFrtMode);
+                    }
+                });
+            } else {
+                $(this).kendoButtonGroup({
+                    items: [
+                        { text: "Export", iconClass: "k-icon k-i-export", selected: true },
+                        { text: "Import", iconClass: "k-icon k-i-import" },
+                    ],
+                    select: function (e) {
+                        var seaFrtMode = this.current().text() == "Export" ? "SE" : "SI";
+                        $(`#${masterForm.id} input[name="FRT_MODE"]`).val(seaFrtMode);
+                    }
+                });
+            }
         });
 
         //kendoButtonGroup for bookingType
@@ -2102,6 +2153,15 @@
             });
         });
 
+        //kendoDropDownList for transferSysCompany
+        $(`#${masterForm.id} input[type=transferSysCompany]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "COMPANY_ID",
+                dataValueField: "COMPANY_ID",
+                dataSource: data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID != "RCSHKG_OFF" && a.COMPANY_ID != data.companyId)
+            });
+        });
+
         //kendoDropDownList for selectMawb
         $(`#${masterForm.id} input[type=selectMawb]`).each(function () {
             var filterValue = "";
@@ -2110,7 +2170,7 @@
                 filter: "startswith",
                 dataTextField: "MAWB_NO",
                 dataValueField: "MAWB_NO",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text()} ...`,
                 template: (dataItem) => `${dataItem.MAWB_NO} / ${dataItem.JOB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
                     ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
                 dataSource: {
@@ -2166,7 +2226,7 @@
                 filter: "startswith",
                 dataTextField: "JOB_NO",
                 dataValueField: "JOB_NO",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text()} ...`,
                 template: function (dataItem) {
                     if (dataItem.MAWB_NO == null) {
                         if (dataItem.DEST_CODE == null)
@@ -2229,7 +2289,7 @@
                 filter: "startswith",
                 dataTextField: "LOT_NO",
                 dataValueField: "LOT_NO",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text()} ...`,
                 template: (dataItem) => `${dataItem.LOT_NO} / ${dataItem.ORIGIN_CODE} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
                     ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
                 dataSource: {
@@ -2286,7 +2346,7 @@
                 filter: "startswith",
                 dataTextField: "HAWB_NO",
                 dataValueField: "HAWB_NO",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text()} ...`,
                 template: (dataItem) => `${dataItem.HAWB_NO} / ${dataItem.MAWB_NO} / ${dataItem.DEST_CODE} / ${dataItem.FLIGHT_NO} - 
                     ${kendo.toString(kendo.parseDate(dataItem.FLIGHT_DATE), data.dateFormat)}`,
                 dataSource: {

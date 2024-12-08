@@ -75,7 +75,7 @@ namespace RcsCargoWeb.MasterRecord.Controllers
         [Route("IsExistingCarrierCode")]
         public ActionResult IsExistingCarrierCode(string id)
         {
-            return Content(masterRecord.IsExisitingCarrierCode(id).ToString());
+            return Content(masterRecord.IsExistingCarrierCode(id).ToString());
         }
     }
 }

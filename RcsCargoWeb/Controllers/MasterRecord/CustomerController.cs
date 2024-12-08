@@ -72,5 +72,11 @@ namespace RcsCargoWeb.MasterRecord.Controllers
 
             return Json(model, JsonRequestBehavior.DenyGet);
         }
+
+        [Route("IsExistingCustomerCode")]
+        public ActionResult IsExistingCustomerCode(string id)
+        {
+            return Content(masterRecord.IsExistingCustomerCode(id).ToString());
+        }
     }
 }

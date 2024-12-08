@@ -86,6 +86,10 @@
                     case "shaReport":
                         controllers.airReport.dialogShaReport();
                         break;
+
+                    case "usSummaryInvoiceReport":
+                        utils.getExcelReport("AirUsSummaryInvoiceReport", paras, "USLAX Invoice Summary Report");
+                        break;
                 }
             });
         });

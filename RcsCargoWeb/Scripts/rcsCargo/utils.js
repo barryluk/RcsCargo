@@ -388,10 +388,25 @@
         return $(`#${id}`).attr("style") == "display: none";
     }
 
+    isExistingCustomerCode = function (customerCode) {
+        var serverResult = "";
+        $.ajax({
+            url: "../MasterRecord/Customer/IsExistingCustomerCode",
+            dataType: "text",
+            data: { id: utils.formatText(customerCode) },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isExisitingChargeTemplateName = function (templateName) {
         var serverResult = "";
         $.ajax({
-            url: "../MasterRecord/ChargeTemplate/IsExisitingChargeTemplateName",
+            url: "../MasterRecord/ChargeTemplate/IsExistingChargeTemplateName",
             dataType: "text",
             data: { id: utils.formatText(templateName), companyId: data.companyId },
             async: false,

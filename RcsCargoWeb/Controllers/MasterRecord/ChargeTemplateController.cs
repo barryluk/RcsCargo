@@ -72,10 +72,10 @@ namespace RcsCargoWeb.MasterRecord.Controllers
             return Content(id, "text/plain");
         }
 
-        [Route("IsExisitingChargeTemplateName")]
-        public ActionResult IsExisitingChargeTemplateName(string id)
+        [Route("IsExistingChargeTemplateName")]
+        public ActionResult IsExistingChargeTemplateName(string id)
         {
-            return Content(masterRecord.IsExisitingChargeTemplateName(id).ToString());
+            return Content(masterRecord.IsExistingChargeTemplateName(id).ToString());
         }
     }
 }

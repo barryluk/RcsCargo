@@ -5,28 +5,54 @@
     initSeaHbl = function (masterForm) {
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         masterForm.id = utils.getFormId();
-        var hblNo = masterForm.id.split("_")[1];
-        var companyId = masterForm.id.split("_")[2];
-        var frtMode = masterForm.id.split("_")[3];
+        let hblNo = masterForm.id.split("_")[1];
+        let companyId = masterForm.id.split("_")[2];
+        let frtMode = masterForm.id.split("_")[3];
 
-        var printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
+        let printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
-            var buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
-            var reportName = e.id;
-            var reportType = buttonConfig.type;
-            var filename = `B/L# ${hblNo}`;
-            if (reportName == "SeaHblPreview") {
-                let masterForm = utils.getMasterForm();
-                let model = controls.getValuesFromFormControls(masterForm);
-            }
-
-            var paras = [
+            let buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
+            let reportName = "";
+            let reportType = buttonConfig.type;
+            let filename = `B/L# ${hblNo}`;
+            masterForm = utils.getMasterForm();
+            let model = controls.getValuesFromFormControls(masterForm);
+            let paras = [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
                 { name: "HblNo", value: hblNo },
+                { name: "ContainerWords", value: model.ENTRY_WORD1 },
+                { name: "ShowLogo", value: false },
+                { name: "ShowChg", value: false },
                 { name: "filename", value: filename }];
+
+            if (e.id == "previewHbl") {
+                paras.filter(a => a.name == "ShowLogo")[0].value = true;
+                reportName = "SeaHouseBill";
+            } else if (e.id == "previewHblA4") {
+                paras.filter(a => a.name == "ShowLogo")[0].value = true;
+                reportName = "SeaHouseBill_A4";
+            } else if (e.id == "printHbl") {
+                reportName = "SeaHouseBillNoFrame";
+                console.log(paras);
+            } else if (e.id == "printHblA4") {
+                paras.push({ name: "ShowWord", value: "ORIGINAL" })
+                reportName = "SeaHouseBill_A4";
+            } else if (e.id == "printHblA4Copy") {
+                paras.push({ name: "ShowWord", value: "COPY" })
+                reportName = "SeaHouseBill_A4";
+            } else if (e.id == "printFcr") {
+                paras.push({ name: "ShowWord", value: "" })
+                reportName = "SeaFCR";
+            } else if (e.id == "printUS") {
+                paras.push({ name: "ShowWord", value: "ORIGINAL" })
+                reportName = "SeaHouseBill_US_A4";
+            } else if (e.id == "printUSCopy") {
+                paras.push({ name: "ShowWord", value: "COPY" })
+                reportName = "SeaHouseBill_US_A4";
+            }
 
             if (reportType == "pdf") {
                 controls.openReportViewer(reportName, paras);

@@ -1248,5 +1248,46 @@ namespace DbUtils
         }
 
         #endregion
+
+        #region Transfer
+
+        public List<HawbView> GetTransferList(DateTime startDate, DateTime endDate, string companyId, string frtMode, string hawbNo, string mawbNo)
+        {
+            var selectCmd = @"h.hawb_no, h.company_id, h.frt_mode, h.job_no, h.mawb_no,
+                m.airline_code, m.flight_no, m.flight_date, h.origin_code, h.dest_code,
+                h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc, h.frt_payment_pc,
+                case when h.gwts > h.vwts then h.gwts else h.vwts end as cwts,
+                h.package, h.gwts, h.vwts, h.cbm, h.package_unit, h.create_user, h.create_date, h.is_voided,
+                is_a_hawb_transferred(h.hawb_no) as is_transferred";
+            var fromCmd = $@"a_hawb h left outer join a_mawb m on h.mawb_no = m.mawb and h.company_id = m.company_id and h.frt_mode = m.frt_mode
+                where m.flight_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
+                and m.flight_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD')
+                and h.mawb_no is not null";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "h.hawb_no", ParaName = "hawbNo", ParaCompareType = DbParameter.CompareType.like, Value = hawbNo },
+                new DbParameter { FieldName = "h.mawb_no", ParaName = "mawbNo", ParaCompareType = DbParameter.CompareType.like, Value = mawbNo },
+                new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<HawbView>(fromCmd, selectCmd, dbParas);
+
+            return result;
+        }
+
+        public void AddTransferHawbLog(TransferHawbLog log)
+        {
+            db.TransferHawbLogs.Add(log);
+            db.SaveChanges();
+        }
+
+        public void AddTransferInvoiceLog(TransferInvoiceLog log)
+        {
+            db.TransferInvoiceLogs.Add(log);
+            db.SaveChanges();
+        }
+
+        #endregion
+
     }
 }

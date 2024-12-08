@@ -146,10 +146,10 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetCharges(searchValue).Take(take), JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult GetCurrencies()
+        public ActionResult GetCurrencies(string companyId)
         {
             var masterRecords = new MasterRecords();
-            return Json(masterRecords.GetCurrencies("RCSHKG"), JsonRequestBehavior.AllowGet);
+            return Json(masterRecords.GetCurrencies(companyId), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetCargoUnits()

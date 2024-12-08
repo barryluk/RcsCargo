@@ -56,7 +56,7 @@ namespace RcsCargoWeb.MasterRecord.Controllers
         [Route("IsExistingCurrencyCode")]
         public ActionResult IsExistingCurrencyCode(string id, string companyId)
         {
-            return Content(masterRecord.IsExisitingCurrencyCode(id, companyId).ToString());
+            return Content(masterRecord.IsExistingCurrencyCode(id, companyId).ToString());
         }
     }
 }

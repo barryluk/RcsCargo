@@ -180,6 +180,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Admin\SystemController.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
+    <Compile Include="Controllers\Air\TransferController.cs" />
     <Compile Include="Controllers\Air\OtherJobController.cs" />
     <Compile Include="Controllers\Air\PvController.cs" />
     <Compile Include="Controllers\Air\InvoiceController.cs" />
@@ -375,6 +376,8 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\airTransfer.js" />
+    <Content Include="Scripts\rcsCargo\customer.js" />
     <Content Include="Scripts\rcsCargo\seaBooking.js" />
     <Content Include="Scripts\rcsCargo\masterRecords.js" />
     <Content Include="Scripts\rcsCargo\airBooking.js" />

@@ -41,7 +41,7 @@ var masterRecords = {
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany", "carrier", "vessel", "seaServiceType", "toOrder",
-    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage" ];
+    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "transferSysCompany" ];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -1146,6 +1146,7 @@ var indexPages = [
                     { label: "Invoice Report (Other Job)", name: "invoiceReportOtherJob", icon: "k-i-excel" },
                     { label: "Payment Voucher Report", name: "pvReport", icon: "k-i-excel" },
                     { label: "SHA / CN Reports", name: "shaReport", icon: "k-i-excel" },
+                    { label: "USLAX Invoice Reports", name: "usSummaryInvoiceReport", icon: "k-i-excel" },
                 ]
             },
             {
@@ -1162,6 +1163,53 @@ var indexPages = [
                 ]
             },
         ],
+    },
+    {
+        pageName: "airTransfer",
+        id: "",
+        title: "Internal Transfer",
+        initScript: "controllers.airTransfer.initTransfer",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode", enable: false },
+            { label: "Flight Date", type: "dateRange", name: "flightDateRange" },
+            { label: "MAWB #", type: "selectMawb", name: "mawbNo" },
+            { label: "HAWB #", type: "selectHawb", name: "hawbNo" },
+            { label: "Transfer To", type: "transferSysCompany", name: "targetCompanyId" },
+            { label: "Transfer To Offshore", type: "switch", name: "transferOffshore" },
+            { label: "", type: "emptyBlock", name: "commandButtons" },
+        ],
+        gridConfig: {
+            gridName: "gridAirTransferIndex",
+            dataSourceUrl: "../Air/Transfer/GridTransferList_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                {
+                    template: function (dataItem) {
+                        let disable = "";
+                        if (dataItem.IS_TRANSFERRED == "Y")
+                            disable = "disabled='disabled'";
+
+                        return `<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md" hawbNo="${dataItem.HAWB_NO}" ${disable} />`;
+                    },
+                    headerTemplate: '<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md ckb-select-all" />',
+                    width: 20
+                },
+                { field: "HAWB_NO", title: "HAWB#" },
+                { field: "MAWB_NO", title: "MAWB#" },
+                { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
+                { field: "ORIGIN_CODE", title: "Origin" },
+                { field: "DEST_CODE", title: "Destination" },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
+                { field: "IS_TRANSFERRED", title: "Transferred?" },
+            ],
+        },
     },
     {
         pageName: "seaVoyage",
@@ -1513,7 +1561,7 @@ var masterForms = [
         title: "Customer:",
         readUrl: "../MasterRecord/Customer/GetCustomer",
         updateUrl: "../MasterRecord/Customer/UpdateCustomer",
-        //additionalScript: "initCustomer",
+        additionalScript: "initCustomer",
         idField: "CUSTOMER_CODE",
         id: "",
         toolbar: [
@@ -1527,6 +1575,20 @@ var masterForms = [
                 { name: "CustomerNames", required: "true" },
                 { name: "CustomerContacts", required: "true" },
             ],
+            validation: {
+                rules: {
+                    customerCodeExistsRule: function (input) {
+                        if (input.is("[name=CUSTOMER_CODE]")) {
+                            return !utils.isExistingCustomerCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: {
+                    customerCodeExistsRule: "Customer code already exists in the database!",
+                },
+            },
         },
         formTabs: [
             {
@@ -2806,6 +2868,7 @@ var masterForms = [
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
                     { id: "AirInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
                     { id: "AirInvoice", text: "Preview Invoice", icon: "file-report", type: "pdf" },
+                    { id: "AirInvoice_RCSLAX", text: "Print Invoice (LAX)", icon: "file-txt", type: "pdf" },
                 ]
             },
         ],
@@ -2817,13 +2880,14 @@ var masterForms = [
                 { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_TRANSFERRED", hidden: "true", defaultValue: "N" },
+                { name: "IS_VAT", hidden: "true", defaultValue: "N" },
                 { name: "InvoiceHawbs", hidden: "true" },
                 { name: "INV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
                 { name: "INV_TYPE", required: "true", readonly: "edit" },
                 { name: "INV_CATEGORY", required: "true" },
                 { name: "SHOW_DATE_TYPE", required: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
-                { name: "CURR_CODE", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "CUSTOMER", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
@@ -2966,7 +3030,7 @@ var masterForms = [
                 { name: "PV_TYPE", required: "true", readonly: "edit" },
                 { name: "PV_CATEGORY", required: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
-                { name: "CURR_CODE", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "CUSTOMER", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
@@ -3554,8 +3618,14 @@ var masterForms = [
             { type: "button", text: "Save New", icon: "copy" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "AirPaymentVoucherPreview", text: "Print HBL", icon: "file-txt", type: "pdf" },
-                    { id: "AirPaymentVoucherPreview1", text: "Preview HBL", icon: "file-report", type: "pdf" },
+                    { id: "previewHbl", text: "Preview HBL", icon: "file-report", type: "pdf" },
+                    { id: "previewHblA4", text: "Preview HBL (A4)", icon: "file-report", type: "pdf" },
+                    { id: "printHbl", text: "Print HBL", icon: "file-report", type: "pdf" },
+                    { id: "printHblA4", text: "Print HBL (A4 - Original)", icon: "file-report", type: "pdf" },
+                    { id: "printHblA4Copy", text: "Print HBL (A4 - Copy)", icon: "file-report", type: "pdf" },
+                    { id: "printFcr", text: "Print FCR", icon: "file-report", type: "pdf" },
+                    { id: "printUS", text: "Print US Original", icon: "file-report", type: "pdf" },
+                    { id: "printUSCopy", text: "Print US Copy", icon: "file-report", type: "pdf" },
                 ]
             },
         ],
@@ -4148,6 +4218,15 @@ export default class {
     }
 
     prefetchGlobalVariables = async function () {
+        if (!this.isEmptyString(localStorage.companyId)) {
+            this.companyId = localStorage.companyId;
+        } else {
+            if (this.isEmptyString(user.DEFAULT_COMPANY))
+                this.companyId = user.UserCompanies[0].COMPANY_ID;
+            else
+                this.companyId = user.DEFAULT_COMPANY;
+        }
+
         await $.ajax({
             url: "../Admin/Account/GetUser",
             data: { userId: user.USER_ID },

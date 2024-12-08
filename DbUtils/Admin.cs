@@ -25,6 +25,11 @@ namespace DbUtils
             db = new RcsFreightDBContext();
         }
 
+        public SysCompany GetSysCompany(string companyId)
+        {
+            return db.SysCompanies.Where(a => a.COMPANY_ID == companyId).FirstOrDefault();
+        }
+
         public List<SysCompanyView> GetSysCompanies()
         {
             return db.SysCompanies.Select(a => new SysCompanyView {
@@ -34,6 +39,10 @@ namespace DbUtils
                 PORT_CODE = a.PORT_CODE,
                 EX_P_CURR_CODE = a.EX_P_CURR_CODE,
                 EX_C_CURR_CODE = a.EX_C_CURR_CODE,
+                IM_P_CURR_CODE = a.IM_P_CURR_CODE,
+                IM_C_CURR_CODE = a.IM_C_CURR_CODE,
+                EX_CURR_CODE = a.EX_P_CURR_CODE,
+                IM_CURR_CODE = a.IM_P_CURR_CODE,
             }).ToList();
         }
 

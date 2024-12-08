@@ -54,6 +54,8 @@ namespace DbUtils
         public DbSet<PvItem> PvItems { get; set; }
         public DbSet<OtherJob> OtherJobs { get; set; }
         public DbSet<OtherJobCharge> OtherJobCharges { get; set; }
+        public DbSet<TransferHawbLog> TransferHawbLogs { get; set; }
+        public DbSet<TransferInvoiceLog> TransferInvoiceLogs { get; set; }
 
         public DbSet<Voyage> Voyages { get; set; }
         public DbSet<VoyageDetail> VoyageDetails { get; set; }

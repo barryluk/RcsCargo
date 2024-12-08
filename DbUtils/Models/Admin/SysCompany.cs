@@ -63,5 +63,9 @@ namespace DbUtils.Models.Admin
         public string PORT_CODE { get; set; }
         public string EX_P_CURR_CODE { get; set; }
         public string EX_C_CURR_CODE { get; set; }
+        public string IM_P_CURR_CODE { get; set; }
+        public string IM_C_CURR_CODE { get; set; }
+        public string EX_CURR_CODE { get; set; }
+        public string IM_CURR_CODE { get; set; }
     }
 }

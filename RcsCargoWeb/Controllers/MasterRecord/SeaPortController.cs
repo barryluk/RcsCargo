@@ -75,7 +75,7 @@ namespace RcsCargoWeb.MasterRecord.Controllers
         [Route("IsExistingSeaPortCode")]
         public ActionResult IsExistingSeaPortCode(string id)
         {
-            return Content(masterRecord.IsExisitingSeaPortCode(id).ToString());
+            return Content(masterRecord.IsExistingSeaPortCode(id).ToString());
         }
     }
 }

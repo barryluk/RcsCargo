@@ -75,7 +75,7 @@ namespace RcsCargoWeb.MasterRecord.Controllers
         [Route("IsExistingCountryCode")]
         public ActionResult IsExistingCountryCode(string id)
         {
-            return Content(masterRecord.IsExisitingCountryCode(id).ToString());
+            return Content(masterRecord.IsExistingCountryCode(id).ToString());
         }
     }
 }

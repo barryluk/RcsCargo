@@ -420,5 +420,6 @@ namespace DbUtils.Models.Air
         public string CREATE_USER { get; set; }
         public DateTime CREATE_DATE { get; set; }
         public string IS_VOIDED { get; set; }
+        public string IS_TRANSFERRED { get; set; }
     }
 }
