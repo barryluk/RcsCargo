@@ -50,6 +50,32 @@ namespace RcsCargoWeb.Sea.Controllers
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
+        [Route("GetHblNos")]
+        public ActionResult GetHblNos(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now.AddMonths(3);
+
+            var results = sea.GetHbls(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetContainerNos")]
+        public ActionResult GetContainerNos(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now.AddMonths(3);
+
+            var results = sea.GetContainerNos(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetJobNos")]
         public ActionResult GetJobNos(string searchValue, string companyId, string frtMode, DateTime? dateFrom, DateTime? dateTo)
         {

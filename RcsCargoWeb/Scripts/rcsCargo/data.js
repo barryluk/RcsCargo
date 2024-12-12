@@ -29,6 +29,8 @@ var masterRecords = {
     showCharges: [{ text: "Prepaid", value: "P" }, { text: "Collect", value: "C" }, { text: "Prepaid + Collect", value: "PC" }],
     invoiceType: [{ text: "Invoice", value: "I" }, { text: "Debit Note", value: "D" }, { text: "Credit Note", value: "C" }],
     invoiceCategory: [{ text: "HAWB", value: "H" }, { text: "MAWB", value: "M" }, { text: "Job", value: "J" }, { text: "Lot", value: "L" }],
+    seaInvoiceCategory: [{ text: "HB/L", value: "H" }, { text: "Job", value: "J" }, { text: "Container", value: "C" }],
+    seaInvoiceFormat: [{ text: "Shipper Invoice", value: "I" }, { text: "Profit Share", value: "P" }],
     pvType: [{ text: "Payment Voucher", value: "P" }, { text: "Credit Voucher", value: "C" }],
     fltServiceType: [{ text: "Standard", value: "S" }, { text: "Express", value: "E" }, { text: "Deferred", value: "D" }, { text: "Hub", value: "H" }, { text: "Direct", value: "R" }],
     seaServiceType: ["CFS/CFS", "CY/CFS", "CY/CY", "CY/DOOR", "DOOR/CY", "CFS/CY", "DR/CFS"],
@@ -41,7 +43,7 @@ var masterRecords = {
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany", "carrier", "vessel", "seaServiceType", "toOrder",
-    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "transferSysCompany" ];
+    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "selectContainer", "transferSysCompany", "seaInvoiceCategory", "seaInvoiceFormat" ];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -4041,6 +4043,146 @@ var masterForms = [
                             STATUS_DATE: { type: "date" },
                             REMARKS: { type: "string" },
                         },
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        formName: "seaInvoice",
+        mode: "edit",   //create / edit
+        title: "Invoice#",
+        readUrl: "../Sea/Invoice/GetInvoice",
+        updateUrl: "../Sea/Invoice/UpdateInvoice",
+        voidUrl: "../Sea/Invoice/VoidInvoice",
+        additionalScript: "initSeaInvoice",
+        idField: "INV_NO",
+        id: "",
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "SeaInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
+                    { id: "SeaInvoice", text: "Preview Invoice", icon: "file-report", type: "pdf" },
+                ]
+            },
+        ],
+        schema: {
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_VAT", hidden: "true", defaultValue: "N" },
+                { name: "INV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "INV_TYPE", required: "true", readonly: "edit" },
+                { name: "INV_CATEGORY", required: "true" },
+                { name: "INV_FORMAT", required: "true" },
+                { name: "SHOW_DATE_TYPE", required: "true" },
+                { name: "FLIGHT_DATE", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
+                { name: "CUSTOMER", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true" },
+                { name: "JOB_NO", required: "true" },
+                { name: "INV_NO", readonly: "always" },
+                { name: "AMOUNT", readonly: "always" },
+                { name: "AMOUNT_HOME", readonly: "always" },
+                { name: "VOYAGE", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "charges"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Invoice Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "Invoice #", type: "text", name: "INV_NO", colWidth: 4 },
+                    { label: "Invoice Date", type: "date", name: "INV_DATE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Invoice Type", type: "buttonGroup", name: "INV_TYPE", dataType: "invoiceType", colWidth: 4 },
+                    { label: "Category", type: "buttonGroup", name: "INV_CATEGORY", dataType: "seaInvoiceCategory", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Carrier", type: "carrier", name: "CARRIER_CODE", colWidth: 4 },
+                    { label: "Vessel", type: "vessel", name: "VES_CODE", colWidth: 4 },
+                    { label: "Voyage", type: "text", name: "VOYAGE", colWidth: 4 },
+                    { label: "Departure Date", type: "date", name: "LOADING_PORT_DATE", colWidth: 4 },
+                    { label: "Estimate Arrival Date", type: "date", name: "DISCHARGE_PORT_DATE", colWidth: 4 },
+                    { label: "Prepaid/Collect", type: "paymentTerms", name: "FRT_PAYMENT_PC", colWidth: 4 },
+                    { label: "HB/L", type: "selectHbl", name: "selectHbl", colWidth: 4 },
+                    { label: "Job#", type: "selectSeaJob", name: "JOB_NO", colWidth: 4 },
+                    { label: "Container", type: "selectContainer", name: "CONTAINER_NO", colWidth: 4 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                    { label: "Payment Terms", type: "text", name: "PAYMENT_TERMS", colWidth: 4 },
+                    { label: "Invoice Format", type: "buttonGroup", name: "INV_FORMAT", dataType: "seaInvoiceFormat", colWidth: 4 },
+                    { label: "Commodity", type: "text", name: "COMMODITY", colWidth: 4 },
+                    { label: "Reference No.", type: "text", name: "REF_NO", colWidth: 4 },
+                    { label: "PS Ratio", type: "text", name: "PS_RATIO", colWidth: 4 },
+                    { label: "VAT Invoice Rate", type2: "text", name2: "VAT_RATE", type: "switch", name: "IS_VAT", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Amount", type: "text", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "text", name: "AMOUNT_HOME", colWidth: 4 },
+                ]
+            },
+            {
+                name: "charges",
+                title: "Charge Items",
+                colWidth: 12,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_SeaInvoiceItems", colWidth: 4 },
+                    {
+                        label: "", type: "grid", name: "SeaInvoiceItems",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                            { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
+                            { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
+                        ],
                     },
                 ]
             },

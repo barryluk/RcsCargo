@@ -700,6 +700,27 @@
             }
         }
 
+        //special case for HBL No in sea invoice / PV
+        if (masterForm.formName == "seaInvoice" || masterForm.formName == "seaPv") {
+            var formId = utils.getFormId();
+            if ($(`#${formId}_hblNoList`).length == 1) {
+                let hblNos = [];
+                let lineNo = 1;
+                $(`#${formId} .k-chip.k-chip-solid-info span.k-chip-label`).each(function () {
+                    hblNos.push({
+                        INV_NO: $(`#${formId} [name="INV_NO"]`).val(),
+                        COMPANY_ID: data.companyId,
+                        FRT_MODE: utils.getFrtMode(),
+                        LINE_NO: lineNo,
+                        REF_TYPE: "H",
+                        REF_NO: $(this).text(),
+                    });
+                    lineNo++;
+                });
+                model["SeaInvoiceRefNos"] = hblNos;
+            }
+        }
+
         if (masterForm.mode == "create") {
             model["COMPANY_ID"] = data.companyId;
             model["FRT_MODE"] = utils.getFrtMode();
@@ -1611,7 +1632,7 @@
             } else {
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
-                //return;
+                return;
 
                 $.ajax({
                     url: masterForm.updateUrl,
@@ -1806,6 +1827,22 @@
         $(`#${masterForm.id} div[type=buttonGroup][dataType=invoiceCategory]`).each(function () {
             $(this).kendoButtonGroup({
                 items: data.masterRecords.invoiceCategory,
+                index: 0
+            });
+        });
+
+        //kendoButtonGroup for seaInvoiceCategory
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=seaInvoiceCategory]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.seaInvoiceCategory,
+                index: 0
+            });
+        });
+
+        //kendoButtonGroup for seaInvoiceFormat
+        $(`#${masterForm.id} div[type=buttonGroup][dataType=seaInvoiceFormat]`).each(function () {
+            $(this).kendoButtonGroup({
+                items: data.masterRecords.seaInvoiceFormat,
                 index: 0
             });
         });
@@ -2552,15 +2589,96 @@
                 open: function (e) {
                     $(e.sender.filterInput).val(filterValue);
                 },
-                //select: function (e) {
-                //    $.ajax({
-                //        url: "../Sea/Booking/GetBooking",
-                //        data: { id: e.dataItem.BOOKING_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
-                //        success: function (result) {
-                //            controls.setValuesToFormControls(masterForm, result, true);
-                //        }
-                //    });
-                //},
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectHbl
+        $(`#${masterForm.id} input[type=selectHbl]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                dataTextField: "HBL_NO",
+                dataValueField: "HBL_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Sea/Hbl/GetHblNos",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
+            }).data("kendoDropDownList");
+        });
+
+        //kendoDropDownList for selectContainer
+        $(`#${masterForm.id} input[type=selectContainer]`).each(function () {
+            var filterValue = "";
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                filter: "startswith",
+                //dataTextField: "JOB_NO",
+                //dataValueField: "JOB_NO",
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                dataSource: {
+                    type: "json",
+                    serverFiltering: true,
+                    transport: {
+                        read: function (options) {
+                            if (options.data.filter != null) {
+                                try {
+                                    filterValue = options.data.filter.filters[0].value;
+                                } catch { }
+                            }
+                            if (filterValue == "")
+                                options.success([]);
+                            else {
+                                $.ajax({
+                                    url: "../Sea/Hbl/GetContainerNos",
+                                    data: {
+                                        searchValue: filterValue,
+                                        companyId: data.companyId,
+                                        frtMode: utils.getFrtMode(masterForm.id)
+                                    },
+                                    dataType: "json",
+                                    type: "post",
+                                    success: function (result) {
+                                        options.success(result);
+                                    }
+                                });
+                            }
+                        },
+                    }
+                },
+                open: function (e) {
+                    $(e.sender.filterInput).val(filterValue);
+                },
             }).data("kendoDropDownList");
         });
 

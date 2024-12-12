@@ -280,6 +280,23 @@ namespace DbUtils
             return result.OrderByDescending(a => a.LOADING_PORT_DATE).ToList();
         }
 
+        public List<string> GetContainerNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var selectCmd = "distinct hc.container_no";
+            var fromCmd = "s_hbl h join s_hbl_container hc on h.hbl_no = hc.hbl_no and h.company_id = hc.company_id and h.frt_mode = hc.frt_mode";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "hc.container_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue },
+                new DbParameter { FieldName = "h.loading_port_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "h.loading_port_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<string>(fromCmd, selectCmd, dbParas);
+
+            return result.ToList();
+        }
+
         public SeaHbl GetHbl(string hblNo, string companyId, string frtMode)
         {
             var hbl = db.SeaHbls.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).FirstOrDefault();

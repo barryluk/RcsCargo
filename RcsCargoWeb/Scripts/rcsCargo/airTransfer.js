@@ -48,9 +48,13 @@
                     hawbNos.push(ckb.attr("hawbNo"));
                 }
             });
-            //console.log(hawbNos);
+            if (hawbNos.length == 0) {
+                utils.alertMessage("Please select the HAWB(s) to transfer", "", "warning", "small");
+                return;
+            }
 
-            utils.confirmMessage("Are you sure to transfer the selected shipments?", hawbNos, "controllers.airTransfer.transferShipments");
+            utils.confirmMessage(`Are you sure to transfer the selected shipments to ${$(`#${masterForm.id} [name=targetCompanyId]`).val()}?`,
+                hawbNos, "controllers.airTransfer.transferShipments");
         });
     }
 
@@ -70,9 +74,9 @@
             type: "post",
             success: function (result) {
                 if (result == "success")
-                    utils.alertMessage("Shipment(s) transfer success.");
+                    utils.alertMessage("Shipment(s) transfer success.", "", "info", "small");
                 else
-                    utils.alertMessage("Error: " + result, "", "error");
+                    utils.alertMessage("Error: " + result, "", "error", "small");
 
                 //refresh grid
                 let ds = $(`#${formId} [name=${masterForm.gridConfig.gridName}]`).data("kendoGrid").dataSource;
