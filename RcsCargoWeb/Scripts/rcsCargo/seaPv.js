@@ -2,45 +2,38 @@
     constructor() {
     }
 
-    initSeaInvoice = function (masterForm) {
+    initSeaPv = function (masterForm) {
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         masterForm.id = utils.getFormId();
-        var invNo = masterForm.id.split("_")[1];
+        var pvNo = masterForm.id.split("_")[1];
         var companyId = masterForm.id.split("_")[2];
         var frtMode = masterForm.id.split("_")[3];
 
         var printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
-        var invCategoryBtn = $(`#${masterForm.id} [name="INV_CATEGORY"]`).data("kendoButtonGroup");
+        var pvCategoryBtn = $(`#${masterForm.id} [name="INV_CATEGORY"]`).data("kendoButtonGroup");
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
             var buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
-            var reportName = "";
-            var filename = `Invoice# ${invNo}`;
+            var reportName = "SeaPaymentVoucherPreview";
+            var filename = `Pv# ${pvNo}`;
 
             var paras = [
                 { name: "CompanyId", value: companyId },
                 { name: "FrtMode", value: frtMode },
-                { name: "InvNo", value: invNo },
+                { name: "PvNo", value: pvNo },
                 { name: "VesCode", value: $(`#${masterForm.id} [name="VES_CODE"]`).val() },
                 { name: "Voyage", value: $(`#${masterForm.id} [name="VOYAGE"]`).val() },
                 { name: "filename", value: filename }];
 
             switch (e.id) {
-                case "SeaInvoicePreview":
+                case "SeaPvPreview":
                     paras.push({ name: "IsEmail", value: "Y" });
                     paras.push({ name: "IsPreview", value: "Y" });
-                    reportName = "SeaInvoicePreview";
                     break;
-                case "SeaInvoice":
+                case "SeaPv":
                     paras.push({ name: "IsEmail", value: "N" });
                     paras.push({ name: "IsPreview", value: "N" });
-                    reportName = "SeaInvoice";
-                    break;
-                case "SeaInvoiceA4":
-                    paras.push({ name: "IsEmail", value: "N" });
-                    paras.push({ name: "IsPreview", value: "N" });
-                    reportName = "SeaInvoicePreview";
                     break;
             }
             controls.openReportViewer(reportName, paras);
@@ -53,7 +46,7 @@
             removable: true,
         }).data("kendoChipList");
 
-        JSON.parse($(`#${utils.getFormId()}`).attr("modeldata")).SeaInvoiceRefNos.forEach(function (refNo) {
+        JSON.parse($(`#${utils.getFormId()}`).attr("modeldata")).SeaPvRefNos.forEach(function (refNo) {
             chipHblNos.add({ label: refNo.REF_NO, themeColor: "info" });
         })
 

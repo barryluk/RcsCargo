@@ -118,7 +118,11 @@ namespace RcsCargoWeb.Air.Controllers
 
             if (string.IsNullOrEmpty(model.JOB))
             {
-                model.JOB = admin.GetSequenceNumber("AE_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.FLIGHT_DATE);
+                if (model.FRT_MODE == "AE")
+                    model.JOB = admin.GetSequenceNumber("AE_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.FLIGHT_DATE);
+                else
+                    model.JOB = admin.GetSequenceNumber("AI_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.FLIGHT_DATE);
+
                 model.JOB_NO = model.JOB;
             }
 

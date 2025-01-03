@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Models\Air\TransferLog.cs" />
     <Compile Include="Models\MasterRecords\Commodity.cs" />
+    <Compile Include="Models\Sea\Sob.cs" />
     <Compile Include="Models\Sea\Hbl.cs" />
     <Compile Include="Models\Sea\Booking.cs" />
     <Compile Include="Models\Sea\Invoice.cs" />

@@ -10,6 +10,7 @@
         let frtMode = masterForm.id.split("_")[3];
 
         let printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
+        let sobButton = $(`#${masterForm.id} [aria-label="SOB dropdownbutton"]`).data("kendoDropDownButton");
 
         //(Print) dropdownbutton events
         printButton.bind("click", function (e) {
@@ -61,7 +62,20 @@
             }
         });
 
-        $(`#${masterForm.id} [name="TO_ORDER_FLAG"]`).parent().attr("style", "width: 90px")
+        //(SOB) dropdownbutton events
+        sobButton.bind("click", function (e) {
+            masterForm = utils.getMasterForm();
+            let model = controls.getValuesFromFormControls(masterForm);
+            //let jobNo = model.JOB_NO; 
+
+            if (e.id == "createSob") {
+                controls.append_tabStripMain("SOB# NEW", `seaSob_NEW_${data.companyId}_SE_HBL_${hblNo}`, "seaSob");
+            } else if (e.id == "createJobSob") {
+                controls.append_tabStripMain("SOB# NEW", `seaSob_NEW_${data.companyId}_SE_JOB_${hblNo}`, "seaSob");
+            }
+        });
+
+        $(`#${masterForm.id} [name="TO_ORDER_FLAG"]`).parent().attr("style", "width: 90px");
     }
 
     uploadFiles = function (selector) {

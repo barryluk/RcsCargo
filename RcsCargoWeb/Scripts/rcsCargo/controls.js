@@ -397,7 +397,7 @@
     //Set the values to form controls
     setValuesToFormControls = function (masterForm, model, partialUpdate = false) {
         masterForm.id = utils.getFormId();
-        console.log(masterForm.id);
+        //console.log(masterForm.id);
         if (masterForm.mode == "create") {
             masterForm.schema.fields.forEach(function (field) {
                 if (field.defaultValue != null) {
@@ -469,7 +469,8 @@
                     }
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
-                    if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO" || control.name == "LOT_NO") {
+                    if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO"
+                        || control.name == "LOT_NO" || control.name == "CONTAINER_NO") {
                         var controlName = control.name;
                         //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
                             var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
@@ -573,6 +574,19 @@
                     }
                 } else {
                     $(`#${masterForm.id} [name=${control.name}]`).val(model[`${control.name}`]);
+                }
+
+                if (control.name2 != null) {
+                    if (control.type2 == "switch") {
+                        var switchCtrl = $(`#${masterForm.id} [name=${control.name2}]`).data("kendoSwitch");
+                        //console.log(switchCtrl);
+                        if (model[`${control.name2}`] == "Y")
+                            switchCtrl.check(true);
+                        else
+                            switchCtrl.check(false);
+                    } else {
+                        $(`#${masterForm.id} [name=${control.name2}]`).val(model[`${control.name2}`]);
+                    }
                 }
             }
         }
@@ -680,6 +694,21 @@
                             }
                         }
                     }
+
+                    if (control.name2 != null) {
+                        if ($(`#${masterForm.id} [name=${control.name2}]`).length >= 1) {
+                            if (control.type2 == "switch") {
+                                var switchCtrl = $(`#${masterForm.id} [name=${control.name2}]`).data("kendoSwitch");
+                                if (switchCtrl.check())
+                                    model[`${control.name2}`] = "Y";
+                                else
+                                    model[`${control.name2}`] = "N";
+                            } else {
+                                //for all default input values
+                                model[control.name2] = utils.formatText($(`#${masterForm.id} [name=${control.name2}]`).val());
+                            }
+                        }
+                    }
                 }
             });
         });
@@ -707,17 +736,32 @@
                 let hblNos = [];
                 let lineNo = 1;
                 $(`#${formId} .k-chip.k-chip-solid-info span.k-chip-label`).each(function () {
-                    hblNos.push({
-                        INV_NO: $(`#${formId} [name="INV_NO"]`).val(),
-                        COMPANY_ID: data.companyId,
-                        FRT_MODE: utils.getFrtMode(),
-                        LINE_NO: lineNo,
-                        REF_TYPE: "H",
-                        REF_NO: $(this).text(),
-                    });
+                    if (masterForm.formName == "seaInvoice") {
+                        hblNos.push({
+                            INV_NO: $(`#${formId} [name="INV_NO"]`).val(),
+                            COMPANY_ID: data.companyId,
+                            FRT_MODE: utils.getFrtMode(),
+                            LINE_NO: lineNo,
+                            REF_TYPE: "H",
+                            REF_NO: $(this).text(),
+                        });
+                    } else {
+                        hblNos.push({
+                            PV_NO: $(`#${formId} [name="PV_NO"]`).val(),
+                            COMPANY_ID: data.companyId,
+                            FRT_MODE: utils.getFrtMode(),
+                            LINE_NO: lineNo,
+                            REF_TYPE: "H",
+                            REF_NO: $(this).text(),
+                        });
+                    }
+                    
                     lineNo++;
                 });
-                model["SeaInvoiceRefNos"] = hblNos;
+                if (masterForm.formName == "seaInvoice")
+                    model["SeaInvoiceRefNos"] = hblNos;
+                else
+                    model["SeaPvRefNos"] = hblNos;
             }
         }
 
@@ -862,12 +906,14 @@
                     if (control.type == "button")
                         controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction}>${control.text}</${formControlType}>`;
                     else {
-                        controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
                         if (!utils.isEmptyString(formControlType2)) {
-                            if (formControlClass2 == "form-control")
-                                formControlClass2 = "form-control inline";
+                            //if (formControlClass == "form-control")
+                            //    formControlClass = "form-control inline";
 
+                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass} inline" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
                             controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${readonlyAttr} />`;
+                        } else {
+                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
                         }
                     }
                 }
@@ -1382,13 +1428,17 @@
                             if (control.callbackFunction != null)
                                 callbackFunction = `callbackFunction="${control.callbackFunction}"`;
                             if (control.type != "emptyBlock") {
-                                controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
                                 if (!utils.isEmptyString(formControlType2)) {
+                                    if (formControlClass == "form-control")
+                                        formControlClass = "form-control inline";
                                     if (formControlClass2 == "form-control")
                                         formControlClass2 = "form-control inline";
 
+                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
                                     controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${required} />`;
-                                } 
+                                } else {
+                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
+                                }
                             }
                             if (control.colWidth != null)
                                 colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
@@ -1632,7 +1682,7 @@
             } else {
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
-                return;
+                //return;
 
                 $.ajax({
                     url: masterForm.updateUrl,
@@ -1648,10 +1698,18 @@
                         } else {
                             var controller = masterForm.id.split("_")[0];
                             var newId = `${controller}_${utils.encodeId(result[masterForm.idField])}_${data.companyId}_${utils.getFrtMode()}`;
+                            console.log("newID", newId);
 
                             //Change the form control values
                             var tabHtml = $(`#btnRefresh_${masterForm.id}`).parent().html();
-                            tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result[masterForm.idField]));
+
+                            //seaSob_NEW_RCSHKG_SE_HBL_SHALAX19713
+                            if (tabHtml.startsWith("SOB#")) {
+                                tabHtml = `SOB# ${result[masterForm.idField]} &nbsp;&nbsp;<i class="k-icon k-icon-sm k-color-default k-i-unpin btnPin"></i> &nbsp;&nbsp;<i class="k-icon k-icon-sm k-color-default k-i-refresh btnRefresh" id="btnRefresh_${newId}"></i> &nbsp;&nbsp;<i class="k-icon k-i-close k-color-default btnClose" id="btnClose_${newId}"></i>`;
+                            }
+                            else
+                                tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result[masterForm.idField]));
+
                             tabHtml = tabHtml.replace(masterForm.title + " " + utils.encodeId(result[masterForm.idField]), masterForm.title + " " + result[masterForm.idField]);
                             $(`#btnRefresh_${masterForm.id}`).parent().html(tabHtml);
                             $(`#${masterForm.id}`).attr("id", newId);
@@ -1993,7 +2051,6 @@
                     if (item == null) {
                         item = e.sender.dataSource.data()[e.sender.selectedIndex - 1];
                     }
-                    //console.log(item);
                     var controlName = $(this.element).attr("name");
                     //$(`#${masterForm.id} input[name=${controlName}]`).val(item.CUSTOMER_DESC);
                     $(`#${masterForm.id} input[name=${controlName}_CODE]`).val(item.CUSTOMER_CODE);
@@ -2643,9 +2700,10 @@
             var ddl = $(this).kendoDropDownList({
                 autoWidth: true,
                 filter: "startswith",
-                //dataTextField: "JOB_NO",
-                //dataValueField: "JOB_NO",
+                dataTextField: "CONTAINER_NO",
+                dataValueField: "CONTAINER_NO",
                 optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                template: ({ CONTAINER_NO, SEAL }) => `${CONTAINER_NO} / ${SEAL}`,
                 dataSource: {
                     type: "json",
                     serverFiltering: true,

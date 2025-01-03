@@ -102,7 +102,8 @@
         var frtMode = null;
         if (selector != null) {
             var values = selector.split("_");
-            frtMode = values[values.length - 1];
+            //frtMode = values[values.length - 1];
+            frtMode = values[3];
         }
         //Index page frtMode
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[name=frtMode]`).length == 1) {
@@ -126,6 +127,7 @@
         if ($(`[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]`).length > 0) {
             var values = $("[id^=tabStripMain-].k-tabstrip-content.k-content.k-active div[id]").first().attr("id").split("_");
             frtMode = values[values.length - 1];
+            frtMode = values[3];
         }
         return frtMode;
     }
@@ -213,6 +215,18 @@
         if (!this.isEmptyString(notify2))
             show = true;
         if (!this.isEmptyString(notify3))
+            show = true;
+
+        return show;
+    }
+
+    showHblAttachedList = function (goodDesc, marksNo, notify2) {
+        let show = false;
+        if (goodDesc.split("\n").length > data.hblMarksNoLineCount)
+            show = true;
+        if (marksNo.split("\n").length > data.hblMarksNoLineCount)
+            show = true;
+        if (!this.isEmptyString(notify2))
             show = true;
 
         return show;

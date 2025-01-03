@@ -13,6 +13,7 @@ var lastActiveTabId = "";
 var hawbGoodDescLineCount = 9;
 var hawbMarksNoLineCount = 12;
 var hawbDimDisplayCount = 6;
+var hblMarksNoLineCount = 13;
 var masterRecords = {
     lastUpdateTime: null,
     region: [{ text: "NORTH AMERICA", value: "1" }, { text: "EUROPE", value: "2" }, { text: "ASIA", value: "3" }, { text: "OCEANIA", value: "4" }, { text: "AFRICA", value: "5" }, { text: "SOUTH AMERICA", value: "6" }, { text: "ANTARCTICA", value: "7" }],
@@ -1300,6 +1301,42 @@ var indexPages = [
             ],
             columns: [
                 { field: "HBL_NO", title: "HB/L#", attributes: { "class": "link-cell" } },
+                { field: "BOOKING_NO", title: "Booking#" },
+                { title: "Vessel / Voyage", template: ({ VES_DESC, VOYAGE }) => `${VES_DESC} / ${VOYAGE}` },
+                { field: "LOADING_PORT", title: "Loading Port" },
+                { field: "DISCHARGE_PORT", title: "Discharge Port" },
+                { field: "LOADING_PORT_DATE", title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE, "date") },
+                { field: "DISCHARGE_PORT_DATE", title: "Arrival Date", template: ({ DISCHARGE_PORT_DATE }) => data.formatDateTime(DISCHARGE_PORT_DATE, "date") },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
+                { field: "CREATE_USER", title: "Create User" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+            ],
+        },
+    },
+    {
+        pageName: "seaSob",
+        id: "",
+        title: "Sample Ocean Bill",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "seaFrtMode" },
+            { label: "Departure Date", type: "dateRange", name: "departureDateRange" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "SOB# / HB/L# / Vessel / Voyage / Shipper / Consignee" },
+        ],
+        gridConfig: {
+            gridName: "gridSeaSobIndex",
+            dataSourceUrl: "../Sea/Sob/GridSob_Read",
+            linkIdPrefix: "seaSob",
+            linkTabTitle: "SOB# ",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "SOB_NO", title: "SOB#", attributes: { "class": "link-cell" } },
+                { field: "HBL_NO", title: "HB/L#" },
                 { field: "BOOKING_NO", title: "Booking#" },
                 { title: "Vessel / Voyage", template: ({ VES_DESC, VOYAGE }) => `${VES_DESC} / ${VOYAGE}` },
                 { field: "LOADING_PORT", title: "Loading Port" },
@@ -3630,6 +3667,12 @@ var masterForms = [
                     { id: "printUSCopy", text: "Print US Copy", icon: "file-report", type: "pdf" },
                 ]
             },
+            {
+                type: "dropDownButton", text: "SOB", icon: "file-txt", menuButtons: [
+                    { id: "createSob", text: "Create SOB", icon: "file-add" },
+                    { id: "createJobSob", text: "Create SOB by Job", icon: "file-add" },
+                ]
+            },
         ],
         schema: {
             fields: [
@@ -4049,6 +4092,226 @@ var masterForms = [
         ],
     },
     {
+        formName: "seaSob",
+        mode: "edit",   //create / edit
+        title: "SOB#",
+        readUrl: "../Sea/Sob/GetSob",
+        updateUrl: "../Sea/Sob/UpdateSob",
+        additionalScript: "initSeaSob",
+        idField: "SOB_NO",
+        id: "",
+        toolbar: [
+            //{ type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            //{ type: "button", text: "Save New", icon: "copy" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "printSob", text: "Print SOB", icon: "file-report", type: "pdf" },
+                    { id: "printAttachedList", text: "Attached List", icon: "file-report", type: "pdf" },
+                ]
+            },
+        ],
+        schema: {
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_MASTER_HBL", hidden: "true", defaultValue: "N" },
+                { name: "SOB_NO", readonly: "always", required: "true" },
+                { name: "HBL_NO", readonly: "always", required: "true" },
+                { name: "BOOKING_NO", readonly: "always" },
+                { name: "JOB_NO", readonly: "always", required: "true" },
+                { name: "SHIPPER", required: "true" },
+                { name: "CONSIGNEE", required: "true" },
+                { name: "VES_CODE", required: "true" },
+                { name: "VOYAGE", required: "true", readonly: "always" },
+                { name: "INIT_VOYAGE", readonly: "always" },
+                { name: "LOADING_PORT", required: "true" },
+                { name: "DISCHARGE_PORT", required: "true" },
+                { name: "LOADING_PORT_DATE", required: "true" },
+                { name: "DISCHARGE_PORT_DATE", required: "true" },
+                { name: "IS_CONSOL", required: "true", defaultValue: "Y" },
+                { name: "PRINT_REMARKS", required: "true", defaultValue: "Y" },
+                { name: "PRINT_FMC_NO", required: "true", defaultValue: "Y" },
+                { name: "PRINT_SPECIAL_INST", required: "true", defaultValue: "Y" },
+                { name: "FRT_TERM", required: "true" },
+                { name: "SERVICE", required: "true" },
+                { name: "P_CURR_CODE", required: "true", defaultValue: "currency" },
+                { name: "C_CURR_CODE", required: "true", defaultValue: "currency" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "mainInfo",
+                formGroups: ["mainInfo"]
+            },
+            {
+                title: "Other Info.",
+                name: "otherInfo",
+                formGroups: ["generalDesc", "otherInfo"]
+            },
+            {
+                title: "Container / Cargo",
+                name: "cargoPo",
+                formGroups: ["container", "cargo" ]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "Sob Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "SOB #", type: "text", name: "SOB_NO", colWidth: 6 },
+                    { label: "HB/L #", type: "text", name: "HBL_NO", colWidth: 6 },
+                    { label: "Booking #", type: "text", name: "BOOKING_NO", colWidth: 6 },
+                    { label: "MB/L #", type: "text", name: "MASTER_SOB_NO", colWidth: 6 },
+                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "To Order", type: "toOrder", name: "TO_ORDER_FLAG", type2: "text", name2: "TO_ORDER", colWidth: 6 },
+                    { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER", colWidth: 6 },
+                    { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE", colWidth: 6 },
+                    { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY", colWidth: 6 },
+                    { label: "Agent", type: "customerAddrEditable", name: "AGENT", colWidth: 6 },
+                    { label: "Notify Party 2", type: "customerAddrEditable", name: "NOTIFY2", colWidth: 6 },
+                    { label: "Notify Party 3", type: "customerAddrEditable", name: "NOTIFY3", colWidth: 6 },
+                    { label: "Init. Carriage", type: "vessel", name: "INIT_VES_CODE", colWidth: 4 },
+                    { label: "Voyage", type: "text", name: "INIT_VOYAGE", colWidth: 2 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Vessel", type: "vessel", name: "VES_CODE", colWidth: 4 },
+                    { label: "Voyage", type: "text", name: "VOYAGE", colWidth: 2 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Place of Receipt", type: "seaPort", name: "RECEIPT_PORT", colWidth: 6 },
+                    { label: "Departure Date", type: "date", name: "RECEIPT_PORT_DATE", colWidth: 3 },
+                    { label: "Place of Loading", type: "seaPort", name: "LOADING_PORT", colWidth: 6 },
+                    { label: "Departure Date", type: "date", name: "LOADING_PORT_DATE", colWidth: 3 },
+                    { label: "Place of Discharge", type: "seaPort", name: "DISCHARGE_PORT", colWidth: 6 },
+                    { label: "Arrival Date", type: "date", name: "DISCHARGE_PORT_DATE", colWidth: 3 },
+                    { label: "Place of Delivery", type: "seaPort", name: "DELIVERY_PORT", colWidth: 6 },
+                    { label: "Arrival Date", type: "date", name: "DELIVERY_PORT_DATE", colWidth: 3 },
+                    { label: "Final Destination", type: "seaPort", name: "DEST_PORT", colWidth: 6 },
+                ]
+            },
+            {
+                name: "generalDesc",
+                title: "General Description",
+                colWidth: 12,
+                formControls: [
+                    { label: "Liner", type: "carrier", name: "LINER", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Coloader", type: "customer", name: "NOTIFY3", colWidth: 6 },
+                    { label: "Delivery Agent", type: "customer", name: "DEL_AGENT", colWidth: 6 },
+                    {
+                        label: "S/O", type: "grid", name: "SobSos", colWidth: 6,
+                        columns: [
+                            { title: "S/O #", field: "SO_NO", width: 180 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            SO_NO: { validation: { required: true } },
+                        },
+                    },
+                    { label: "Freight Payment", type: "paymentTerms", name: "FRT_TERM", colWidth: 6 },
+                    { label: "Freight Payable At", type: "text", name: "FRT_PAYABLE_AT", colWidth: 6 },
+                    { label: "Issue Place", type: "text", name: "ISSUE_PLACE", colWidth: 6 },
+                    { label: "Issue Date", type: "date", name: "ISSUE_DATE", colWidth: 6 },
+                    { label: "As Agent For", type: "text", name: "AS_AGENT_FOR", colWidth: 6 },
+                    { label: "HBL By", type: "text", name: "HBL_BY", colWidth: 6 },
+                    { label: "Cargo Rcvd Date", type: "date", name: "CARGO_REC_DATE", colWidth: 6 },
+                    { label: "Service", type: "seaServiceType", name: "SERVICE", colWidth: 6 },
+                    { label: "Consol'", type: "switch", name: "IS_CONSOL", colWidth: 2 },
+                    { label: "20'", type: "numberInt", name: "C20F", colWidth: 2 },
+                    { label: "40'", type: "numberInt", name: "C40F", colWidth: 2 },
+                    { label: "40HQ", type: "numberInt", name: "C40HQ", colWidth: 2 },
+                    { label: "45'", type: "numberInt", name: "C45F", colWidth: 2 },
+                    { label: "", type: "emptyBlock", colWidth: 2 },
+                    { label: "CFS Close Date/Time", type: "dateTime", name: "CFS_CLOSING_DATE", colWidth: 6 },
+                    { label: "CY Close Date/Time", type: "dateTime", name: "CY_CLOSING_DATE", colWidth: 6 },
+                    { label: "Prepaid Curr.", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 6 },
+                    { label: "Collect Curr.", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 6 },
+                ]
+            },
+            {
+                name: "otherInfo",
+                title: "Other Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "Entry Word Line 1", type: "text", name: "ENTRY_WORD1", colWidth: 6 },
+                    { label: "Entry Word Line 2", type: "text", name: "ENTRY_WORD2", colWidth: 6 },
+                    { label: "Country of Origin", type: "text", name: "COUNTRY_OF_ORIGIN", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Remarks", type: "textArea", name: "REMARKS", type2: "switch", name2: "PRINT_REMARKS", colWidth: 6 },
+                    { label: "Special Instruction", type: "textArea", name: "SPECIAL_INST", type2: "switch", name2: "PRINT_SPECIAL_INST", colWidth: 6 },
+                    { label: "FMC #", type: "text", name: "FMC_NO", type2: "switch", name2: "PRINT_FMC_NO", colWidth: 6 },
+                ]
+            },
+            {
+                name: "container",
+                title: "Container",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "SobContainers",
+                        columns: [
+                            { title: "Container #", field: "CONTAINER_NO", width: 120 },
+                            { title: "Seal", field: "SEAL", width: 80 },
+                            { title: "Size", field: "CONTAINER_SIZE", width: 100, editor: function (container, options) { controls.renderGridEditorContainerSize(container, options) } },
+                            { title: "Package", field: "PACKAGE", width: 120 },
+                            { title: "Kgs", field: "KGS", width: 120 },
+                            { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
+                            { title: "S/O #", field: "SO_NO", width: 120 },
+                            { title: "Service", field: "SERVICE", width: 120, editor: function (container, options) { controls.renderGridEditorService(container, options) } },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CONTAINER_NO: { type: "string" },
+                            SEAL: { type: "string" },
+                            CONTAINER_SIZE: { type: "string" },
+                            PACKAGE: { type: "number" },
+                            KGS: { type: "number" },
+                            CBM: { type: "number" },
+                            SO_NO: { type: "string" },
+                            SERVICE: { type: "string" },
+                        },
+                    },
+                ]
+            },
+            {
+                name: "cargo",
+                title: "Cargo",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "", type: "grid", name: "SobCargos",
+                        columns: [
+                            { title: "Container #", field: "CONTAINER_NO", width: 120, editor: function (container, options) { controls.renderGridEditorSobContainerNo(container, options) } },
+                            { title: "Marks #", field: "MARKS_NO", width: 200, editor: function (container, options) { controls.renderGridEditorTextArea(container, options) } },
+                            { title: "Goods Description", field: "GOODS_DESC", width: 200, editor: function (container, options) { controls.renderGridEditorTextArea(container, options) } },
+                            { title: "Qty", field: "QTY", width: 120 },
+                            {
+                                title: "Unit", field: "UNIT", width: 100,
+                                editor: function (container, options) { controls.renderGridEditorCargoUnits(container, options) }
+                            },
+                            { title: "Kgs", field: "KGS", width: 120 },
+                            { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
+                            { title: "Commodity", field: "COMMODITY", width: 180, editor: function (container, options) { controls.renderGridEditorCommodities(container, options) } },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            MARKS_NO: { type: "string" },
+                            GOODS_DESC: { type: "string" },
+                            QTY: { type: "number" },
+                            UNIT: { type: "string" },
+                            KGS: { type: "number" },
+                            CBM: { type: "number" },
+                            COMMODITY: { type: "string" },
+                        },
+                    },
+                ]
+            },
+        ],
+    },
+    {
         formName: "seaInvoice",
         mode: "edit",   //create / edit
         title: "Invoice#",
@@ -4065,8 +4328,9 @@ var masterForms = [
             { type: "button", text: "Void", icon: "cancel" },
             {
                 type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
-                    { id: "SeaInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
-                    { id: "SeaInvoice", text: "Preview Invoice", icon: "file-report", type: "pdf" },
+                    { id: "SeaInvoicePreview", text: "Preview Invoice", icon: "file-report", type: "pdf" },
+                    { id: "SeaInvoice", text: "Print Invoice", icon: "file-report", type: "pdf" },
+                    { id: "SeaInvoiceA4", text: "Print Invoice (A4)", icon: "file-report", type: "pdf" },
                 ]
             },
         ],
@@ -4082,8 +4346,6 @@ var masterForms = [
                 { name: "INV_TYPE", required: "true", readonly: "edit" },
                 { name: "INV_CATEGORY", required: "true" },
                 { name: "INV_FORMAT", required: "true" },
-                { name: "SHOW_DATE_TYPE", required: "true" },
-                { name: "FLIGHT_DATE", required: "true" },
                 { name: "CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "CUSTOMER", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
@@ -4124,7 +4386,7 @@ var masterForms = [
                     { label: "Job#", type: "selectSeaJob", name: "JOB_NO", colWidth: 4 },
                     { label: "Container", type: "selectContainer", name: "CONTAINER_NO", colWidth: 4 },
                     { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
-                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARKS", colWidth: 4 },
                     { label: "Payment Terms", type: "text", name: "PAYMENT_TERMS", colWidth: 4 },
                     { label: "Invoice Format", type: "buttonGroup", name: "INV_FORMAT", dataType: "seaInvoiceFormat", colWidth: 4 },
                     { label: "Commodity", type: "text", name: "COMMODITY", colWidth: 4 },
@@ -4145,6 +4407,137 @@ var masterForms = [
                     { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_SeaInvoiceItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "SeaInvoiceItems",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false, validation: { required: true } },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                            { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
+                            { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
+                        ],
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        formName: "seaPv",
+        mode: "edit",   //create / edit
+        title: "PV#",
+        readUrl: "../Sea/Pv/GetPv",
+        updateUrl: "../Sea/Pv/UpdatePv",
+        voidUrl: "../Sea/Pv/VoidPv",
+        additionalScript: "initSeaPv",
+        idField: "PV_NO",
+        id: "",
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
+            { type: "button", text: "Void", icon: "cancel" },
+            {
+                type: "dropDownButton", text: "Print", icon: "print", menuButtons: [
+                    { id: "SeaPvPreview", text: "Preview Pv", icon: "file-report", type: "pdf" },
+                    { id: "SeaPv", text: "Print Pv", icon: "file-report", type: "pdf" },
+                ]
+            },
+        ],
+        schema: {
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_VAT", hidden: "true", defaultValue: "N" },
+                { name: "PV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "PV_TYPE", required: "true", readonly: "edit" },
+                { name: "PV_CATEGORY", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
+                { name: "CUSTOMER", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true" },
+                { name: "JOB_NO", required: "true" },
+                { name: "PV_NO", readonly: "always" },
+                { name: "AMOUNT", readonly: "always" },
+                { name: "AMOUNT_HOME", readonly: "always" },
+                { name: "VOYAGE", readonly: "always" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "charges"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "PV Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "Pv #", type: "text", name: "PV_NO", colWidth: 4 },
+                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Pv Type", type: "buttonGroup", name: "PV_TYPE", dataType: "pvType", colWidth: 4 },
+                    { label: "Category", type: "buttonGroup", name: "PV_CATEGORY", dataType: "seaInvoiceCategory", colWidth: 4 },
+                    { label: "Vendor Invoice #", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
+                    { label: "Vessel", type: "vessel", name: "VES_CODE", colWidth: 4 },
+                    { label: "Voyage", type: "text", name: "VOYAGE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Departure Date", type: "date", name: "LOADING_PORT_DATE", colWidth: 4 },
+                    { label: "Estimate Arrival Date", type: "date", name: "DISCHARGE_PORT_DATE", colWidth: 4 },
+                    { label: "Prepaid/Collect", type: "paymentTerms", name: "FRT_PAYMENT_PC", colWidth: 4 },
+                    { label: "HB/L", type: "selectHbl", name: "selectHbl", colWidth: 4 },
+                    { label: "Job#", type: "selectSeaJob", name: "JOB_NO", colWidth: 4 },
+                    { label: "Container", type: "selectContainer", name: "CONTAINER_NO", colWidth: 4 },
+                    { label: "Customer", type: "customerAddrEditable", name: "CUSTOMER", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Amount", type: "text", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "text", name: "AMOUNT_HOME", colWidth: 4 },
+                ]
+            },
+            {
+                name: "charges",
+                title: "Charge Items",
+                colWidth: 12,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_SeaPvItems", colWidth: 4 },
+                    {
+                        label: "", type: "grid", name: "SeaPvItems",
                         columns: [
                             {
                                 title: "Charge", field: "CHARGE_CODE", width: 280,
@@ -4313,6 +4706,7 @@ export default class {
     get hawbGoodDescLineCount() { return hawbGoodDescLineCount; }
     get hawbMarksNoLineCount() { return hawbMarksNoLineCount; }
     get hawbDimDisplayCount() { return hawbDimDisplayCount; }
+    get hblMarksNoLineCount() { return hblMarksNoLineCount; }
     get masterRecords() { return masterRecords; }
     get dropdownlistControls() { return dropdownlistControls; }
     get frameworkHtmlElements() { return frameworkHtmlElements; }

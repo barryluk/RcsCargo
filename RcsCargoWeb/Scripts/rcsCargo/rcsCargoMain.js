@@ -21,13 +21,9 @@ async function loadScripts() {
 
     //Disable cache for script files
     let version = kendo.toString(new Date(), "yyyyMMddHHmmss");
-    //let msg = new ((await import('message.js')).default)("Barry");    Example for passing values to the constructor
     data = new ((await import(`../../Scripts/rcsCargo/data.js?v=${version}`)).default);
     utils = new ((await import(`../../Scripts/rcsCargo/utils.js?v=${version}`)).default);
     controls = new ((await import(`../../Scripts/rcsCargo/controls.js?v=${version}`)).default);
-    //controls.index = new ((await import(`../../Scripts/rcsCargo/controls.index.js?v=${version}`)).default);
-    //controls.edit = new ((await import(`../../Scripts/rcsCargo/controls.edit.js?v=${version}`)).default);
-    //controls.kendo = new ((await import(`../../Scripts/rcsCargo/controls.kendo.js?v=${version}`)).default);
 
     controllers.masterRecords = new ((await import(`../../Scripts/rcsCargo/masterRecords.js?v=${version}`)).default);
     controllers.customer = new ((await import(`../../Scripts/rcsCargo/customer.js?v=${version}`)).default);
@@ -40,7 +36,9 @@ async function loadScripts() {
     controllers.airTransfer = new ((await import(`../../Scripts/rcsCargo/airTransfer.js?v=${version}`)).default);
     controllers.seaBooking = new ((await import(`../../Scripts/rcsCargo/seaBooking.js?v=${version}`)).default);
     controllers.seaHbl = new ((await import(`../../Scripts/rcsCargo/seaHbl.js?v=${version}`)).default);
+    controllers.seaSob = new ((await import(`../../Scripts/rcsCargo/seaSob.js?v=${version}`)).default);
     controllers.seaInvoice = new ((await import(`../../Scripts/rcsCargo/seaInvoice.js?v=${version}`)).default);
+    controllers.seaPv = new ((await import(`../../Scripts/rcsCargo/seaPv.js?v=${version}`)).default);
     controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js?v=${version}`)).default);
 
     $.ajax({

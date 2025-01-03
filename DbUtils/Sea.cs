@@ -280,9 +280,9 @@ namespace DbUtils
             return result.OrderByDescending(a => a.LOADING_PORT_DATE).ToList();
         }
 
-        public List<string> GetContainerNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        public List<ContainerView> GetContainerNos(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
-            var selectCmd = "distinct hc.container_no";
+            var selectCmd = "distinct hc.container_no, hc.seal, hc.container_size";
             var fromCmd = "s_hbl h join s_hbl_container hc on h.hbl_no = hc.hbl_no and h.company_id = hc.company_id and h.frt_mode = hc.frt_mode";
             var dbParas = new List<DbParameter>
             {
@@ -292,20 +292,34 @@ namespace DbUtils
                 new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
                 new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<string>(fromCmd, selectCmd, dbParas);
+            var result = Utils.GetSqlQueryResult<ContainerView>(fromCmd, selectCmd, dbParas);
 
             return result.ToList();
         }
 
-        public SeaHbl GetHbl(string hblNo, string companyId, string frtMode)
+        public SeaHbl GetHbl(string hblNo, string companyId, string frtMode, bool byJob)
         {
             var hbl = db.SeaHbls.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).FirstOrDefault();
             if (hbl != null)
             {
-                hbl.SeaHblCargos = db.SeaHblCargos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
-                hbl.SeaHblContainers = db.SeaHblContainers.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
-                hbl.SeaHblPos = db.SeaHblPos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
-                hbl.SeaHblSos = db.SeaHblSos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                if (byJob)
+                {
+                    var hblNos = db.SeaHbls
+                        .Where(a => a.JOB_NO == hbl.JOB_NO && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode)
+                        .Select(a => a.HBL_NO).ToList();
+
+                    hbl.SeaHblCargos = db.SeaHblCargos.Where(a => hblNos.Contains(a.HBL_NO) && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblContainers = db.SeaHblContainers.Where(a => hblNos.Contains(a.HBL_NO) && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblPos = db.SeaHblPos.Where(a => hblNos.Contains(a.HBL_NO) && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblSos = db.SeaHblSos.Where(a => hblNos.Contains(a.HBL_NO) && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                }
+                else
+                {
+                    hbl.SeaHblCargos = db.SeaHblCargos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblContainers = db.SeaHblContainers.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblPos = db.SeaHblPos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                    hbl.SeaHblSos = db.SeaHblSos.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                }
                 hbl.SeaHblChargesPrepaid = db.SeaHblCharges.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode && a.PAYMENT_TYPE == "P").ToList();
                 hbl.SeaHblChargesCollect = db.SeaHblCharges.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode && a.PAYMENT_TYPE == "C").ToList();
                 hbl.SeaHblDocs = db.SeaHblDocs.Where(a => a.HBL_NO == hblNo).ToList();
@@ -439,6 +453,106 @@ namespace DbUtils
                     log.Error(ex);
                 }
             }
+        }
+
+        #endregion
+
+        #region SOB
+
+        public List<SobView> GetSobs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
+        {
+            var selectCmd = @"h.sob_no, h.hbl_no, h.booking_no, h.company_id, h.frt_mode, h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc,
+                h.loading_port, h.loading_port_date, h.discharge_port, h.discharge_port_date, h.ves_code, v.ves_desc, h.voyage, h.create_date, h.create_user";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "h.sob_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.hbl_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.booking_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "v.ves_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.voyage", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.shipper_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "h.loading_port_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "h.loading_port_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<SobView>("s_sob h join vessel v on h.ves_code = v.ves_code", selectCmd, dbParas);
+
+            return result.OrderByDescending(a => a.LOADING_PORT_DATE).ToList();
+        }
+
+        public Sob GetSob(string sobNo, string companyId, string frtMode)
+        {
+            var sob = db.Sobs.Where(a => a.SOB_NO == sobNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).FirstOrDefault();
+            if (sob != null)
+            {
+                sob.SobCargos = db.SobCargos.Where(a => a.SOB_NO == sobNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                sob.SobContainers = db.SobContainers.Where(a => a.SOB_NO == sobNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+                sob.SobSos = db.SobSos.Where(a => a.SOB_NO == sobNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).ToList();
+            }
+
+            if (sob == null)
+                return new Sob();
+            else
+                return sob;
+        }
+
+        public void AddSob(Sob sob)
+        {
+            try
+            {
+                db.Sobs.Add(sob);
+                db.SobContainers.AddRange(sob.SobContainers);
+                db.SobCargos.AddRange(sob.SobCargos);
+                db.SobSos.AddRange(sob.SobSos);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateSob(Sob sob)
+        {
+            try
+            {
+                db.Entry(sob).State = EntityState.Modified;
+                var sobContainers = db.SobContainers.Where(a => a.SOB_NO == sob.SOB_NO && a.COMPANY_ID == sob.COMPANY_ID && a.FRT_MODE == sob.FRT_MODE).ToList();
+                var sobCargos = db.SobCargos.Where(a => a.SOB_NO == sob.SOB_NO && a.COMPANY_ID == sob.COMPANY_ID && a.FRT_MODE == sob.FRT_MODE).ToList();
+                var sobSos = db.SobSos.Where(a => a.SOB_NO == sob.SOB_NO && a.COMPANY_ID == sob.COMPANY_ID && a.FRT_MODE == sob.FRT_MODE).ToList();
+
+                if (sobContainers != null)
+                {
+                    db.SobContainers.RemoveRange(sobContainers);
+                    db.SobContainers.AddRange(sob.SobContainers);
+                }
+                if (sobCargos != null)
+                {
+                    db.SobCargos.RemoveRange(sobCargos);
+                    db.SobCargos.AddRange(sob.SobCargos);
+                }
+                if (sobSos != null)
+                {
+                    db.SobSos.RemoveRange(sobSos);
+                    db.SobSos.AddRange(sob.SobSos);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExisitingSobNo(string sobNo, string companyId, string frtMode)
+        {
+            return db.Sobs.Count(a => a.SOB_NO == sobNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
 
         #endregion

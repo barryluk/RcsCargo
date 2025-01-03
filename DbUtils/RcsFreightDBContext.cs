@@ -71,6 +71,10 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Sea.SeaHblCharge> SeaHblCharges { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaHblDoc> SeaHblDocs { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaHblStatus> SeaHblStatuses { get; set; }
+        public DbSet<DbUtils.Models.Sea.Sob> Sobs { get; set; }
+        public DbSet<DbUtils.Models.Sea.SobCargo> SobCargos { get; set; }
+        public DbSet<DbUtils.Models.Sea.SobContainer> SobContainers { get; set; }
+        public DbSet<DbUtils.Models.Sea.SobSo> SobSos { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaInvoice> SeaInvoices { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaInvoiceRefNo> SeaInvoiceRefNos { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaInvoiceItem> SeaInvoiceItems { get; set; }

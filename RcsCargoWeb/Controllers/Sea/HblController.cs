@@ -90,9 +90,9 @@ namespace RcsCargoWeb.Sea.Controllers
         }
 
         [Route("GetHbl")]
-        public ActionResult GetHbl(string id, string companyId, string frtMode)
+        public ActionResult GetHbl(string id, string companyId, string frtMode, bool byJob = false)
         {
-            var booking = sea.GetHbl(id, companyId, frtMode);
+            var booking = sea.GetHbl(id, companyId, frtMode, byJob);
             return Json(booking, JsonRequestBehavior.AllowGet);
         }
 
@@ -103,13 +103,26 @@ namespace RcsCargoWeb.Sea.Controllers
                 model.HBL_NO = admin.GetSequenceNumber("SE_HBL", model.COMPANY_ID, model.LOADING_PORT, model.DISCHARGE_PORT, model.CREATE_DATE);
 
             if (model.JOB_NO == "NEW JOB#")
-                model.JOB_NO = admin.GetSequenceNumber("SE_JOB", model.COMPANY_ID, model.LOADING_PORT, model.DISCHARGE_PORT, model.LOADING_PORT_DATE);
+            {
+                if (model.FRT_MODE == "SE")
+                    model.JOB_NO = admin.GetSequenceNumber("SE_JOB", model.COMPANY_ID, model.LOADING_PORT, model.DISCHARGE_PORT, model.LOADING_PORT_DATE);
+                else
+                    model.JOB_NO = admin.GetSequenceNumber("SI_JOB", model.COMPANY_ID, model.LOADING_PORT, model.DISCHARGE_PORT, model.LOADING_PORT_DATE);
+            }
 
             foreach (var item in model.SeaHblCargos)
+                item.HBL_NO = model.HBL_NO;
+            foreach (var item in model.SeaHblContainers)
                 item.HBL_NO = model.HBL_NO;
             foreach (var item in model.SeaHblPos)
                 item.HBL_NO = model.HBL_NO;
             foreach (var item in model.SeaHblSos)
+                item.HBL_NO = model.HBL_NO;
+            foreach (var item in model.SeaHblChargesPrepaid)
+                item.HBL_NO = model.HBL_NO;
+            foreach (var item in model.SeaHblChargesCollect)
+                item.HBL_NO = model.HBL_NO;
+            foreach (var item in model.SeaHblStatuses)
                 item.HBL_NO = model.HBL_NO;
 
             if (mode == "edit")
