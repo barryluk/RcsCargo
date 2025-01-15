@@ -1004,5 +1004,30 @@ namespace DbUtils
         }
 
         #endregion
+
+        #region File Station
+
+        public FileStationAccessRight GetFileStationAccessRight(string filePath, string accessType)
+        {
+            var accessRight =  db.FileStationAccessRights.Where(a => filePath.StartsWith(a.PATH) && a.ACCESS_TYPE == accessType).ToList();
+            if (accessRight.Count > 0)
+                return accessRight.OrderByDescending(a => a.PATH.Length).First();
+            else
+                return null;
+        }
+
+        public List<FileStationLog> GetRecentFiles(int records = 20)
+        {
+            return db.FileStationLogs.OrderByDescending(a => a.LOG_TIME).Take(records).ToList();
+        }
+
+        public void AddFileStationLog(FileStationLog log)
+        {
+            db.FileStationLogs.Add(log);
+            db.SaveChanges();
+        }
+
+        #endregion
+
     }
 }

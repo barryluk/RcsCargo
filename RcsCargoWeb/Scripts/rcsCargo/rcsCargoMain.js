@@ -39,6 +39,8 @@ async function loadScripts() {
     controllers.seaSob = new ((await import(`../../Scripts/rcsCargo/seaSob.js?v=${version}`)).default);
     controllers.seaInvoice = new ((await import(`../../Scripts/rcsCargo/seaInvoice.js?v=${version}`)).default);
     controllers.seaPv = new ((await import(`../../Scripts/rcsCargo/seaPv.js?v=${version}`)).default);
+    controllers.seaReport = new ((await import(`../../Scripts/rcsCargo/seaReport.js?v=${version}`)).default);
+    controllers.fileStation = new ((await import(`../../Scripts/rcsCargo/fileStation.js?v=${version}`)).default);
     controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js?v=${version}`)).default);
 
     $.ajax({

@@ -197,6 +197,7 @@
     <Compile Include="Controllers\MasterRecord\PortController.cs" />
     <Compile Include="Controllers\MasterRecord\CountryController.cs" />
     <Compile Include="Controllers\MasterRecord\ChargeController.cs" />
+    <Compile Include="Controllers\FileStationController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MasterRecord\CustomerController.cs" />
@@ -377,6 +378,7 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\seaReport.js" />
     <Content Include="Scripts\rcsCargo\seaSob.js" />
     <Content Include="Scripts\rcsCargo\seaPv.js" />
     <Content Include="Scripts\rcsCargo\seaInvoice.js" />
@@ -387,6 +389,7 @@
     <Content Include="Scripts\rcsCargo\airBooking.js" />
     <Content Include="Scripts\rcsCargo\airReport.js" />
     <Content Include="Scripts\rcsCargo\seaHbl.js" />
+    <Content Include="Scripts\rcsCargo\fileStation.js" />
     <Content Include="Scripts\rcsCargo\sysConsole.js" />
     <Content Include="Scripts\rcsCargo\airPv.js" />
     <Content Include="Scripts\rcsCargo\airInvoice.js" />

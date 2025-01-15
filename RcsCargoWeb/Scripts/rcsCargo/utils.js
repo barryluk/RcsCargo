@@ -69,7 +69,8 @@
     getFormId = function (selector) {
         if ($(".kendo-window-alertMessage").length == 1) {
             if ($(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").length >= 1) {
-                return $(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").attr("id");
+                if ($(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").attr("id") != "dialog_powerSearch")
+                    return $(".kendo-window-alertMessage [name=kendo-window-alertMessage-content] div[id]").attr("id");
             }
         }
 

@@ -99,7 +99,7 @@ var frameworkHtmlElements = {
                                 ${folder.DISPLAY_NAME}
                                 <i class="${data.isEmptyString(folder.CONTROLLER) ? "fas fa-angle-left right" : ""}"></i>
                             </p>
-                            ${folder.DISPLAY_NAME == "Sea" ? newBadge : ""}
+                            ${folder.DISPLAY_NAME == "File Station" ? newBadge : ""}
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">`;
                         
@@ -1439,6 +1439,57 @@ var indexPages = [
                 { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
+    },
+    {
+        pageName: "seaReport",
+        id: "",
+        title: "Sea Reports",
+        additionalScript: "initSeaReport",
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "seaFrtMode" },
+            { label: "Date Range", type: "dateRange", name: "dateRange", daysBefore: 30 },
+        ],
+        groups: [
+            {
+                name: "shipmentReports",
+                title: "Shipment Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Booking Report", name: "bookingReport", icon: "k-i-excel" },
+                    { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
+                    { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
+                    { label: "Carrier Report", name: "carrierReport" },
+                    { label: "Weekly Volume Report", name: "weeklyVolumeReport" },
+                ]
+            },
+            {
+                name: "profitLossReports",
+                title: "Profit & Loss Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Job Profit & Loss", name: "jobProfitLoss", icon: "k-i-pdf" },
+                    { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
+                ]
+            },
+            {
+                name: "generalReports",
+                title: "General Reports",
+                colWidth: 4,
+                controls: [
+                    { label: "Container Manifest", name: "containerManifest" },
+                    { label: "Invoice Report", name: "invoiceReport", icon: "k-i-pdf" },
+                    { label: "Missing Invoice Report", name: "missingInvoiceReport", icon: "k-i-excel" },
+                    { label: "Auto Report", name: "autoReport", icon: "k-i-excel" },
+                    { label: "Certificate of Origin", name: "certificateOrigin", icon: "k-i-pdf" },
+                ]
+            },
+        ],
+    },
+    {
+        pageName: "fileStation",
+        id: "",
+        title: "File Station",
+        additionalScript: "initFileStation",
     },
     {
         pageName: "sysConsole",

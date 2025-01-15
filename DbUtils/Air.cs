@@ -1196,7 +1196,7 @@ namespace DbUtils
                 sqlCmd = sqlCmd.Substring(0, sqlCmd.LastIndexOf("union"));
                 sqlCmd += $") result order by result_date desc) where rownum <= {take}";
 
-                //log.Debug(sqlCmd);
+                log.Debug(sqlCmd);
                 var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
                 if (result.Count > 0)
                     results.AddRange(result);

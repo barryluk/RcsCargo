@@ -285,7 +285,7 @@
     };
 
     append_tabStripMain = function (text, id, controller) {
-        //console.log(id);
+        //console.log(id, controller);
         var tabStrip = $("#tabStripMain").data("kendoTabStrip");
         var pageSetting = data.indexPages.filter(a => a.pageName == controller)[0];
         if (pageSetting == null) {

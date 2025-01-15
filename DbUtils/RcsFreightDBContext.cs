@@ -31,6 +31,8 @@ namespace DbUtils
         public DbSet<CustomerName> CustomerNames { get; set; }
         public DbSet<CustomerContact> CustomerContacts { get; set; }
         public DbSet<Commodity> Commodities { get; set; }
+        public DbSet<FileStationLog> FileStationLogs { get; set; }
+        public DbSet<FileStationAccessRight> FileStationAccessRights { get; set; }
 
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }

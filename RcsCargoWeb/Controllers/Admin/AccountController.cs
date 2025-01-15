@@ -26,6 +26,10 @@ namespace RcsCargoWeb.Controllers.Admin
             {
                 var user = admin.GetUser(userId);
 
+                //DEFAULT_COMPANY is mandatory for UserLog
+                if (string.IsNullOrEmpty(user.DEFAULT_COMPANY))
+                    user.DEFAULT_COMPANY = user.UserCompanies.FirstOrDefault().COMPANY_ID;
+
                 //Add record to USER_LOG table
                 var userLog = new DbUtils.Models.Admin.UserLog
                 {
