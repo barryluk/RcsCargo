@@ -138,6 +138,11 @@
                                             case "A_BOOKING": tabTitle = "Booking#"; controller = "airBooking"; break;
                                             case "A_INVOICE": tabTitle = "Invoice#"; controller = "airInvoice"; break;
                                             case "A_PV": tabTitle = "PV#"; controller = "airPv"; break;
+                                            case "V_S_VOYAGE": tabTitle = "Vessel / Voyage:"; controller = "seaVoyage"; id = `${id.split(",")[0]}-${id.split(",")[1]}`; break;
+                                            case "S_BOOKING": tabTitle = "Booking#"; controller = "seaBooking"; break;
+                                            case "S_HBL": tabTitle = "HB/L#"; controller = "seaHbl"; break;
+                                            case "S_INVOICE": tabTitle = "Invoice#"; controller = "seaInvoice"; break;
+                                            case "S_PV": tabTitle = "PV#"; controller = "seaPv"; break;
                                         }
 
                                         if (controller != "") {

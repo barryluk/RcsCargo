@@ -12,63 +12,30 @@
                 let paras = controllers.seaReport.getCommonParas();
                 //testObj = $(this);
                 switch ($(this).attr("name")) {
-                    case "bookingReport":
-                        reportName = "SeaBookingReport";
-                        paras.push({ name: "fileFormat", value: "excel" });
-                        utils.getRdlcExcelReport(reportName, paras, "Booking Report");
-                        break;
-
-                    case "bookingDsr":
-                        reportName = "SeaBookingDSR";
-                        utils.getExcelReport(reportName, paras, "Booking DSR");
-                        break;
-
                     case "dailyBooking":
-                        controllers.seaReport.dialogDailyBooking();
-                        break;
-
-                    case "dailyBookingOverseas":
-                        controllers.seaReport.dialogDailyBookingOverseas();
+                        reportName = "SeaDailyBooking";
+                        paras.push({ name: "fileFormat", value: "excel" });
+                        utils.getExcelReport(reportName, paras, "Daily Booking");
                         break;
 
                     case "shipmentReport":
                         controllers.seaReport.dialogShipmentReport();
                         break;
 
-                    case "shipmentTrackingReport":
-                        controllers.seaReport.dialogShipmentTrackingReport();
-                        break;
-
                     case "customizeShipmentReport":
                         controllers.seaReport.dialogCustomizeShipmentReport();
                         break;
 
-                    case "customerTonnageReport":
-                        controllers.seaReport.dialogCustomerTonnageReport();
+                    case "carrierReport":
+                        controllers.seaReport.dialogCarrierReport();
                         break;
 
                     case "jobProfitLoss":
                         controllers.seaReport.dialogJobProfitLossReport();
                         break;
 
-                    case "otherJobProfitLoss":
-                        controllers.seaReport.dialogOtherJobProfitLossReport();
-                        break;
-
-                    case "otherJobSummaryProfitLoss":
-                        utils.getExcelReport("SeaSummaryOtherJobProfitLoss", paras, "Other Job Profit Loss Report");
-                        break;
-
-                    case "lotProfitLoss":
-                        controllers.seaReport.dialogLotProfitLossReport();
-                        break;
-
                     case "summaryProfitLoss":
                         controllers.seaReport.dialogSummaryProfitLossReport();
-                        break;
-
-                    case "offshoreSummaryProfitLoss":
-                        controllers.seaReport.dialogOffshoreSummaryProfitLoss();
                         break;
 
                     case "invoiceReport":
@@ -95,128 +62,9 @@
         });
     }
 
-    dialogDailyBooking = function () {
-        let html = `
-            <div class="row col-sm-12" id="${utils.getFormId()}_dailyBooking" style="width: 460px">
-                <label class="col-sm-4 col-form-label">Reference Date</label>
-                <div class="col-sm-8">
-                    <input type="date" class="form-control-dateTime" name="dailyBooking_refDate" />
-                </div>
-                <label class="col-sm-4 col-form-label">Days after ref. date</label>
-                <div class="col-md-8">
-                    <input type="numberInt" class="form-control-number" name="dailyBooking_days" />
-                </div>
-                <label class="col-sm-4 col-form-label">Origin</label>
-                <div class="col-md-8">
-                    <input type="port" class="form-control-dropdownlist" name="dailyBooking_origin" />
-                </div>
-                <label class="col-sm-4 col-form-label">Destination</label>
-                <div class="col-md-8">
-                    <input type="port" class="form-control-dropdownlist" name="dailyBooking_dest" />
-                </div>
-                <label class="col-sm-4 col-form-label">Excluded ports</label>
-                <div class="col-md-8">
-                    <input type="text" class="form-control" name="dailyBooking_excludedPorts" placeholder="Use comma (,) to separate ports" />
-                </div>
-                <label class="col-sm-4 col-form-label">Show S/R</label>
-                <div class="col-md-8">
-                    <input type="switch" name="dailyBooking_showSr" />
-                </div>
-            </div>
-            <br>
-            <div class="col-md-12 dialogFooter">
-                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="dailyBooking_Print"><span class="k-icon k-i-pdf"></span>Print</span>
-                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="dailyBooking_PrintExcel"><span class="k-icon k-i-excel"></span>Print</span>
-                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="dailyBooking_PrintCbm"><span class="k-icon k-i-pdf"></span>Print (CBM)</span>
-            </div>`;
-
-        utils.alertMessage(html, "Daily Booking", null, null, false);
-        let formSetting = { id: utils.getFormId() };
-        controls.renderFormControl_kendoUI(formSetting);
-        $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value(new Date());
-        $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value(2);
-
-        $(`[name^="dailyBooking_Print"]`).click(function () {
-            let paras = controllers.seaReport.getCommonParas();
-            let buttonName = $(this).attr("name");
-            let refDate = $(`[name="dailyBooking_refDate"]`).data("kendoDatePicker").value() ?? new Date();
-            let days = $(`[name="dailyBooking_days"]`).data("kendoNumericTextBox").value() ?? 0;
-            let origin = $(`[name="dailyBooking_origin"]`).data("kendoDropDownList").value();
-            let dest = $(`[name="dailyBooking_dest"]`).data("kendoDropDownList").value();
-            let exceptPorts = $(`[name="dailyBooking_excludedPorts"]`).val();
-            let showSr = $(`[name="dailyBooking_showSr"]`).data("kendoSwitch").value();
-
-            paras.filter(a => a.name == "DateTo")[0].value = kendo.toString(utils.addDays(refDate, days), "yyyy/M/d");
-            paras.push({ name: "Origin", value: utils.isEmptyString(origin) ? "%" : origin });
-            paras.push({ name: "Dest", value: utils.isEmptyString(dest) ? "%" : dest });
-            paras.push({ name: "ExceptPorts", value: utils.formatText(exceptPorts) });
-            paras.push({ name: "filename", value: "Daily Booking" });
-
-            if (buttonName == "dailyBooking_Print") {
-                if (showSr)
-                    controls.openReportViewer("SeaDailyBooking", paras);
-                else
-                    controls.openReportViewer("SeaDailyBooking_NoSR", paras);
-            } else if (buttonName == "dailyBooking_PrintExcel") {
-                //let sender = $(this).parentsUntil(".k-widget.k-window").last();
-                utils.getExcelReport("SeaDailyBookingExcel", paras, "Daily Booking");
-            } else if (buttonName == "dailyBooking_PrintCbm") {
-                controls.openReportViewer("SeaDailyBookingCBM", paras);
-            }
-
-        });
-    }
-
-    dialogDailyBookingOverseas = function () {
-        let html = `
-            <div class="row col-sm-12" id="${utils.getFormId()}_dailyBookingOverseas" style="width: 460px">
-                <label class="col-sm-4 col-form-label">Reference Date</label>
-                <div class="col-sm-8">
-                    <input type="date" class="form-control-dateTime" name="dailyBookingOverseas_refDate" />
-                </div>
-                <label class="col-sm-4 col-form-label">Days before ref. date</label>
-                <div class="col-md-8">
-                    <input type="numberInt" class="form-control-number" name="dailyBookingOverseas_beforeDays" />
-                </div>
-                <label class="col-sm-4 col-form-label">Days after ref. date</label>
-                <div class="col-md-8">
-                    <input type="numberInt" class="form-control-number" name="dailyBookingOverseas_afterDays" />
-                </div>
-            </div>
-            <br>
-            <div class="col-md-12 dialogFooter">
-                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="dailyBookingOverseas_Print"><span class="k-icon k-i-excel"></span>Print</span>
-            </div>`;
-
-        utils.alertMessage(html, "Daily Booking For Overseas", null, null, false);
-        let formSetting = { id: utils.getFormId() };
-        controls.renderFormControl_kendoUI(formSetting);
-        $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value(new Date());
-        $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value(2);
-        $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value(2);
-
-        $(`[name="dailyBookingOverseas_Print"]`).click(function () {
-            let paras = controllers.seaReport.getCommonParas();
-            let refDate = $(`[name="dailyBookingOverseas_refDate"]`).data("kendoDatePicker").value() ?? new Date();
-            let beforeDays = $(`[name="dailyBookingOverseas_beforeDays"]`).data("kendoNumericTextBox").value() ?? 2;
-            let afterDays = $(`[name="dailyBookingOverseas_afterDays"]`).data("kendoNumericTextBox").value() ?? 2;
-
-            paras.push({ name: "ReferenceDate", value: refDate.toISOString() });
-            paras.filter(a => a.name == "DateFrom")[0].value = utils.addDays(refDate, beforeDays * -1).toISOString();
-            paras.filter(a => a.name == "DateTo")[0].value = utils.addDays(refDate, afterDays).toISOString();
-            paras.push({ name: "fileFormat", value: "excel" });
-
-            utils.getRdlcExcelReport("SeaDailyBooking_Oversea", paras, "Daily Booking For Overseas");
-        });
-    }
-
     dialogShipmentReport = function () {
         let html = `
             <div class="row col-sm-12" id="${utils.getFormId()}_shipmentReport" style="width: 460px">
-                <label class="col-sm-4 col-form-label">Group Code</label>
-                <div class="col-sm-8">
-                    <input type="groupCode" class="form-control-dropdownlist" name="shipmentReport_groupCode" />
-                </div>
                 <label class="col-sm-4 col-form-label">Shipper</label>
                 <div class="col-md-8">
                     <input type="customer" class="form-control-dropdownlist" name="shipmentReport_shipper" />
@@ -229,13 +77,13 @@
                 <div class="col-md-8">
                     <input type="customer" class="form-control-dropdownlist" name="shipmentReport_agent" />
                 </div>
-                <label class="col-sm-4 col-form-label">Origin</label>
+                <label class="col-sm-4 col-form-label">Loading Port</label>
                 <div class="col-md-8">
-                    <input type="port" class="form-control-dropdownlist" name="shipmentReport_origin" />
+                    <input type="port" class="form-control-dropdownlist" name="shipmentReport_loadingPort" />
                 </div>
-                <label class="col-sm-4 col-form-label">Destination</label>
+                <label class="col-sm-4 col-form-label">Discharge Port</label>
                 <div class="col-md-8">
-                    <input type="port" class="form-control-dropdownlist" name="shipmentReport_dest" />
+                    <input type="port" class="form-control-dropdownlist" name="shipmentReport_dischargePort" />
                 </div>
                 <label class="col-sm-4 col-form-label">Sorting Order</label>
                 <div class="col-md-8">
@@ -256,15 +104,14 @@
             dataValueField: "value",
             dataSource: {
                 data: [
-                    { text: "Flight Date", value: "FlightDate" },
                     { text: "Shipper", value: "Shipper" },
                     { text: "Consignee", value: "Consignee" },
                     { text: "Agent", value: "Agent" },
                     { text: "Job #", value: "JobNo" },
-                    { text: "HAWB #", value: "HawbNo" },
-                    { text: "MAWB #", value: "MawbNo" },
-                    { text: "Origin", value: "Origin" },
-                    { text: "Destination", value: "Dest" },
+                    { text: "HBL #", value: "HblNo" },
+                    { text: "Loading Port", value: "LoadingPort" },
+                    { text: "Discharge Port", value: "DischargePort" },
+                    { text: "ETD", value: "LoadingPortDate" },
                 ]
             }
         });
@@ -272,22 +119,18 @@
         $(`[name^="shipmentReport_Print"]`).click(function () {
             let paras = controllers.seaReport.getCommonParas();
             let buttonName = $(this).attr("name");
-            let groupCode = $(`[name="shipmentReport_groupCode"]`).data("kendoDropDownList").value();
             let shipper = $(`[name="shipmentReport_shipper"]`).data("kendoDropDownList").value();
             let consignee = $(`[name="shipmentReport_consignee"]`).data("kendoDropDownList").value();
             let agent = $(`[name="shipmentReport_agent"]`).data("kendoDropDownList").value();
-            let origin = $(`[name="shipmentReport_origin"]`).data("kendoDropDownList").value();
-            let dest = $(`[name="shipmentReport_dest"]`).data("kendoDropDownList").value();
+            let loadingPort = $(`[name="shipmentReport_loadingPort"]`).data("kendoDropDownList").value();
+            let dischargePort = $(`[name="shipmentReport_dischargePort"]`).data("kendoDropDownList").value();
             let sortingOrder = $(`[name="shipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
 
-            paras.push({ name: "GroupCode", value: utils.isEmptyString(groupCode) ? "%" : groupCode });
             paras.push({ name: "ShipperCode", value: utils.isEmptyString(shipper) ? "%" : shipper });
             paras.push({ name: "ConsigneeCode", value: utils.isEmptyString(consignee) ? "%" : consignee });
             paras.push({ name: "AgentCode", value: utils.isEmptyString(agent) ? "%" : agent });
-            paras.push({ name: "OriginCode", value: utils.isEmptyString(origin) ? "%" : origin });
-            paras.push({ name: "DestCode", value: utils.isEmptyString(dest) ? "%" : dest });
-            paras.push({ name: "OriginRegion", value: "%" });
-            paras.push({ name: "DestRegion", value: "%" });
+            paras.push({ name: "LoadingPort", value: utils.isEmptyString(loadingPort) ? "%" : loadingPort });
+            paras.push({ name: "DischargePort", value: utils.isEmptyString(dischargePort) ? "%" : dischargePort });
             paras.push({ name: "SortingOrder", value: sortingOrder });
             paras.push({ name: "filename", value: "Shipment Report" });
 
@@ -297,32 +140,6 @@
                 paras.push({ name: "fileFormat", value: "excel" });
                 utils.getRdlcExcelReport("SeaShipmentReport", paras, "Shipment Report");
             }
-        });
-    }
-
-    dialogShipmentTrackingReport = function () {
-        let html = `
-            <div class="row col-sm-12" id="${utils.getFormId()}_shipmentTrackingReport" style="width: 460px">
-                <label class="col-sm-4 col-form-label">Group Code</label>
-                <div class="col-sm-8">
-                    <input type="groupCode" class="form-control-dropdownlist" name="shipmentTrackingReport_groupCode" />
-                </div>
-            </div>
-            <br>
-            <div class="col-md-12 dialogFooter">
-                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="shipmentTrackingReport_Print"><span class="k-icon k-i-excel"></span>Excel</span>
-            </div>`;
-
-        utils.alertMessage(html, "Shipment Tracking Report", null, null, false);
-        let formSetting = { id: utils.getFormId() };
-        controls.renderFormControl_kendoUI(formSetting);
-
-        $(`[name="shipmentTrackingReport_Print"]`).click(function () {
-            let paras = controllers.seaReport.getCommonParas();
-            let groupCode = $(`[name="shipmentTrackingReport_groupCode"]`).data("kendoDropDownList").value();
-            paras.push({ name: "GroupCode", value: utils.isEmptyString(groupCode) ? "%" : groupCode });
-            paras.push({ name: "fileFormat", value: "excel" });
-            utils.getRdlcExcelReport("SeaShipmentTrackingReport", paras, "Shipment Tracking Report");
         });
     }
 
@@ -344,6 +161,14 @@
                 <label class="col-sm-3 col-form-label">Agent</label>
                 <div class="col-md-9">
                     <input type="customer" class="form-control-dropdownlist" name="customizeShipmentReport_agent" />
+                </div>
+                <label class="col-sm-3 col-form-label">Loading Port</label>
+                <div class="col-md-9">
+                    <input type="port" class="form-control-dropdownlist" name="customizeShipmentReport_loadingPort" />
+                </div>
+                <label class="col-sm-3 col-form-label">Discharge Port</label>
+                <div class="col-md-9">
+                    <input type="port" class="form-control-dropdownlist" name="customizeShipmentReport_dischargePort" />
                 </div>
                 <label class="col-sm-3 col-form-label">Report Fields</label>
                 <div class="col-md-9">
@@ -369,74 +194,45 @@
             dataValueField: "value",
             dataSource: {
                 data: [
-                    { text: "Flight Date", value: "FLIGHT_DATE" },
-                    { text: "HAWB #", value: "HAWB_NO" },
-                    { text: "MAWB #", value: "MAWB_NO" },
-                    { text: "Job #", value: "JOB_NO" },
+                    { text: "HB/L #", value: "HBL_NO" },
                     { text: "Invoice #", value: "INV_NO" },
+                    { text: "ETD", value: "LOADING_PORT_DATE" },
+                    { text: "Job #", value: "JOB_NO" },
                 ]
             }
         });
         $(`#customizeShipmentReport_allFields`).kendoListBox({
             dataSource: [
-                { value: "HAWB_NO|HawbNo", text: "HAWB" },
-                { value: "MAWB_NO|MawbNo", text: "MAWB" },
-                { value: "INV_NO|InvNo", text: "Invoice no." },
-                { value: "INV_DATE|InvDate", text: "Invoice Date" },
-                { value: "FLIGHT_DATE|FlightDate", text: "Flight Date" },
-                { value: "ETA|Eta", text: "Estimated Time of Arrival" },
-                { value: "ATD|Atd", text: "Actual Departure Date" },
-                { value: "ATA|Ata", text: "Actual Arrival Date" },
-                { value: "FLIGHT_NO|FlightNo", text: "Flight no." },
-                { value: "PO_NO|PoNo", text: "P.O." },
-                { value: "STYLE_NO|StyleNo", text: "Style" },
-                { value: "PCS|Pcs", text: "Pcs" },
-                { value: "GWTS|Gwts", text: "Gross Weight" },
-                { value: "VWTS|Vwts", text: "Volume Weight" },
-                { value: "CWTS|Cwts", text: "Chargeable Weight" },
-                { value: "CUFT|Cuft", text: "CU.FT." },
+                { value: "HBL_NO|HblNo", text: "HB/L #" },
+                { value: "MASTER_HBL_NO|MasterHblNo", text: "MB/L #" },
+                { value: "JOB_NO|JobNo", text: "Job no." },
                 { value: "SHIPPER_DESC|ShipperDesc", text: "Shipper" },
                 { value: "CONSIGNEE_DESC|ConsigneeDesc", text: "Consignee" },
                 { value: "AGENT_DESC|AgentDesc", text: "Agent" },
-                { value: "ORIGIN_CODE|OriginCode", text: "MAWB Origin" },
-                { value: "HAWB_ORIGIN|HawbOrigin", text: "HAWB Origin" },
-                { value: "DEST_CODE|DestCode", text: "MAWB Destination" },
-                { value: "HAWB_DEST|HawbDest", text: "HAWB Destination" },
-                { value: "INCOTERM|Incoterm", text: "Incoterm" },
-                { value: "DC_CODE|DcCode", text: "DC Code" },
-                { value: "DC_ADDR|DcAddr", text: "DC Address" },
-                { value: "DELIVERY_ADDR|DeliveryAddr", text: "Delivery Address" },
-                { value: "SHIPMENT_REF_NO|ShipmentRefNo", text: "Shipment Ref. No." },
-                { value: "CARGO_REC_DATE|CargoRecDate", text: "Cargo Received Date" },
-                { value: "PICKUP_DATE|PickupDate", text: "Pickup Date" },
-                { value: "PACKAGE|Package", text: "No. of Package" },
-                { value: "PACKAGE_UNIT|PackageUnit", text: "Package Unit" },
+                { value: "CARRIER|Carrier", text: "Carrier" },
+                { value: "VES_DESC|VesDesc", text: "Vessel" },
+                { value: "VOYAGE|Voyage", text: "Voyage" },
+                { value: "LOADING_PORT|LoadingPort", text: "Loading Port" },
+                { value: "DISCHARGE_PORT|DischargePort", text: "Discharge Port" },
+                { value: "LOADING_COUNTRY|LoadingCountry", text: "Loading Country" },
+                { value: "DISCHARGE_COUNTRY|DischargeCountry", text: "Discharge Country" },
+                { value: "LOADING_PORT_DATE|LoadingPortDate", text: "ETD" },
+                { value: "DISCHARGE_PORT_DATE|DischargePortDate", text: "ETA" },
+                { value: "FRT_TERM|FrtTerm", text: "Frt Term" },
+                { value: "PO_NO|PoNo", text: "P.O." },
+                { value: "STYLE_NO|StyleNo", text: "Style" },
+                { value: "CONTAINER_NO|ContainerNo", text: "Container #" },
+                { value: "KGS|Kgs", text: "Kgs" },
                 { value: "CBM|Cbm", text: "CBM" },
-                { value: "SEC_PACKAGE|SecPackage", text: "No. of Package (Second)" },
-                { value: "SEC_PACKAGE_UNIT|SecPackageUnit", text: "Package Unit (Second)" },
-                { value: "JOB_NO|JobNo", text: "Job no." },
-                { value: "FRT_PAYMENT_PC|FrtPaymentPC", text: "Freight Payment(PP/CC)" },
-                { value: "INV_CURR|CurrCode", text: "Currency" },
-                { value: "EX_RATE|ExRate", text: "Exchange Rate" },
-                { value: "FRT_RATE|FrtRate", text: "Freight Rate" },
-                { value: "FRT_AMT|FrtAmt", text: "Freight Amount" },
-                { value: "PS_RATE|PsRate", text: "PS Rate" },
-                { value: "PS_AMT|PsAmt", text: "PS Amount" },
-                { value: "FSC_RATE|FscRate", text: "FSC Rate" },
-                { value: "FSC_AMT|FscAmt", text: "FSC Amount" },
-                { value: "SEC_RATE|SecRate", text: "SEC Rate" },
-                { value: "SEC_AMT|SecAmt", text: "SEC Amount" },
-                { value: "PROFIT_RATE|ProfitRate", text: "Agent Profit Rate" },
-                { value: "PROFIT_AMT|ProfitAmt", text: "Agent Profit Amount" },
-                { value: "IPS_RATE|IpsRate", text: "IPS Rate" },
-                { value: "IPS_AMT|IpsAmt", text: "IPS Amount" },
-                { value: "AMOUNT|Amount", text: "Inv. Amount" },
-                { value: "DOC_REC_DATE|DocRecDate", text: "Document Received Date" },
-                { value: "ORIGIN_COUNTRY_DESC|OriginCountry", text: "Origin Country" },
-                { value: "DEST_COUNTRY_DESC|DestCountry", text: "Dest Country" },
-                { value: "NDC_DATE|NdcDate", text: "NDC Date" },
-                { value: "SHIPMENT_COMPLETE_DATE|ShipmentCompleteDate", text: "Shipment Complete Date" },
-                { value: "ARRIVAL_DATE|ArrivalDate", text: "Arrival Date" },
+                { value: "INV_NO|InvNo", text: "Invoice no." },
+                { value: "INV_DATE|InvDate", text: "Invoice Date" },
+                { value: "FRT_RATE|FrtRate", text: "Frt. Rate" },
+                { value: "AMOUNT_HOME|AmountHome", text: "Invoice Amount" },
+                { value: "ContainerType|ContainerType", text: "Container Type" },
+                { value: "CONTRACT|Contract", text: "Contract" },
+                { value: "CONTRACT_NO|ContractNo", text: "Contract No." },
+                { value: "PS_AMT|PsAmt", text: "Profit share amount" },
+                { value: "PLS_AMT|PlsAmt", text: "Loss share amount" },
             ],
             connectWith: "customizeShipmentReport_selectedFields",
             dataTextField: "text",
@@ -466,6 +262,8 @@
             let shipper = $(`[name="customizeShipmentReport_shipper"]`).data("kendoDropDownList").value();
             let consignee = $(`[name="customizeShipmentReport_consignee"]`).data("kendoDropDownList").value();
             let agent = $(`[name="customizeShipmentReport_agent"]`).data("kendoDropDownList").value();
+            let loadingPort = $(`[name="customizeShipmentReport_loadingPort"]`).data("kendoDropDownList").value();
+            let dischargePort = $(`[name="customizeShipmentReport_dischargePort"]`).data("kendoDropDownList").value();
             let sortingOrder = $(`[name="customizeShipmentReport_sortingOrder"]`).data("kendoDropDownList").value();
             let selectedItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").items();
             let dataItems = $(`#customizeShipmentReport_selectedFields`).data("kendoListBox").dataItems();
@@ -482,9 +280,41 @@
             paras.push({ name: "ShipperCode", value: utils.isEmptyString(shipper) ? "%" : shipper });
             paras.push({ name: "ConsigneeCode", value: utils.isEmptyString(consignee) ? "%" : consignee });
             paras.push({ name: "AgentCode", value: utils.isEmptyString(agent) ? "%" : agent });
+            paras.push({ name: "LoadingPort", value: utils.isEmptyString(loadingPort) ? "%" : loadingPort });
+            paras.push({ name: "DischargePort", value: utils.isEmptyString(dischargePort) ? "%" : dischargePort });
             paras.push({ name: "SelectedFields", value: selectedFields });
             paras.push({ name: "SortingOrder", value: sortingOrder });
             utils.getExcelReport("SeaCustomizeShipmentReport", paras, "Customize Shipment Report");
+        });
+    }
+
+    dialogCarrierReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_shipmentReport" style="width: 460px">
+                <label class="col-sm-4 col-form-label">Carrier</label>
+                <div class="col-md-8">
+                    <input type="carrier" class="form-control-dropdownlist" name="carrierReport_carrier" />
+                </div>
+            </div>
+            <br>
+            <div class="col-md-12 dialogFooter">
+                <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 20%" name="carrierReport_Print"><span class="k-icon k-i-pdf"></span>Print</span>
+            </div>`;
+
+        utils.alertMessage(html, "Carrier Report", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.renderFormControl_kendoUI(formSetting);
+
+        $(`[name^="carrierReport_Print"]`).click(function () {
+            let paras = controllers.seaReport.getCommonParas();
+            let buttonName = $(this).attr("name");
+            let carrier = $(`[name="carrierReport_carrier"]`).data("kendoDropDownList");
+
+            paras.push({ name: "CarrierCode", value: utils.isEmptyString(carrier.value()) ? "%" : carrier.value() });
+            paras.push({ name: "Carrier", value: utils.isEmptyString(carrier.value()) ? "" : carrier.text().replace(carrier.value() + " - ", "") });
+            //paras.push({ name: "filename", value: "Carrier Report" });
+            //controls.openReportViewer("SeaCarrierReport", paras);
+            utils.getRdlcExcelReport("SeaInvoiceReSeaCarrierReportportVat", paras, "Carrier Report");
         });
     }
 

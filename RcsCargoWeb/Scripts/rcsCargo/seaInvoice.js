@@ -42,6 +42,16 @@
                     paras.push({ name: "IsPreview", value: "N" });
                     reportName = "SeaInvoicePreview";
                     break;
+                case "SeaInvoicePreview_RCSLAX":
+                    paras.push({ name: "IsEmail", value: "N" });
+                    paras.push({ name: "IsPreview", value: "N" });
+                    reportName = "SeaInvoicePreview_RCSLAX";
+                    break;
+                case "SeaInvoicePreview_Wecan":
+                    paras.push({ name: "IsEmail", value: "N" });
+                    paras.push({ name: "IsPreview", value: "N" });
+                    reportName = "SeaInvoicePreview_Wecan";
+                    break;
             }
             controls.openReportViewer(reportName, paras);
         });

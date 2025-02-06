@@ -60,7 +60,7 @@ namespace RcsCargoWeb.Controllers
             return null;
         }
 
-        private string GetCustomizeShipmentReport(List<ReportParameter> paras, List<ReportParameter> selectedFields, string companyId)
+        private string GetAirCustomizeShipmentReport(List<ReportParameter> paras, List<ReportParameter> selectedFields, string companyId)
         {
             try
             {
@@ -117,10 +117,83 @@ namespace RcsCargoWeb.Controllers
             return string.Empty;
         }
 
+        private string GetSeaCustomizeShipmentReport(List<ReportParameter> paras, List<ReportParameter> selectedFields, string companyId)
+        {
+            try
+            {
+                ReportService reportService = new ReportService(Server.MapPath("~/Downloads/"));
+                GenerateLocalReport report = new GenerateLocalReport(companyId);
+                List<CustomizeReportFields> fields = new List<CustomizeReportFields>();
+
+                foreach (var item in selectedFields)
+                {
+                    var itemValue = (item.value as Array).GetValue(0).ToString();
+                    bool showSubTotal = false;
+                    if (itemValue.Split('|')[1].Equals("Kgs") ||
+                        itemValue.Split('|')[1].Equals("Cbm") ||
+                        itemValue.Split('|')[1].Equals("AmountHome") ||
+                        itemValue.Split('|')[1].Equals("ContainerType") ||
+                        itemValue.Split('|')[1].Equals("PsAmt") ||
+                        itemValue.Split('|')[1].Equals("PlsAmt"))
+                        showSubTotal = true;
+
+                    if (itemValue.Split('|')[1].Equals("ContainerType"))
+                    {
+                        fields.Add(new CustomizeReportFields { FieldLabel = "20' GP", DBFieldName = "C20F", FieldName = "C20F", ShowSubTotal = showSubTotal });
+                        fields.Add(new CustomizeReportFields { FieldLabel = "40' GP", DBFieldName = "C40F", FieldName = "C40F", ShowSubTotal = showSubTotal });
+                        fields.Add(new CustomizeReportFields { FieldLabel = "40' HC", DBFieldName = "C40HQ", FieldName = "C40HQ", ShowSubTotal = showSubTotal });
+                        fields.Add(new CustomizeReportFields { FieldLabel = "45' HC", DBFieldName = "C45F", FieldName = "C45F", ShowSubTotal = showSubTotal });
+                    }
+                    else
+                    {
+                        fields.Add(new CustomizeReportFields
+                        {
+                            FieldLabel = item.name,
+                            DBFieldName = itemValue.Split('|')[0],
+                            FieldName = itemValue.Split('|')[1],
+                            ShowSubTotal = showSubTotal
+                        });
+                    }
+
+                }
+
+                Dictionary<string, object> para = new Dictionary<string, object>();
+                para.Add("DateFrom", DateTime.Parse((paras.Single(a => a.name == "DateFrom").value as Array).GetValue(0).ToString()));
+                para.Add("DateTo", DateTime.Parse((paras.Single(a => a.name == "DateTo").value as Array).GetValue(0).ToString()));
+                para.Add("CompanyId", (paras.Single(a => a.name == "CompanyId").value as Array).GetValue(0));
+                para.Add("FrtMode", (paras.Single(a => a.name == "FrtMode").value as Array).GetValue(0));
+                para.Add("Fields", fields);
+                para.Add("GroupCode", (paras.Single(a => a.name == "GroupCode").value as Array).GetValue(0));
+                para.Add("ConsigneeCode", (paras.Single(a => a.name == "ConsigneeCode").value as Array).GetValue(0));
+                para.Add("ShipperCode", (paras.Single(a => a.name == "ShipperCode").value as Array).GetValue(0));
+                para.Add("AgentCode", (paras.Single(a => a.name == "AgentCode").value as Array).GetValue(0));
+                para.Add("LoadingPort", (paras.Single(a => a.name == "LoadingPort").value as Array).GetValue(0));
+                para.Add("DischargePort", (paras.Single(a => a.name == "DischargePort").value as Array).GetValue(0));
+                para.Add("OrderBy", (paras.Single(a => a.name == "SortingOrder").value as Array).GetValue(0));
+
+                report.ReportName = ReportName.SeaCustomizeShipmentReport;
+                report.ReportParameters = para;
+                report.ReportPath = reportService.GetReportPath(ReportName.SeaCustomizeShipmentReport);
+                report.ReportFileFormat = GenerateLocalReport.FileFormat.Excel;
+
+                var id = DbUtils.Utils.NewGuid();
+                Session[id] = report.Render();
+
+                return id;
+            }
+            catch (Exception ex)
+            {
+                log.Error(DbUtils.Utils.FormatErrorMessage(ex));
+            }
+            return string.Empty;
+        }
+
         public ActionResult GetExcelReport(List<ReportParameter> paras, string reportName, string companyId, List<ReportParameter> extraParas)
         {
             if (reportName == "AirCustomizeShipmentReport")
-                return Content(GetCustomizeShipmentReport(paras, extraParas, companyId), "text/plain");
+                return Content(GetAirCustomizeShipmentReport(paras, extraParas, companyId), "text/plain");
+            else if (reportName == "SeaCustomizeShipmentReport")
+                return Content(GetSeaCustomizeShipmentReport(paras, extraParas, companyId), "text/plain");
             else
             {
                 var reportParas = new Dictionary<string, object>();
@@ -274,6 +347,24 @@ namespace RcsCargoWeb.Controllers
                 case "AirPVReport": reportName = ReportName.AirPVReport; break;
                 case "AirPvTypeReport": reportName = ReportName.AirPvTypeReport; break;
                 case "AirUsSummaryInvoiceReport": reportName = ReportName.AirUsSummaryInvoiceReport; break;
+
+                case "SeaDailyBooking": reportName = ReportName.SeaDailyBooking; break;
+                case "SeaShipmentReport": reportName = ReportName.SeaShipmentReport; break;
+                case "SeaCustomizeShipmentReport": reportName = ReportName.SeaCustomizeShipmentReport; break;
+                case "SeaCarrierReport": reportName = ReportName.SeaCarrierReport; break;
+                case "SeaWeeklyVolumeReport": reportName = ReportName.SeaWeeklyVolumeReport; break;
+
+                case "SeaProfitLoss": reportName = ReportName.SeaProfitLoss; break;
+                case "SeaProfitLoss_RCSHKG": reportName = ReportName.SeaProfitLoss_RCSHKG; break;
+                case "SeaProfitLoss_RCSHKG_OFF": reportName = ReportName.SeaProfitLoss_RCSHKG_OFF; break;
+                case "SeaSummaryProfitLoss": reportName = ReportName.SeaSummaryProfitLoss; break;
+                case "SeaSummaryProfitLossXls": reportName = ReportName.SeaSummaryProfitLossXls; break;
+
+                case "SeaContainerManifest": reportName = ReportName.SeaContainerManifest; break;
+                case "SeaInvoiceReport": reportName = ReportName.SeaInvoiceReport; break;
+                case "SeaInvoiceReportVat": reportName = ReportName.SeaInvoiceReportVat; break;
+                case "SeaAutoReport_MissingInvoiceReport": reportName = ReportName.SeaAutoReport_MissingInvoiceReport; break;
+                case "SeaCertOrigin": reportName = ReportName.SeaCertOrigin; break;
             }
             return reportName;
         }

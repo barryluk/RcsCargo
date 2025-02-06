@@ -99,7 +99,6 @@ var frameworkHtmlElements = {
                                 ${folder.DISPLAY_NAME}
                                 <i class="${data.isEmptyString(folder.CONTROLLER) ? "fas fa-angle-left right" : ""}"></i>
                             </p>
-                            ${folder.DISPLAY_NAME == "File Station" ? newBadge : ""}
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">`;
                         
@@ -1455,10 +1454,10 @@ var indexPages = [
                 title: "Shipment Reports",
                 colWidth: 4,
                 controls: [
-                    { label: "Booking Report", name: "bookingReport", icon: "k-i-excel" },
+                    { label: "Daily Booking", name: "dailyBooking", icon: "k-i-excel" },
                     { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
                     { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
-                    { label: "Carrier Report", name: "carrierReport" },
+                    { label: "Carrier Report", name: "carrierReport", icon: "k-i-pdf" },
                     { label: "Weekly Volume Report", name: "weeklyVolumeReport" },
                 ]
             },
@@ -2959,6 +2958,7 @@ var masterForms = [
                     { id: "AirInvoicePreview", text: "Print Invoice", icon: "file-txt", type: "pdf" },
                     { id: "AirInvoice", text: "Preview Invoice", icon: "file-report", type: "pdf" },
                     { id: "AirInvoice_RCSLAX", text: "Print Invoice (LAX)", icon: "file-txt", type: "pdf" },
+                    { id: "AirInvoice_Wecan", text: "Print Invoice (Wecan)", icon: "file-txt", type: "pdf" },
                 ]
             },
         ],
@@ -4382,6 +4382,8 @@ var masterForms = [
                     { id: "SeaInvoicePreview", text: "Preview Invoice", icon: "file-report", type: "pdf" },
                     { id: "SeaInvoice", text: "Print Invoice", icon: "file-report", type: "pdf" },
                     { id: "SeaInvoiceA4", text: "Print Invoice (A4)", icon: "file-report", type: "pdf" },
+                    { id: "SeaInvoicePreview_RCSLAX", text: "Print Invoice (LAX)", icon: "file-report", type: "pdf" },
+                    { id: "SeaInvoicePreview_Wecan", text: "Print Invoice (Wecan)", icon: "file-report", type: "pdf" },
                 ]
             },
         ],

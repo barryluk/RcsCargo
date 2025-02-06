@@ -876,7 +876,7 @@
         if (utils.isEmptyString(downloadFileName))
             downloadFileName = reportName;
 
-        if (reportName == "AirCustomizeShipmentReport")
+        if (reportName == "AirCustomizeShipmentReport" || reportName == "SeaCustomizeShipmentReport")
             extraParas = paras.filter(a => a.name == "SelectedFields")[0].value;
 
         $.ajax({
@@ -890,7 +890,7 @@
             dataType: "text",
             beforeSend: function () { kendo.ui.progress($(".wrapper"), true); },
             success: function (id) {
-                if (reportName == "AirCustomizeShipmentReport")
+                if (reportName == "AirCustomizeShipmentReport" || reportName == "SeaCustomizeShipmentReport")
                     window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}.xls`);
                 else
                     window.open(`../Report/DownloadReport?id=${id}&downloadFilename=${downloadFileName}.xlsx`);
