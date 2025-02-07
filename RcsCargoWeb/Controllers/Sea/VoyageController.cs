@@ -57,7 +57,17 @@ namespace RcsCargoWeb.Sea.Controllers
             if (!endDate.HasValue)
                 endDate = DateTime.Now.AddMonths(3);
 
-            return Json(sea.GetVoyages(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+            var voyages = sea.GetVoyages(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = sea.GetVoyages(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue).Take(AppUtils.takeRecords);
+                foreach (var item in result2)
+                    voyages.Add(item);
+            }
+
+            return Json(voyages, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetVoyage")]

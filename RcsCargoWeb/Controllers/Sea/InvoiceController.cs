@@ -71,7 +71,12 @@ namespace RcsCargoWeb.Sea.Controllers
         {
             if (string.IsNullOrEmpty(model.INV_NO))
             {
-                model.INV_NO = admin.GetSequenceNumber("SE_INVOICE", model.COMPANY_ID, string.Empty, string.Empty, model.CREATE_DATE);
+                //Special case for RCSCFSLAX
+                if (model.COMPANY_ID == "RCSCFSLAX")
+                    model.INV_NO = admin.GetSequenceNumber("RCSCFSLAX_InvoiceNo", model.COMPANY_ID, model.JOB_NO, string.Empty, model.CREATE_DATE);
+                else
+                    model.INV_NO = admin.GetSequenceNumber("SE_INVOICE", model.COMPANY_ID, string.Empty, string.Empty, model.CREATE_DATE);
+
                 foreach (var item in model.SeaInvoiceRefNos)
                     item.INV_NO = model.INV_NO;
                 foreach (var item in model.SeaInvoiceItems)

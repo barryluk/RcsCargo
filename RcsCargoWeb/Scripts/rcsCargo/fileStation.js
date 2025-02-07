@@ -5,7 +5,7 @@
     initFileStation = function (pageSetting) {
         //console.log(pageSetting);
 
-        $(".search-control.row").append("<div id='fileManager'></div><p>&nbsp;</p><h5>Recent Uploaded Files</h5><div id='recentUploadedFiles'></div>")
+        $(`#${utils.getFormId()} .search-control.row`).append("<div id='fileManager'></div><p>&nbsp;</p><h5>Recent Uploaded Files</h5><div id='recentUploadedFiles'></div>")
         $("#fileManager").kendoFileManager({
             draggable: true,
             dataSource: {

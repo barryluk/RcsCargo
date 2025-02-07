@@ -95,7 +95,9 @@ namespace RcsCargoWeb.Controllers.Admin
         [Route("GetSeqTypes")]
         public ActionResult GetSeqTypes()
         {
-            return Json(admin.GetSeqTypes(), JsonRequestBehavior.AllowGet);
+            var seqTypes = admin.GetSeqTypes();
+            seqTypes.Add("RCSCFSLAX_InvoiceNo");
+            return Json(seqTypes, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetSeqNo")]

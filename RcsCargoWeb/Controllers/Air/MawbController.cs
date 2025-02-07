@@ -53,6 +53,14 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GetMawb(string id, string companyId, string frtMode)
         {
             var mawb = air.GetMawb(id, companyId, frtMode);
+
+            //Special case for RCSCFSLAX
+            if (string.IsNullOrEmpty(mawb.MAWB) && companyId == "RCSCFSLAX")
+            {
+                companyId = "RCSJFK";
+                mawb = air.GetMawb(id, companyId, frtMode);
+            }
+
             if (!string.IsNullOrEmpty(mawb.JOB))
             {
                 mawb.LoadplanBookingListViews = air.GetLoadplanBookingListView(mawb.JOB, mawb.COMPANY_ID);
@@ -69,6 +77,14 @@ namespace RcsCargoWeb.Air.Controllers
         public ActionResult GetJob(string id, string companyId, string frtMode)
         {
             var job = air.GetJob(id, companyId, frtMode);
+
+            //Special case for RCSCFSLAX
+            if (job == null && companyId == "RCSCFSLAX")
+            {
+                companyId = "RCSJFK";
+                job = air.GetJob(id, companyId, frtMode);
+            }
+
             return Json(job, JsonRequestBehavior.AllowGet);
         }
 
@@ -250,7 +266,17 @@ namespace RcsCargoWeb.Air.Controllers
             if (!endDate.HasValue)
                 endDate = DateTime.Now.AddMonths(3);
 
-            return Json(air.GetLotNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+            var lots = air.GetLotNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = air.GetLotNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue).Take(AppUtils.takeRecords);
+                foreach (var item in result2)
+                    lots.Add(item);
+            }
+
+            return Json(lots, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetMawbNosByLot")]
@@ -262,7 +288,16 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetLotDetail")]
         public ActionResult GetLotDetail(string lotNo, string companyId, string frtMode)
         {
-            return Json(air.GetLotDetail(lotNo, companyId, frtMode), JsonRequestBehavior.AllowGet);
+            var lotDetail = air.GetLotDetail(lotNo, companyId, frtMode);
+
+            //Special case for RCSCFSLAX
+            if (lotDetail == null && companyId == "RCSCFSLAX")
+            {
+                companyId = "RCSJFK";
+                lotDetail = air.GetLotDetail(lotNo, companyId, frtMode);
+            }
+
+            return Json(lotDetail, JsonRequestBehavior.AllowGet);
         }
 
         [Route("TestModel")]

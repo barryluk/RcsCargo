@@ -59,7 +59,15 @@ namespace RcsCargoWeb.Sea.Controllers
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
-            var results = sea.GetHbls(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+            var results = sea.GetHbls(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = sea.GetHbls(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue);
+                foreach (var item in result2)
+                    results.Add(item);
+            }
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
@@ -73,6 +81,15 @@ namespace RcsCargoWeb.Sea.Controllers
                 dateTo = DateTime.Now.AddMonths(3);
 
             var results = sea.GetContainerNos(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = sea.GetContainerNos(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue);
+                foreach (var item in result2)
+                    results.Add(item);
+            }
+
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
@@ -86,6 +103,15 @@ namespace RcsCargoWeb.Sea.Controllers
                 dateTo = DateTime.Now.AddMonths(3);
 
             var results = sea.GetJobNos(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), companyId, frtMode, searchValue);
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = sea.GetJobNos(dateFrom.Value.ToMinTime(), dateTo.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue);
+                foreach (var item in result2)
+                    results.Add(item);
+            }
+
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 

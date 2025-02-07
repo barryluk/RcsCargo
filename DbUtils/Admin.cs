@@ -286,127 +286,226 @@ namespace DbUtils
             return db.SeqFormats.Select(a => a.SEQ_TYPE).Distinct().ToList();
         }
 
+        private string GetRCSCFSLAX_InvoiceNo(string keyValue)
+        {
+            try
+            {
+                db = new RcsFreightDBContext();
+                var firstNo = "S00250001";
+                var subNos = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                var subNoSeq = 0;
+                var airNo = string.Empty;
+                var seaNo = string.Empty;
+                var seqNo = string.Empty;
+
+                if (db.Invoices.Count(a => a.COMPANY_ID == "RCSCFSLAX" && a.HAWB_NO == keyValue) > 0)
+                {
+                    airNo = db.Invoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && a.HAWB_NO == keyValue).Select(a => a.INV_NO).Max();
+                    log.Debug("2a:" + airNo);
+                    var invNo = db.Invoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && a.HAWB_NO == keyValue && a.INV_NO.Contains("/"))
+                        .Select(a => a.INV_NO).Max();
+
+                    log.Debug("2b:" + invNo);
+                    if (!string.IsNullOrEmpty(invNo))
+                    {
+                        subNoSeq = subNos.IndexOf(invNo.Substring(invNo.IndexOf("/") + 1));
+                        subNoSeq++;
+                        airNo = $"S{ParseInvNo(airNo).ToString().PadLeft(8, '0')}/{subNos.Substring(subNoSeq, 1)}";
+                    }
+                    else
+                        airNo = $"S{ParseInvNo(airNo).ToString().PadLeft(8, '0')}/A";
+
+                    seqNo = airNo;
+                }
+                else
+                {
+                    airNo = db.Invoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && !a.INV_NO.Contains("/")).Select(a => a.INV_NO).Max();
+                    if (!string.IsNullOrEmpty(airNo))
+                        airNo = $"S{(ParseInvNo(airNo) + 1).ToString().PadLeft(8, '0')}";
+                    else
+                        airNo = firstNo;
+
+                    log.Debug("2c:" + airNo);
+                }
+
+                if (db.SeaInvoices.Count(a => a.COMPANY_ID == "RCSCFSLAX" && a.JOB_NO == keyValue) > 0)
+                {
+                    seaNo = db.SeaInvoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && a.JOB_NO == keyValue).Select(a => a.INV_NO).Max();
+                    log.Debug("3a:" + seaNo);
+                    var invNo = db.SeaInvoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && a.JOB_NO == keyValue && a.INV_NO.Contains("/"))
+                        .Select(a => a.INV_NO).Max();
+
+                    log.Debug("3b:" + invNo);
+                    if (!string.IsNullOrEmpty(invNo))
+                    {
+                        subNoSeq = subNos.IndexOf(invNo.Substring(invNo.IndexOf("/") + 1));
+                        subNoSeq++;
+                        seaNo = $"S{ParseInvNo(seaNo).ToString().PadLeft(8, '0')}/{subNos.Substring(subNoSeq, 1)}";
+                    }
+                    else
+                        seaNo = $"S{ParseInvNo(seaNo).ToString().PadLeft(8, '0')}/A";
+
+                    seqNo = seaNo;
+                }
+                else
+                {
+                    seaNo = db.SeaInvoices.Where(a => a.COMPANY_ID == "RCSCFSLAX" && !a.INV_NO.Contains("/")).Select(a => a.INV_NO).Max();
+                    if (!string.IsNullOrEmpty(seaNo))
+                        seaNo = $"S{(ParseInvNo(seaNo) + 1).ToString().PadLeft(8, '0')}";
+                    else
+                        seaNo = firstNo;
+
+                    log.Debug("3c:" + seaNo);
+                }
+
+                log.Debug("Air#: " + airNo + ", Sea#: " + seaNo);
+                if (string.IsNullOrEmpty(seqNo))
+                    seqNo = ParseInvNo(airNo) > ParseInvNo(seaNo) ? airNo : seaNo;
+
+                log.Debug("Invoice#: " + seqNo);
+                return seqNo;
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+                return ex.Message;
+            }
+        }
+
+        private int ParseInvNo(string invNo)
+        {
+            if (invNo.Length >= 9)
+                return invNo.Substring(1, 8).ParseInt() ?? 0;
+            else
+                return 0;
+        }
+
         public string GetSequenceNumber(string seqType, string companyId, string origin, string dest, DateTime? date, int seqNoCount = 1)
         {
-            db = new RcsFreightDBContext();
-            string formattedNumber = string.Empty;
-            var seqFormat = db.SeqFormats.Where(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId).FirstOrDefault(); 
-            if (string.IsNullOrEmpty(seqFormat.PREFIX))
-                seqFormat.PREFIX = string.Empty;
-            if (string.IsNullOrEmpty(seqFormat.PREFIX2))
-                seqFormat.PREFIX2 = string.Empty;
-            if (string.IsNullOrEmpty(seqFormat.SUFFIX))
-                seqFormat.SUFFIX = string.Empty;
-            if (string.IsNullOrEmpty(seqFormat.CONDITION))
-                seqFormat.CONDITION = string.Empty;
-            decimal seqNo = this.GetLastSeqNo(seqFormat, date);
-            //log.Debug("LastSeqNo: " + seqNo);
-            seqNo = this.GetNextSeqNo(seqFormat, seqNo);
-            //log.Debug("NextSeqNo: " + seqNo);
-
-            var result = string.Empty;
-            for (int i = 0; i < seqNoCount; i++)
+            if (seqType == "RCSCFSLAX_InvoiceNo")
+                return GetRCSCFSLAX_InvoiceNo(origin);
+            else
             {
-                #region PREFIX
+                db = new RcsFreightDBContext();
+                string formattedNumber = string.Empty;
+                var seqFormat = db.SeqFormats.Where(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId).FirstOrDefault();
+                if (string.IsNullOrEmpty(seqFormat.PREFIX))
+                    seqFormat.PREFIX = string.Empty;
+                if (string.IsNullOrEmpty(seqFormat.PREFIX2))
+                    seqFormat.PREFIX2 = string.Empty;
+                if (string.IsNullOrEmpty(seqFormat.SUFFIX))
+                    seqFormat.SUFFIX = string.Empty;
+                if (string.IsNullOrEmpty(seqFormat.CONDITION))
+                    seqFormat.CONDITION = string.Empty;
+                decimal seqNo = this.GetLastSeqNo(seqFormat, date);
+                //log.Debug("LastSeqNo: " + seqNo);
+                seqNo = this.GetNextSeqNo(seqFormat, seqNo);
+                //log.Debug("NextSeqNo: " + seqNo);
 
-                if (seqFormat.PREFIX.Equals("MONTHLY"))
+                var result = string.Empty;
+                for (int i = 0; i < seqNoCount; i++)
                 {
-                    if (date.HasValue)
-                        formattedNumber = date.Value.ToString("yyMM");
+                    #region PREFIX
+
+                    if (seqFormat.PREFIX.Equals("MONTHLY"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber = date.Value.ToString("yyMM");
+                        else
+                            formattedNumber = DateTime.Now.ToString("yyMM");
+                    }
+                    else if (seqFormat.PREFIX.Equals("MONTHLY/"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber = date.Value.ToString("yy/MM/");
+                        else
+                            formattedNumber = DateTime.Now.ToString("yy/MM/");
+                    }
+                    else if (seqFormat.PREFIX.Contains("ORIGIN"))
+                    {
+                        formattedNumber = seqFormat.PREFIX.Substring(0, seqFormat.PREFIX.IndexOf("ORIGIN")) +
+                            origin + seqFormat.PREFIX.Substring(seqFormat.PREFIX.LastIndexOf("ORIGIN") + 6);
+                    }
+                    else if (seqFormat.PREFIX.Contains("DEST"))
+                    {
+                        formattedNumber = seqFormat.PREFIX.Substring(0, seqFormat.PREFIX.IndexOf("DEST")) +
+                            dest + seqFormat.PREFIX.Substring(seqFormat.PREFIX.LastIndexOf("DEST") + 4);
+                    }
                     else
-                        formattedNumber = DateTime.Now.ToString("yyMM");
-                }
-                else if (seqFormat.PREFIX.Equals("MONTHLY/"))
-                {
-                    if (date.HasValue)
-                        formattedNumber = date.Value.ToString("yy/MM/");
+                        formattedNumber = seqFormat.PREFIX;
+
+                    #endregion
+
+                    #region PREFIX2
+
+                    if (seqFormat.PREFIX2.Equals("MONTHLY"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber += date.Value.ToString("yyMM");
+                        else
+                            formattedNumber += DateTime.Now.ToString("yyMM");
+                    }
+                    else if (seqFormat.PREFIX2.Equals("MONTHLY/"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber += date.Value.ToString("yy/MM/");
+                        else
+                            formattedNumber += DateTime.Now.ToString("yy/MM/");
+                    }
+                    else if (seqFormat.PREFIX2.Contains("ORIGIN"))
+                    {
+                        formattedNumber += seqFormat.PREFIX2.Substring(0, seqFormat.PREFIX2.IndexOf("ORIGIN")) +
+                            origin + seqFormat.PREFIX2.Substring(seqFormat.PREFIX2.LastIndexOf("ORIGIN") + 6);
+                    }
+                    else if (seqFormat.PREFIX2.Contains("DEST"))
+                    {
+                        formattedNumber += seqFormat.PREFIX2.Substring(0, seqFormat.PREFIX2.IndexOf("DEST")) +
+                            dest + seqFormat.PREFIX2.Substring(seqFormat.PREFIX2.LastIndexOf("DEST") + 4);
+                    }
                     else
-                        formattedNumber = DateTime.Now.ToString("yy/MM/");
-                }
-                else if (seqFormat.PREFIX.Contains("ORIGIN"))
-                {
-                    formattedNumber = seqFormat.PREFIX.Substring(0, seqFormat.PREFIX.IndexOf("ORIGIN")) +
-                        origin + seqFormat.PREFIX.Substring(seqFormat.PREFIX.LastIndexOf("ORIGIN") + 6);
-                }
-                else if (seqFormat.PREFIX.Contains("DEST"))
-                {
-                    formattedNumber = seqFormat.PREFIX.Substring(0, seqFormat.PREFIX.IndexOf("DEST")) +
-                        dest + seqFormat.PREFIX.Substring(seqFormat.PREFIX.LastIndexOf("DEST") + 4);
-                }
-                else
-                    formattedNumber = seqFormat.PREFIX;
+                        formattedNumber += seqFormat.PREFIX2;
 
-                #endregion
+                    #endregion
 
-                #region PREFIX2
+                    formattedNumber += seqNo.ToString().PadLeft(Convert.ToInt16(seqFormat.DIGIT_LENGTH), '0');
 
-                if (seqFormat.PREFIX2.Equals("MONTHLY"))
-                {
-                    if (date.HasValue)
-                        formattedNumber += date.Value.ToString("yyMM");
+                    #region SUFFIX
+
+                    if (seqFormat.SUFFIX.Equals("MONTHLY"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber += date.Value.ToString("yyMM");
+                        else
+                            formattedNumber += DateTime.Now.ToString("yyMM");
+                    }
+                    else if (seqFormat.SUFFIX.Equals("MONTHLY/"))
+                    {
+                        if (date.HasValue)
+                            formattedNumber += date.Value.ToString("yy/MM/");
+                        else
+                            formattedNumber += DateTime.Now.ToString("yy/MM/");
+                    }
+                    else if (seqFormat.SUFFIX.Contains("ORIGIN"))
+                    {
+                        formattedNumber += seqFormat.SUFFIX.Substring(0, seqFormat.SUFFIX.IndexOf("ORIGIN")) +
+                            origin + seqFormat.SUFFIX.Substring(seqFormat.SUFFIX.LastIndexOf("ORIGIN") + 6);
+                    }
+                    else if (seqFormat.SUFFIX.Contains("DEST"))
+                    {
+                        formattedNumber += seqFormat.SUFFIX.Substring(0, seqFormat.SUFFIX.IndexOf("DEST")) +
+                            dest + seqFormat.SUFFIX.Substring(seqFormat.SUFFIX.LastIndexOf("DEST") + 4);
+                    }
                     else
-                        formattedNumber += DateTime.Now.ToString("yyMM");
-                }
-                else if (seqFormat.PREFIX2.Equals("MONTHLY/"))
-                {
-                    if (date.HasValue)
-                        formattedNumber += date.Value.ToString("yy/MM/");
-                    else
-                        formattedNumber += DateTime.Now.ToString("yy/MM/");
-                }
-                else if (seqFormat.PREFIX2.Contains("ORIGIN"))
-                {
-                    formattedNumber += seqFormat.PREFIX2.Substring(0, seqFormat.PREFIX2.IndexOf("ORIGIN")) +
-                        origin + seqFormat.PREFIX2.Substring(seqFormat.PREFIX2.LastIndexOf("ORIGIN") + 6);
-                }
-                else if (seqFormat.PREFIX2.Contains("DEST"))
-                {
-                    formattedNumber += seqFormat.PREFIX2.Substring(0, seqFormat.PREFIX2.IndexOf("DEST")) +
-                        dest + seqFormat.PREFIX2.Substring(seqFormat.PREFIX2.LastIndexOf("DEST") + 4);
-                }
-                else
-                    formattedNumber += seqFormat.PREFIX2;
+                        formattedNumber += seqFormat.SUFFIX;
 
-                #endregion
+                    #endregion
 
-                formattedNumber += seqNo.ToString().PadLeft(Convert.ToInt16(seqFormat.DIGIT_LENGTH), '0');
-
-                #region SUFFIX
-
-                if (seqFormat.SUFFIX.Equals("MONTHLY"))
-                {
-                    if (date.HasValue)
-                        formattedNumber += date.Value.ToString("yyMM");
-                    else
-                        formattedNumber += DateTime.Now.ToString("yyMM");
+                    result += formattedNumber + ",";
+                    seqNo++;
                 }
-                else if (seqFormat.SUFFIX.Equals("MONTHLY/"))
-                {
-                    if (date.HasValue)
-                        formattedNumber += date.Value.ToString("yy/MM/");
-                    else
-                        formattedNumber += DateTime.Now.ToString("yy/MM/");
-                }
-                else if (seqFormat.SUFFIX.Contains("ORIGIN"))
-                {
-                    formattedNumber += seqFormat.SUFFIX.Substring(0, seqFormat.SUFFIX.IndexOf("ORIGIN")) +
-                        origin + seqFormat.SUFFIX.Substring(seqFormat.SUFFIX.LastIndexOf("ORIGIN") + 6);
-                }
-                else if (seqFormat.SUFFIX.Contains("DEST"))
-                {
-                    formattedNumber += seqFormat.SUFFIX.Substring(0, seqFormat.SUFFIX.IndexOf("DEST")) +
-                        dest + seqFormat.SUFFIX.Substring(seqFormat.SUFFIX.LastIndexOf("DEST") + 4);
-                }
-                else
-                    formattedNumber += seqFormat.SUFFIX;
 
-                #endregion
-
-                result += formattedNumber + ",";
-                seqNo++;
+                return result.Substring(0, result.Length - 1);
             }
-
-            return result.Substring(0, result.Length - 1);
         }
 
         private decimal GetLastSeqNo(SeqFormat seqFormat, DateTime? date)

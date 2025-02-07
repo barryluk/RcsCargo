@@ -55,8 +55,18 @@ namespace RcsCargoWeb.Air.Controllers
                 startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
             if (!endDate.HasValue)
                 endDate = DateTime.Now.AddMonths(3);
+            
+            var jobs = air.GetJobNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords).ToList();
 
-            return Json(air.GetJobNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), companyId, frtMode, searchValue).Take(AppUtils.takeRecords), JsonRequestBehavior.AllowGet);
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = air.GetJobNos(startDate.Value.ToMinTime(), endDate.Value.ToMaxTime(), "RCSJFK", frtMode, searchValue).Take(AppUtils.takeRecords);
+                foreach (var item in result2)
+                    jobs.Add(item);
+            }
+
+            return Json(jobs, JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetInvoice")]
@@ -71,7 +81,12 @@ namespace RcsCargoWeb.Air.Controllers
         {
             if (string.IsNullOrEmpty(model.INV_NO))
             {
-                model.INV_NO = admin.GetSequenceNumber("AE_INVOICE", model.COMPANY_ID, model.ORIGIN, model.DEST, model.CREATE_DATE);
+                //Special case for RCSCFSLAX
+                if (model.COMPANY_ID == "RCSCFSLAX")
+                    model.INV_NO = admin.GetSequenceNumber("RCSCFSLAX_InvoiceNo", model.COMPANY_ID, model.HAWB_NO, string.Empty, model.CREATE_DATE);
+                else
+                    model.INV_NO = admin.GetSequenceNumber("AE_INVOICE", model.COMPANY_ID, model.ORIGIN, model.DEST, model.CREATE_DATE);
+
                 foreach (var item in model.InvoiceHawbs)
                     item.INV_NO = model.INV_NO;
                 foreach (var item in model.InvoiceItems)

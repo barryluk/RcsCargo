@@ -65,7 +65,16 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("GetHawbNos")]
         public ActionResult GetHawbNos(string id, string companyId, string frtMode)
         {
-            var result = air.GetHawbNos(id, companyId, frtMode);
+            var result = air.GetHawbNos(id, companyId, frtMode).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = air.GetHawbNos(id, "RCSJFK", frtMode);
+                foreach (var item in result2)
+                    result.Add(item);
+            }
+
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
@@ -78,7 +87,16 @@ namespace RcsCargoWeb.Air.Controllers
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
-            var result = air.GetHawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
+            var result = air.GetHawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = air.GetHawbs(dateFrom.Value, dateTo.Value, "RCSJFK", frtMode, searchValue).Take(AppUtils.takeRecords);
+                foreach (var item in result2)
+                    result.Add(item);
+            }
+
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
@@ -104,7 +122,16 @@ namespace RcsCargoWeb.Air.Controllers
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
-            var result = air.GetMawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords);
+            var result = air.GetMawbs(dateFrom.Value, dateTo.Value, companyId, frtMode, searchValue).Take(AppUtils.takeRecords).ToList();
+
+            //Special case for RCSCFSLAX
+            if (companyId == "RCSCFSLAX")
+            {
+                var result2 = air.GetMawbs(dateFrom.Value, dateTo.Value, "RCSJFK", frtMode, searchValue).Take(AppUtils.takeRecords);
+                foreach (var item in result2)
+                    result.Add(item);
+            }
+
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 

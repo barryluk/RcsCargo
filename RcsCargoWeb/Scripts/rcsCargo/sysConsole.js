@@ -69,13 +69,17 @@
         $(`#${utils.getFormId()} [name="seqNoCount"]`).data("kendoNumericTextBox").value(1);
 
         $(`#${utils.getFormId()} [name="genSeqNo"]`).click(function () {
+            let origin = $(`#${utils.getFormId()} [name="origin"]`).data("kendoDropDownList").value();
+            if (!utils.isEmptyString($(`#${utils.getFormId()} [name="keyValue"]`).val()))
+                origin = $(`#${utils.getFormId()} [name="keyValue"]`).val();
+
             $.ajax({
                 url: "../Admin/System/GetSeqNo",
                 dataType: "text",
                 data: {
                     seqType: $(`#${utils.getFormId()} [name="seqType"]`).data("kendoDropDownList").value(),
                     companyId: $(`#${utils.getFormId()} [name="sysCompanyId"]`).data("kendoDropDownList").value(),
-                    origin: $(`#${utils.getFormId()} [name="origin"]`).data("kendoDropDownList").value(),
+                    origin: origin,
                     dest: $(`#${utils.getFormId()} [name="dest"]`).data("kendoDropDownList").value(),
                     date: $(`#${utils.getFormId()} [name="date"]`).data("kendoDatePicker").value(),
                     seqNoCount: $(`#${utils.getFormId()} [name="seqNoCount"]`).data("kendoNumericTextBox").value(),
