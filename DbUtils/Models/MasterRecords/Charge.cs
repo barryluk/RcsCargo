@@ -24,6 +24,7 @@ namespace DbUtils.Models.MasterRecords
     {
         public string CHARGE_CODE { get; set; }
         public string CHARGE_DESC { get; set; }
+        public string CHARGE_BASE { get; set; }
     }
 
     public class ChargeTemplateView

@@ -881,9 +881,14 @@
                 if (group.controls != null) {
                     group.controls.forEach(function (control) {
                         var iconHtml = "";
+                        let disabledClass = "";
+
                         if (control.icon != null)
                             iconHtml = `<span class="k-icon ${control.icon} k-button-icon"></span>`;
-                        ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="${control.name}">${iconHtml}${control.label}</span>`;
+                        if (control.disabled != null)
+                            disabledClass = "k-disabled";
+
+                        ctrlHtml += `<span class="menuButton k-button k-button-md k-rounded-md k-button-solid k-button-solid-base ${disabledClass}" name="${control.name}">${iconHtml}${control.label}</span>`;
                     });
                 }
                 if (group.name != "emptyGroup")
@@ -2591,6 +2596,7 @@
                 },
                 select: function (e) {
                     let voyage = $(e.sender.element).attr("name").replace("VES_CODE", "VOYAGE");
+                    console.log(`id: #${masterForm.id} input[name="${voyage}"]`, masterForm);
                     $(`#${masterForm.id} input[name="${voyage}"]`).val(e.dataItem.VOYAGE);
 
                     let model = {
@@ -3125,6 +3131,7 @@
         var uid = $(container).parent().attr("data-uid");
         var colIndex = $(container).closest("div[type=grid]").find(`th[scope=col][data-field=${fieldName}]`).attr("data-index");
         if (colIndex != null) {
+            //console.log(fieldName, colIndex, uid);
             $(container).parent().find("td").eq(colIndex).addClass("k-dirty-cell");
             $(container).parent().find("td").eq(colIndex).html(`<span class="k-dirty"></span>${value}`);
         }
@@ -3156,14 +3163,26 @@
                 $(e.sender.filterInput).val(filterValue);
             },
             select: function (e) {
+                let currCode = $(`#${utils.getFormId()} [name$="CURR_CODE"]`).val();
+                let qty = 1;
+                if ($(`#${utils.getFormId()} [name$="CWTS"]`).length == 1 && e.dataItem.CHARGE_BASE == "KGS") {
+                    if (!utils.isEmptyString($(`#${utils.getFormId()} [name$="CWTS"]`).val()))
+                        qty = $(`#${utils.getFormId()} [name$="CWTS"]`).val();
+                }
+
                 $(txt).data("kendoTextBox").value(e.dataItem.CHARGE_DESC);
                 controls.gridSetCellValue(container, "CHARGE_DESC", e.dataItem.CHARGE_DESC);
+                controls.gridSetCellValue(container, "CURR_CODE", currCode);
+                controls.gridSetCellValue(container, "EX_RATE", 1);
+                controls.gridSetCellValue(container, "QTY", qty);
+                if (!utils.isEmptyString(e.dataItem.CHARGE_BASE))
+                    controls.gridSetCellValue(container, "QTY_UNIT", e.dataItem.CHARGE_BASE);
             }
         });
     }
 
     //kendoGrid kendoDropDownList for Currency
-    renderGridEditorCurrency = function (container, options) {
+    renderGridEditorCurrency = function (container, options, exRateName) {
         var ddl = $(`<input name="${options.field}" />`);
         ddl.appendTo(container);
 
@@ -3174,8 +3193,13 @@
             cascade: function (e) {
                 //e.sender._cascadedValue => selected value
                 if (e.userTriggered == true) {
-                    var exRate = e.sender.dataSource._data.filter(a => a.CURR_CODE == e.sender._cascadedValue)[0]["EX_RATE"];
-                    controls.gridSetCellValue(container, "EX_RATE", exRate);
+                    let parentExRate = 1;
+                    let exRate = e.sender.dataSource._data.filter(a => a.CURR_CODE == e.sender._cascadedValue)[0]["EX_RATE"];
+                    if ($(`#${utils.getFormId()} [name="${exRateName}"]`).length == 1) {
+                        if (!utils.isEmptyString($(`#${utils.getFormId()} [name$="${exRateName}"]`).val()))
+                            parentExRate = $(`#${utils.getFormId()} [name$="${exRateName}"]`).val();
+                    }
+                    controls.gridSetCellValue(container, "EX_RATE", utils.roundUp(exRate / parentExRate, 2));
                 }
             },
         });

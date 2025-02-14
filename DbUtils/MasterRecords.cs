@@ -517,7 +517,7 @@ namespace DbUtils
 
         public List<ChargeView> GetChargesView()
         {
-            var sqlCmd = @"select a.charge_code, b.charge_desc from 
+            var sqlCmd = @"select a.charge_code, b.charge_desc, b.charge_base from 
                 (select charge_code from a_invoice_item where inv_no in (select inv_no from a_invoice where create_date > sysdate - 730)
                 union select charge_code from charge where modify_date > sysdate - 30)a, charge b
                 where a.charge_code = b.charge_code";

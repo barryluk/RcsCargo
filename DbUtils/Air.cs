@@ -850,6 +850,14 @@ namespace DbUtils
             };
             var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
 
+            foreach(var item in result)
+            {
+                if (item.JOB_NO.StartsWith("AEO"))
+                {
+                    item.MAWB_NO = db.OtherJobs.Where(a => a.JOB_NO == item.JOB_NO && a.COMPANY_ID == item.COMPANY_ID).Select(a => a.MBL_NO).FirstOrDefault();
+                }
+            }
+
             return result;
         }
 

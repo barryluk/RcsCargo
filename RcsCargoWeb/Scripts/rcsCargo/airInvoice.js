@@ -100,6 +100,10 @@
                         result.forEach(function (item) {
                             hawbNos.push({ label: item });
                         });
+
+                        if (hawbNos.length == 0)
+                            return;
+
                         var formId = utils.getFormId(selector.sender.element);
                         utils.alertMessage(`<div id="${formId}_hawbNoList" class="selectHawbNoList"></div>`, "Select HAWB#", "info", "", true);
 

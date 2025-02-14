@@ -22,6 +22,8 @@ namespace DbUtils.Models.Air
         public DateTime? FLIGHT_DATE { get; set; }
         public string ORIGIN_CODE { get; set; }
         public string DEST_CODE { get; set; }
+        public string MBL_NO { get; set; }
+        public string CONTAINER_NO { get; set; }
         public string SHIPPER_CODE { get; set; }
         public string SHIPPER_DESC { get; set; }
         public string SHIPPER_BRANCH { get; set; }
@@ -99,7 +101,7 @@ namespace DbUtils.Models.Air
         public string FRT_MODE { get; set; }
         public DateTime FLIGHT_DATE { get; set; }
         public string LOT_NO { get; set; }
-        public string HAWB_NO { get; set; }
+        public string MBL_NO { get; set; }
         public string SHIPPER_CODE { get; set; }
         public string SHIPPER_DESC { get; set; }
         public string CONSIGNEE_CODE { get; set; }

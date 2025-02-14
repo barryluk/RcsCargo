@@ -291,6 +291,7 @@ namespace DbUtils
             try
             {
                 db = new RcsFreightDBContext();
+                keyValue = string.IsNullOrEmpty(keyValue) ? " " : keyValue;
                 var firstNo = "S00250001";
                 var subNos = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 var subNoSeq = 0;

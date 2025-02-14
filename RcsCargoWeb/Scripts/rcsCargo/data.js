@@ -1080,9 +1080,11 @@ var indexPages = [
             columns: [
                 { field: "JOB_NO", title: "Job#", attributes: { "class": "link-cell" } },
                 { field: "LOT_NO", title: "Lot#" },
+                { field: "MBL_NO", title: "MAWB" },
+                { field: "ORIGIN_CODE", title: "Origin" },
                 { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
-                { field: "ORIGIN", title: "Origin" },
-                { field: "DEST", title: "Destination" },
+                { field: "ORIGIN_CODE", title: "Origin" },
+                { field: "DEST_CODE", title: "Destination" },
                 { field: "SHIPPER_DESC", title: "Shipper" },
                 { field: "CONSIGNEE_DESC", title: "Consignee" },
                 { field: "CREATE_USER", title: "Create User" },
@@ -1112,8 +1114,8 @@ var indexPages = [
                     { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
                     { label: "Shipment Tracking Report", name: "shipmentTrackingReport", icon: "k-i-excel" },
                     { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
-                    { label: "Customer Tonnage Report", name: "customerTonnageReport" },
-                    { label: "Weekly Tonnage Report", name: "weeklyTonnageReport" },
+                    { label: "Customer Tonnage Report", name: "customerTonnageReport", disabled: true },
+                    { label: "Weekly Tonnage Report", name: "weeklyTonnageReport", disabled: true },
                 ]
             },
             {
@@ -1127,11 +1129,11 @@ var indexPages = [
                     { label: "Lot Profit & Loss", name: "lotProfitLoss", icon: "k-i-pdf" },
                     { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
                     { label: "Offshore/HKG Summary Profit & Loss", name: "offshoreSummaryProfitLoss", icon: "k-i-excel" },
-                    { label: "Charter Flight Profit & Loss", name: "charterFlightProfitLoss" },
-                    { label: "Project Profit & Loss", name: "projectProfitLoss" },
-                    { label: "Consignee Profit & Loss", name: "consigneeProfitLoss" },
-                    { label: "MAWB Shipper Profit & Loss", name: "MawbShipperProfitLoss" },
-                    { label: "Draft Profit & Loss", name: "draftProfitLoss" },
+                    { label: "Charter Flight Profit & Loss", name: "charterFlightProfitLoss", disabled: true },
+                    { label: "Project Profit & Loss", name: "projectProfitLoss", disabled: true },
+                    { label: "Consignee Profit & Loss", name: "consigneeProfitLoss", disabled: true },
+                    { label: "MAWB Shipper Profit & Loss", name: "MawbShipperProfitLoss", disabled: true },
+                    { label: "Draft Profit & Loss", name: "draftProfitLoss", disabled: true },
                 ]
             },
             {
@@ -1139,11 +1141,11 @@ var indexPages = [
                 title: "General Reports",
                 colWidth: 4,
                 controls: [
-                    { label: "GOH Load Plan", name: "gohLoadplan" },
-                    { label: "Shipper List Report", name: "shipperListReport" },
-                    { label: "Weight Difference Report", name: "weightDifferenceReport" },
-                    { label: "X-Ray Report", name: "xrayReport" },
-                    { label: "Missing Invoice Report", name: "missingInvoiceReport" },
+                    { label: "GOH Load Plan", name: "gohLoadplan", disabled: true },
+                    { label: "Shipper List Report", name: "shipperListReport", disabled: true },
+                    { label: "Weight Difference Report", name: "weightDifferenceReport", disabled: true },
+                    { label: "X-Ray Report", name: "xrayReport", disabled: true },
+                    { label: "Missing Invoice Report", name: "missingInvoiceReport", disabled: true },
                     { label: "Invoice Report", name: "invoiceReport", icon: "k-i-pdf" },
                     { label: "Invoice Report (Other Job)", name: "invoiceReportOtherJob", icon: "k-i-excel" },
                     { label: "Payment Voucher Report", name: "pvReport", icon: "k-i-excel" },
@@ -1156,12 +1158,12 @@ var indexPages = [
                 title: "Daily Status Reports & Documents",
                 colWidth: 4,
                 controls: [
-                    { label: "Daily Status Report", name: "dailyStatusReport" },
-                    { label: "Auto Report", name: "autoReport" },
-                    { label: "CN-DN Breakdown Report", name: "cnDnBreakdownReport" },
-                    { label: "Cargo Release", name: "cargoRelease" },
-                    { label: "Certificate of Origin", name: "certificateOfOrigin" },
-                    { label: "Shipper Export Declaration", name: "exportDeclaration" },
+                    { label: "Daily Status Report", name: "dailyStatusReport", disabled: true },
+                    { label: "Auto Report", name: "autoReport", disabled: true },
+                    { label: "CN-DN Breakdown Report", name: "cnDnBreakdownReport", disabled: true },
+                    { label: "Cargo Release", name: "cargoRelease", disabled: true },
+                    { label: "Certificate of Origin", name: "certificateOfOrigin", disabled: true },
+                    { label: "Shipper Export Declaration", name: "exportDeclaration", disabled: true },
                 ]
             },
         ],
@@ -1458,7 +1460,6 @@ var indexPages = [
                     { label: "Shipment Report", name: "shipmentReport", icon: "k-i-pdf" },
                     { label: "Customize Shipment Report", name: "customizeShipmentReport", icon: "k-i-excel" },
                     { label: "Carrier Report", name: "carrierReport", icon: "k-i-pdf" },
-                    { label: "Weekly Volume Report", name: "weeklyVolumeReport" },
                 ]
             },
             {
@@ -1468,6 +1469,7 @@ var indexPages = [
                 controls: [
                     { label: "Job Profit & Loss", name: "jobProfitLoss", icon: "k-i-pdf" },
                     { label: "Summary Profit & Loss", name: "summaryProfitLoss", icon: "k-i-pdf" },
+                    { label: "Summary Profit & Loss (Excel)", name: "summaryProfitLossXls", icon: "k-i-excel" },
                 ]
             },
             {
@@ -1475,10 +1477,9 @@ var indexPages = [
                 title: "General Reports",
                 colWidth: 4,
                 controls: [
-                    { label: "Container Manifest", name: "containerManifest" },
-                    { label: "Invoice Report", name: "invoiceReport", icon: "k-i-pdf" },
+                    { label: "Container Manifest", name: "containerManifest", icon: "k-i-pdf" },
+                    { label: "Invoice Report", name: "invoiceReport", icon: "k-i-excel" },
                     { label: "Missing Invoice Report", name: "missingInvoiceReport", icon: "k-i-excel" },
-                    { label: "Auto Report", name: "autoReport", icon: "k-i-excel" },
                     { label: "Certificate of Origin", name: "certificateOrigin", icon: "k-i-pdf" },
                 ]
             },
@@ -1586,7 +1587,6 @@ var masterForms = [
         title: "Charge Template:",
         readUrl: "../MasterRecord/ChargeTemplate/GetChargeTemplate",
         updateUrl: "../MasterRecord/ChargeTemplate/UpdateChargeTemplate",
-        //additionalScript: "initCustomer",
         idField: "TEMPLATE_NAME",
         id: "",
         toolbar: [
@@ -1978,7 +1978,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "P_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -2029,7 +2029,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "C_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -2728,7 +2728,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "P_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -2779,7 +2779,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "C_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -3048,7 +3048,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -3191,7 +3191,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -3272,14 +3272,17 @@ var masterForms = [
                     { label: "Notify Party", type: "customerAddrEditable", name: "NOTIFY", colWidth: 6 },
                     { label: "Agent", type: "customerAddrEditable", name: "AGENT", colWidth: 6 },
                     { label: "Flight Date", type: "date", name: "FLIGHT_DATE", colWidth: 4 },
-                    { label: "Origin", type: "port", name: "ORIGIN", colWidth: 4 },
-                    { label: "Destination", type: "port", name: "DEST", colWidth: 4 },
+                    { label: "Origin", type: "port", name: "ORIGIN_CODE", colWidth: 4 },
+                    { label: "Destination", type: "port", name: "DEST_CODE", colWidth: 4 },
+                    { label: "Master B/L #", type: "text", name: "MBL_NO", colWidth: 4 },
+                    { label: "Container #", type: "text", name: "CONTAINER_NO", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
                     { label: "Package", type: "numberInt", name: "PACKAGE", colWidth: 4 },
                     { label: "Package Unit", type: "pkgUnit", name: "PACKAGE_UNIT", colWidth: 4 },
                     { label: "G/Wts", type: "number", name: "GWTS", colWidth: 4 },
                     { label: "V/Wts", type: "number", name: "VWTS", colWidth: 4 },
-                    { label: "C/Wts", type: "number", name: "CWTS", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
                 ]
             },
@@ -3299,7 +3302,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "P_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -3348,7 +3351,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "C_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -3994,7 +3997,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "P_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -4043,7 +4046,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "C_EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -4470,7 +4473,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -4601,7 +4604,7 @@ var masterForms = [
                             },
                             {
                                 title: "Currency", field: "CURR_CODE", width: 80,
-                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options) }
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "EX_RATE") }
                             },
                             { title: "Ex. Rate", field: "EX_RATE", width: 80 },
                             { title: "Price", field: "PRICE", width: 90 },
@@ -4663,6 +4666,13 @@ export default class {
                             localStorage.removeItem("sessionId");
                             window.open("../Home/Login", "_self");
                         }
+
+                        //Remove the companyId if the user do not have the access right
+                        if (!data.isEmptyString(localStorage.companyId)) {
+                            if (data.user.UserCompanies.filter(a => a.COMPANY_ID == localStorage.companyId).length == 0)
+                                localStorage.companyId = "";
+                        }
+                        
                         if (!data.isEmptyString(localStorage.companyId)) {
                             companyId = localStorage.companyId;
                         } else {
@@ -4699,6 +4709,8 @@ export default class {
                                         data.companyId = $(sender.target).text().trim();
                                         localStorage.companyId = data.companyId;
                                         $(".dropdown.sysCompany span.currentSystemCompany").text(data.companyId);
+                                        //refresh the GlobalVariables after change company
+                                        data.prefetchGlobalVariables();
                                     });
                                     $("[data-widget='control-logout']").bind("click", function () {
                                         $.ajax({
