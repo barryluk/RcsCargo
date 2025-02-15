@@ -4719,6 +4719,7 @@ export default class {
                                             success: function (result) {
                                                 localStorage.removeItem("user");
                                                 localStorage.removeItem("sessionId");
+                                                localStorage.removeItem("tabStrips");
                                                 window.open("../Home/Login", "_self");
                                             }
                                         });

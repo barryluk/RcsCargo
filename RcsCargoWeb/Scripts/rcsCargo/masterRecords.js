@@ -224,7 +224,7 @@
             url: e.pageSetting.deleteUrl,
             type: "post",
             dataType: "text",
-            data: { id: e.key },
+            data: { id: e.key, companyId: data.companyId },
             beforeSend: function () {
                 kendo.ui.progress($(domId), true);
             },

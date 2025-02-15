@@ -628,6 +628,12 @@ namespace DbUtils
                 template.COMPANY_ID = companyId;
                 template.Charges = result;
             }
+            else
+            {
+                template.TEMPLATE_NAME = string.Empty;
+                template.COMPANY_ID = companyId;
+                template.Charges = new List<ChargeTemplate>();
+            }
             return template;
         }
 

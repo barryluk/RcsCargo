@@ -348,7 +348,7 @@
 
             if (localStorage.tabStrips != null) {
                 var tabStrips = JSON.parse(localStorage.tabStrips);
-                if (tabStrips.indexOf(id) == -1) {
+                if (tabStrips.indexOf(id) == -1 && !id.includes("_NEW")) {
                     tabStrips.push(id);
                     localStorage.tabStrips = JSON.stringify(tabStrips);
                 }
@@ -3172,8 +3172,10 @@
 
                 $(txt).data("kendoTextBox").value(e.dataItem.CHARGE_DESC);
                 controls.gridSetCellValue(container, "CHARGE_DESC", e.dataItem.CHARGE_DESC);
-                controls.gridSetCellValue(container, "CURR_CODE", currCode);
-                controls.gridSetCellValue(container, "EX_RATE", 1);
+                if (!utils.isEmptyString(currCode)) {
+                    controls.gridSetCellValue(container, "CURR_CODE", currCode);
+                    controls.gridSetCellValue(container, "EX_RATE", 1);
+                }
                 controls.gridSetCellValue(container, "QTY", qty);
                 if (!utils.isEmptyString(e.dataItem.CHARGE_BASE))
                     controls.gridSetCellValue(container, "QTY_UNIT", e.dataItem.CHARGE_BASE);
