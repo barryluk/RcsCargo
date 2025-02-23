@@ -335,6 +335,7 @@ namespace DbUtils.Models.Sea
     public class HblView
     {
         public string HBL_NO { get; set; }
+        public string JOB_NO { get; set; }
         public string BOOKING_NO { get; set; }
         public string COMPANY_ID { get; set; }
         public string FRT_MODE { get; set; }
@@ -342,6 +343,8 @@ namespace DbUtils.Models.Sea
         public string SHIPPER_DESC { get; set; }
         public string CONSIGNEE_CODE { get; set; }
         public string CONSIGNEE_DESC { get; set; }
+        public string CARRIER_CODE { get; set; }
+        public string CARRIER_DESC { get; set; }
         public string VES_CODE { get; set; }
         public string VES_DESC { get; set; }
         public string VOYAGE { get; set; }

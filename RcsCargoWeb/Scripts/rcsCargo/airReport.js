@@ -87,8 +87,16 @@
                         controllers.airReport.dialogShaReport();
                         break;
 
+                    case "RCSCFSLAX_Reports":
+                        controllers.airReport.dialogRCSCFSLAX_Report();
+                        break;
+
                     case "usSummaryInvoiceReport":
                         utils.getExcelReport("AirUsSummaryInvoiceReport", paras, "USLAX Invoice Summary Report");
+                        break;
+
+                    case "RCSCFSLAX_SummaryInvoiceReport":
+                        utils.getExcelReport("RCSCFSLAX_SummaryInvoiceReport", paras, "USLAX Monthly Invoice Report");
                         break;
                 }
             });
@@ -850,6 +858,60 @@
             paras.push({ name: "HawbNo", value: hawbNo });
             paras.push({ name: "ChargeTemplateName", value: $(`#${utils.getFormId()} [name=shaReport_chargeTemplate]`).data("kendoDropDownList").value() });
             utils.getExcelReport("AirInvoiceReport_SHA_DN", paras, `${hawbNo}账单`);
+        });
+    }
+
+    dialogRCSCFSLAX_Report = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_RCSCFSLAX_Report" style="width: 460px">
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_summaryReport"><span class="k-icon k-i-excel"></span>Summary Report</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_dailyReport_RCS"><span class="k-icon k-i-excel"></span>Daily Report (RCSCFS)</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_dailyReport_WFF"><span class="k-icon k-i-excel"></span>Daily Report (Wecan)</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_monthlyReport"><span class="k-icon k-i-excel"></span>Monthly Report</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_weeklyReport"><span class="k-icon k-i-excel"></span>Weekly Report (Wecan) </span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "RCSCFSLAX Reports", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.renderFormControl_kendoUI(formSetting);
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_summaryReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("AirUsSummaryInvoiceReport", paras, `USLAX Invoice Summary Report`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_dailyReport_RCS"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            paras.push({ name: "days", value: 60 });
+            paras.push({ name: "customerType", value: "RCS" });
+            utils.getExcelReport("RCSCFSLAX_InvoiceReport", paras, `RCS InvoiceReport`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_dailyReport_WFF"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            paras.push({ name: "days", value: 60 });
+            paras.push({ name: "customerType", value: "WFF" });
+            utils.getExcelReport("RCSCFSLAX_InvoiceReport", paras, `WFF InvoiceReport`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_weeklyReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_InvoiceReport_Charges", paras, `WECAN InvoiceReport`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_monthlyReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_SummaryInvoiceReport", paras, `USLAX Monthly Invoice Report`);
         });
     }
 

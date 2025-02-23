@@ -1150,7 +1150,7 @@ var indexPages = [
                     { label: "Invoice Report (Other Job)", name: "invoiceReportOtherJob", icon: "k-i-excel" },
                     { label: "Payment Voucher Report", name: "pvReport", icon: "k-i-excel" },
                     { label: "SHA / CN Reports", name: "shaReport", icon: "k-i-excel" },
-                    { label: "USLAX Invoice Reports", name: "usSummaryInvoiceReport", icon: "k-i-excel" },
+                    { label: "RCSCFSLAX Reports", name: "RCSCFSLAX_Reports", icon: "k-i-excel" },
                 ]
             },
             {
@@ -1589,9 +1589,11 @@ var masterForms = [
         updateUrl: "../MasterRecord/ChargeTemplate/UpdateChargeTemplate",
         idField: "TEMPLATE_NAME",
         id: "",
+        additionalScript: "initChargeTemplate",
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
             { type: "button", text: "Save", icon: "save" },
+            { type: "button", text: "Save New", icon: "copy" },
         ],
         schema: {
             fields: [
@@ -1722,6 +1724,8 @@ var masterForms = [
                             SHORT_DESC: { validation: { required: true } },
                         },
                     },
+                    { label: "Invoice Due Days ", type: "numberInt", name: "INV_DUE_DAYS", colWidth: 6 },
+                    { label: "", type: "emptyBlock", colWidth: 6 },
                     { label: "Air Instruction ", type: "textArea", name: "AIR_INST", colWidth: 6 },
                     { label: "Ocean Instruction ", type: "textArea", name: "OCEAN_INST", colWidth: 6 },
                 ]
@@ -1967,7 +1971,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     { label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_MawbChargesPrepaid" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "P_EX_RATE", targetControl: "grid_MawbChargesPrepaid" },
                     {
                         label: "", type: "grid", name: "MawbChargesPrepaid",
                         columns: [
@@ -2018,7 +2022,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     { label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_MawbChargesCollect" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "C_EX_RATE", targetControl: "grid_MawbChargesCollect" },
                     {
                         label: "", type: "grid", name: "MawbChargesCollect",
                         columns: [
@@ -2717,7 +2721,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     /*{ label: "Currency", type: "currency", name: "P_CURR_CODE", exRateName: "P_EX_RATE", colWidth: 3 },*/
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_HawbChargesPrepaid" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "P_EX_RATE", targetControl: "grid_HawbChargesPrepaid" },
                     {
                         label: "", type: "grid", name: "HawbChargesPrepaid",
                         columns: [
@@ -2768,7 +2772,7 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     /*{ label: "Currency", type: "currency", name: "C_CURR_CODE", exRateName: "C_EX_RATE", colWidth: 3 },*/
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_HawbChargesCollect" },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "C_EX_RATE", targetControl: "grid_HawbChargesCollect" },
                     {
                         label: "", type: "grid", name: "HawbChargesCollect",
                         columns: [
@@ -2974,7 +2978,7 @@ var masterForms = [
                 { name: "IS_TRANSFERRED", hidden: "true", defaultValue: "N" },
                 { name: "IS_VAT", hidden: "true", defaultValue: "N" },
                 { name: "InvoiceHawbs", hidden: "true" },
-                { name: "INV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "INV_DATE", required: "true", defaultValue: new Date() },
                 { name: "INV_TYPE", required: "true", readonly: "edit" },
                 { name: "INV_CATEGORY", required: "true" },
                 { name: "SHOW_DATE_TYPE", required: "true" },
@@ -3037,7 +3041,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_InvoiceItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "EX_RATE", targetControl: "grid_InvoiceItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "InvoiceItems",
                         columns: [
@@ -3118,7 +3122,7 @@ var masterForms = [
                 { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
                 { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
-                { name: "PV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "PV_DATE", required: "true", defaultValue: new Date() },
                 { name: "PV_TYPE", required: "true", readonly: "edit" },
                 { name: "PV_CATEGORY", required: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
@@ -3180,7 +3184,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_PvItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "EX_RATE", targetControl: "grid_PvItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "PvItems",
                         columns: [
@@ -3291,7 +3295,7 @@ var masterForms = [
                 title: "Prepaid Charges",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "P_EX_RATE", targetControl: "grid_OtherJobChargesPrepaid", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "OtherJobChargesPrepaid",
                         columns: [
@@ -3340,7 +3344,7 @@ var masterForms = [
                 title: "Collect Charges",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "C_EX_RATE", targetControl: "grid_OtherJobChargesCollect", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "OtherJobChargesCollect",
                         columns: [
@@ -4400,7 +4404,7 @@ var masterForms = [
                 { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_VAT", hidden: "true", defaultValue: "N" },
-                { name: "INV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "INV_DATE", required: "true", defaultValue: new Date() },
                 { name: "INV_TYPE", required: "true", readonly: "edit" },
                 { name: "INV_CATEGORY", required: "true" },
                 { name: "INV_FORMAT", required: "true" },
@@ -4412,7 +4416,8 @@ var masterForms = [
                 { name: "INV_NO", readonly: "always" },
                 { name: "AMOUNT", readonly: "always" },
                 { name: "AMOUNT_HOME", readonly: "always" },
-                { name: "VOYAGE", readonly: "always" },
+                { name: "VES_CODE", required: "true" },
+                { name: "VOYAGE", required: "true", readonly: "always" },
             ],
         },
         formTabs: [
@@ -4462,7 +4467,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_SeaInvoiceItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "EX_RATE", targetControl: "grid_SeaInvoiceItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "SeaInvoiceItems",
                         columns: [
@@ -4538,7 +4543,7 @@ var masterForms = [
                 { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
                 { name: "IS_VAT", hidden: "true", defaultValue: "N" },
-                { name: "PV_DATE", required: "true", readonly: "edit", defaultValue: new Date() },
+                { name: "PV_DATE", required: "true", defaultValue: new Date() },
                 { name: "PV_TYPE", required: "true", readonly: "edit" },
                 { name: "PV_CATEGORY", required: "true" },
                 { name: "CURR_CODE", required: "true", defaultValue: "currency" },
@@ -4593,7 +4598,7 @@ var masterForms = [
                 title: "Charge Items",
                 colWidth: 12,
                 formControls: [
-                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", targetControl: "grid_SeaPvItems", colWidth: 4 },
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "EX_RATE", targetControl: "grid_SeaPvItems", colWidth: 4 },
                     {
                         label: "", type: "grid", name: "SeaPvItems",
                         columns: [

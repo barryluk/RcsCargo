@@ -22,4 +22,10 @@ namespace DbUtils.Models.MasterRecords
         public string MODIFY_USER { get; set; }
         public DateTime MODIFY_DATE { get; set; }
     }
+
+    public class CurrencyView
+    {
+        public string CURR_CODE { get; set; }
+        public decimal EX_RATE { get; set; }
+    }
 }

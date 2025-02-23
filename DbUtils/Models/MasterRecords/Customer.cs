@@ -28,6 +28,8 @@ namespace DbUtils.Models.MasterRecords
         public string AC_NAME_QB { get; set; }
         public string AC_NAME_MYOB { get; set; }
         public string AC_NAME_YY { get; set; }
+        public decimal? INV_DUE_DAYS { get; set; }
+
         [NotMapped]
         public List<CustomerName> CustomerNames { get; set; }
         [NotMapped]

@@ -70,6 +70,18 @@
         //Select HBL event
         let ddl = $(`#${masterForm.id} [name="selectHbl"]`).data("kendoDropDownList");
         ddl.bind("select", function (e) {
+            console.log(masterForm, e.dataItem);
+
+            let model = {
+                CARRIER_CODE: e.dataItem.CARRIER_CODE,
+                VES_CODE: e.dataItem.VES_CODE,
+                VOYAGE: e.dataItem.VOYAGE,
+                LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
+                DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
+                JOB_NO: e.dataItem.JOB_NO,
+            };
+            controls.setValuesToFormControls(masterForm, model, true);
+
             let hblNoExist = false;
             chipHblNos.items().each(function () {
                 if ($(this).children().eq(0).text() == e.dataItem.HBL_NO)

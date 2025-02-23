@@ -239,7 +239,8 @@ namespace DbUtils
         public List<HblView> GetHbls(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
             var selectCmd = @"h.hbl_no, h.booking_no, h.company_id, h.frt_mode, h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc,
-                h.loading_port, h.loading_port_date, h.discharge_port, h.discharge_port_date, h.ves_code, v.ves_desc, h.voyage, h.create_date, h.create_user";
+                h.loading_port, h.loading_port_date, h.discharge_port, h.discharge_port_date, h.ves_code, v.ves_desc, h.voyage, h.create_date, h.create_user,
+                h.job_no, voy.carrier_code, c.carrier_desc";
             var dbParas = new List<DbParameter>
             {
                 new DbParameter { FieldName = "h.hbl_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
@@ -256,7 +257,9 @@ namespace DbUtils
                 new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
                 new DbParameter { FieldName = "h.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<HblView>("s_hbl h join vessel v on h.ves_code = v.ves_code", selectCmd, dbParas);
+            var result = Utils.GetSqlQueryResult<HblView>(@"s_hbl h join vessel v on h.ves_code = v.ves_code
+                join s_voyage voy on h.ves_code = voy.ves_code and h.voyage = voy.voyage and h.company_id = voy.company_id
+                join carrier c on voy.carrier_code = c.carrier_code", selectCmd, dbParas);
 
             return result.OrderByDescending(a => a.LOADING_PORT_DATE).ToList();
         }
@@ -624,15 +627,14 @@ namespace DbUtils
                 var items = db.SeaInvoiceItems.Where(a => a.INV_NO == invoice.INV_NO && a.COMPANY_ID == invoice.COMPANY_ID && a.FRT_MODE == invoice.FRT_MODE);
 
                 if (refNos != null)
-                {
                     db.SeaInvoiceRefNos.RemoveRange(refNos);
-                    db.SeaInvoiceRefNos.AddRange(invoice.SeaInvoiceRefNos);
-                }
+
+                db.SeaInvoiceRefNos.AddRange(invoice.SeaInvoiceRefNos);
+
                 if (items != null)
-                {
                     db.SeaInvoiceItems.RemoveRange(items);
-                    db.SeaInvoiceItems.AddRange(invoice.SeaInvoiceItems);
-                }
+
+                db.SeaInvoiceItems.AddRange(invoice.SeaInvoiceItems);
 
                 db.SaveChanges();
             }

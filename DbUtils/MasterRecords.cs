@@ -693,9 +693,10 @@ namespace DbUtils
 
         #region Currency
 
-        public List<Currency> GetCurrencies(string companyId)
+        public List<CurrencyView> GetCurrencies(string companyId)
         {
-            return db.Currencies.Where(a => a.COMPANY_ID == companyId).ToList();
+            var sqlCmd = $"select * from currency where company_id = '{companyId}'";
+            return db.Database.SqlQuery<CurrencyView>(sqlCmd).ToList();
         }
 
         public Currency GetCurrency(string currCode, string companyId)

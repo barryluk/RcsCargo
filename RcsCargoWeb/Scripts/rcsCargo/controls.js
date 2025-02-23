@@ -475,7 +475,7 @@
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
                     if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO"
-                        || control.name == "LOT_NO" || control.name == "CONTAINER_NO") {
+                        || control.name == "LOT_NO" || control.name == "VES_CODE" || control.name == "CONTAINER_NO") {
                         var controlName = control.name;
                         //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
                             var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
@@ -1419,7 +1419,7 @@
                                 <div class="row col-xl-${colWidth} col-lg-${colWidth * 2 > 12 ? 12 : colWidth * 2}">
                                     <label class="col-sm-4 col-form-label">${control.label}</label>
                                     <div class="row col-sm-8">
-                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" />
+                                        <${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" targetControl="${control.targetControl}" exRateName="${control.exRateName}" />
                                     </div>
                                 </div>`;
                         } else if (control.type == "button") {
@@ -2585,6 +2585,8 @@
                                     type: "post",
                                     success: function (result) {
                                         options.success(result);
+                                        if (result.length > 0)
+                                            ddl.text(result[0].VES_DESC);
                                     }
                                 });
                             }
@@ -2595,11 +2597,13 @@
                     $(e.sender.filterInput).val(filterValue);
                 },
                 select: function (e) {
-                    let voyage = $(e.sender.element).attr("name").replace("VES_CODE", "VOYAGE");
-                    console.log(`id: #${masterForm.id} input[name="${voyage}"]`, masterForm);
-                    $(`#${masterForm.id} input[name="${voyage}"]`).val(e.dataItem.VOYAGE);
+                    //let voyage = $(e.sender.element).attr("name").replace("VES_CODE", "VOYAGE");
+                    //console.log(`id: #${masterForm.id} input[name="${voyage}"]`, masterForm);
+                    //$(`#${masterForm.id} input[name="${voyage}"]`).val(e.dataItem.VOYAGE);
 
                     let model = {
+                        VOYAGE: e.dataItem.VOYAGE,
+                        INIT_VOYAGE: e.dataItem.VOYAGE,
                         LOADING_PORT: e.dataItem.LOADING_PORT,
                         LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
                         DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
@@ -2877,7 +2881,11 @@
                     if (e.dataItem != null) {
                         var templateName = e.dataItem;
                         var grid = $(`#${masterForm.id} [name=${e.sender.element.attr("targetControl")}]`).data("kendoGrid");
+                        var parentExRate = $(`#${masterForm.id} [name=${e.sender.element.attr("exRateName")}]`).val();
                         var cwts = utils.getFormValue("CWTS", e.sender.element);
+
+                        if (utils.isEmptyString(parentExRate))
+                            parentExRate = 1;
 
                         $.ajax({
                             url: "../Home/GetChargeTemplate",
@@ -2885,7 +2893,7 @@
                             dataType: "json",
                             success: function (templateItems) {
                                 templateItems.forEach(function (item) {
-                                    item.EX_RATE = utils.getExRate(item.CURR_CODE);
+                                    item.EX_RATE = utils.roundUp(utils.getExRate(item.CURR_CODE) / parentExRate, 2);
                                     item.QTY = item.UNIT == "KGS" ? cwts : 1;
                                     item.QTY_UNIT = item.UNIT;
                                     item.MIN_CHARGE = item.MIN_AMOUNT;
@@ -2946,7 +2954,7 @@
 
         //kendoGrid
         $(`#${masterForm.id} div[type=grid]`).each(function () {
-            let editable = { mode: "incell", confirmation: false };
+            let editable = { mode: "incell", confirmation: false, createAt: "bottom" };
             let controlName = $(this).attr("name");
             let gridConfig = utils.getFormControlByName(controlName.replace("grid_", ""));
             let toolbar = [];
@@ -3189,6 +3197,7 @@
         ddl.appendTo(container);
 
         ddl.kendoDropDownList({
+            optionLabel: " ",
             dataTextField: "CURR_CODE",
             dataValueField: "CURR_CODE",
             dataSource: data.masterRecords.currencies,

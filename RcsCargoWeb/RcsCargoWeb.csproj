@@ -378,6 +378,7 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\chargeTemplate.js" />
     <Content Include="Scripts\rcsCargo\seaReport.js" />
     <Content Include="Scripts\rcsCargo\seaSob.js" />
     <Content Include="Scripts\rcsCargo\seaPv.js" />
