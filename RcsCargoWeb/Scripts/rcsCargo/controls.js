@@ -475,7 +475,7 @@
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
                     if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO"
-                        || control.name == "LOT_NO" || control.name == "VES_CODE" || control.name == "CONTAINER_NO") {
+                        || control.name == "LOT_NO" || control.name == "VES_CODE" || control.name == "INIT_VES_CODE" || control.name == "CONTAINER_NO") {
                         var controlName = control.name;
                         //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
                             var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
@@ -1010,6 +1010,18 @@
                             ${controlHtml}
                         </div>
                     </div>`;
+                } else if (control.type == "selectVoyage") {
+                    html += `
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="col-form-label" >${control.label}</label>
+                        </div>
+                        <div class="col-md-10">
+                            <${formControlType} type="${control.type}" name="${control.name}" />
+                            <label class="col-form-label">Voyage</label>
+                            <input type="text" class="form-control" name="VOYAGE" readonly="readonly" style="display:inline; width: 80px">
+                        </div>
+                    </div>`;
                 } else {
                     html += `
                     <div class="form-group row">
@@ -1070,6 +1082,19 @@
                                 dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
                                 companyId: data.companyId,
                                 frtMode: "AE",
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
+                        } else if (pageSetting.pageName == "seaTransfer") {
+                            searchData = {
+                                hblNo: $(`#${pageSetting.id} div.search-control input[name=hblNo]`).val(),
+                                vesCode: $(`#${pageSetting.id} div.search-control input[name=VES_CODE]`).val(),
+                                voyage: $(`#${pageSetting.id} div.search-control input[name=VOYAGE]`).val(),
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                companyId: data.companyId,
+                                frtMode: "SE",
                                 take: data.indexGridPageSize,
                                 skip: options.data.skip,
                                 sort: options.data.sort,
@@ -2559,7 +2584,7 @@
                 filter: "startswith",
                 dataTextField: "VES_DESC",
                 dataValueField: "VES_CODE",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text().trim()} ...`,
                 template: ({ VES_DESC, VOYAGE, LOADING_PORT, DISCHARGE_PORT }) => `${VES_DESC} / ${VOYAGE} ${LOADING_PORT} - ${DISCHARGE_PORT}`,
                 dataSource: {
                     type: "json",
@@ -2601,14 +2626,31 @@
                     //console.log(`id: #${masterForm.id} input[name="${voyage}"]`, masterForm);
                     //$(`#${masterForm.id} input[name="${voyage}"]`).val(e.dataItem.VOYAGE);
 
-                    let model = {
-                        VOYAGE: e.dataItem.VOYAGE,
-                        INIT_VOYAGE: e.dataItem.VOYAGE,
-                        LOADING_PORT: e.dataItem.LOADING_PORT,
-                        LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
-                        DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
-                        DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
-                    };
+                    //For voyage in index page
+                    if (masterForm.searchControls != null) {
+                        $(`#${masterForm.id} input[name="VOYAGE"]`).val(e.dataItem.VOYAGE);
+                        return;
+                    }
+
+                    let model = {};
+                    if ($(e.sender.element).attr("name") == "INIT_VES_CODE") {
+                        model = {
+                            INIT_VOYAGE: e.dataItem.VOYAGE,
+                            LOADING_PORT: e.dataItem.LOADING_PORT,
+                            LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
+                            DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
+                            DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
+                        };
+                    } else {
+                        model = {
+                            VOYAGE: e.dataItem.VOYAGE,
+                            LOADING_PORT: e.dataItem.LOADING_PORT,
+                            LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
+                            DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
+                            DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
+                        };
+                    }
+                    
                     controls.setValuesToFormControls(masterForm, model, true);
                 },
             }).data("kendoDropDownList");
@@ -2666,13 +2708,14 @@
 
         //kendoDropDownList for selectHbl
         $(`#${masterForm.id} input[type=selectHbl]`).each(function () {
+            testObj = $(this);
             var filterValue = "";
             var ddl = $(this).kendoDropDownList({
                 autoWidth: true,
                 filter: "startswith",
                 dataTextField: "HBL_NO",
                 dataValueField: "HBL_NO",
-                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).html()} ...`,
+                optionLabel: `Select for ${$(this).parentsUntil("label").prev().eq(0).text().trim()} ...`,
                 dataSource: {
                     type: "json",
                     serverFiltering: true,

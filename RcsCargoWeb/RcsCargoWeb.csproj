@@ -206,6 +206,7 @@
     <Compile Include="Controllers\Sea\BookingController.cs" />
     <Compile Include="Controllers\Sea\InvoiceController.cs" />
     <Compile Include="Controllers\Sea\PvController.cs" />
+    <Compile Include="Controllers\Sea\TransferController.cs" />
     <Compile Include="Controllers\Sea\VoyageController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -378,6 +379,7 @@
     <Content Include="Scripts\jquery.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\kendo.all.min.js" />
+    <Content Include="Scripts\rcsCargo\seaTransfer.js" />
     <Content Include="Scripts\rcsCargo\chargeTemplate.js" />
     <Content Include="Scripts\rcsCargo\seaReport.js" />
     <Content Include="Scripts\rcsCargo\seaSob.js" />

@@ -1171,7 +1171,7 @@ var indexPages = [
     {
         pageName: "airTransfer",
         id: "",
-        title: "Internal Transfer",
+        title: "Internal Transfer (Air)",
         initScript: "controllers.airTransfer.initTransfer",
         targetContainer: {},
         searchControls: [
@@ -1484,6 +1484,53 @@ var indexPages = [
                 ]
             },
         ],
+    },
+    {
+        pageName: "seaTransfer",
+        id: "",
+        title: "Internal Transfer (Sea)",
+        initScript: "controllers.seaTransfer.initTransfer",
+        targetContainer: {},
+        searchControls: [
+            { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "seaFrtMode", enable: false },
+            { label: "Departure Date", type: "dateRange", name: "departureDateRange" },
+            { label: "HB/L#", type: "selectHbl", name: "hblNo" },
+            { label: "Vessel", type: "selectVoyage", name: "VES_CODE" },
+            { label: "Transfer To", type: "transferSysCompany", name: "targetCompanyId" },
+            { label: "Transfer To Offshore", type: "switch", name: "transferOffshore" },
+            { label: "", type: "emptyBlock", name: "commandButtons" },
+        ],
+        gridConfig: {
+            gridName: "gridSeaTransferIndex",
+            dataSourceUrl: "../Sea/Transfer/GridTransferList_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                {
+                    template: function (dataItem) {
+                        let disable = "";
+                        if (dataItem.IS_TRANSFERRED == "Y")
+                            disable = "disabled='disabled'";
+
+                        return `<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md" hblNo="${dataItem.HBL_NO}" ${disable} />`;
+                    },
+                    headerTemplate: '<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md ckb-select-all" />',
+                    width: 20
+                },
+                { field: "HBL_NO", title: "HB/L#" },
+                { field: "VES_DESC", title: "Vessel / Voyage", template: ({ VES_DESC, VOYAGE }) => `${VES_DESC} / ${VOYAGE}` },
+                { field: "LOADING_PORT_DATE", title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE) },
+                { field: "LOADING_PORT", title: "POL" },
+                { field: "DISCHARGE_PORT", title: "POD" },
+                { field: "SHIPPER_DESC", title: "Shipper" },
+                { field: "CONSIGNEE_DESC", title: "Consignee" },
+                { field: "IS_TRANSFERRED", title: "Transferred?" },
+            ],
+        },
     },
     {
         pageName: "fileStation",
@@ -3806,10 +3853,10 @@ var masterForms = [
                     { label: "Agent", type: "customerAddrEditable", name: "AGENT", colWidth: 6 },
                     { label: "Notify Party 2", type: "customerAddrEditable", name: "NOTIFY2", colWidth: 6 },
                     { label: "Notify Party 3", type: "customerAddrEditable", name: "NOTIFY3", colWidth: 6 },
-                    { label: "Init. Carriage", type: "vessel", name: "INIT_VES_CODE", colWidth: 4 },
+                    { label: "Init. Carriage", type: "selectVoyage", name: "INIT_VES_CODE", colWidth: 4 },
                     { label: "Voyage", type: "text", name: "INIT_VOYAGE", colWidth: 2 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
-                    { label: "Vessel", type: "vessel", name: "VES_CODE", colWidth: 4 },
+                    { label: "Vessel", type: "selectVoyage", name: "VES_CODE", colWidth: 4 },
                     { label: "Voyage", type: "text", name: "VOYAGE", colWidth: 2 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
                     { label: "Place of Receipt", type: "seaPort", name: "RECEIPT_PORT", colWidth: 6 },

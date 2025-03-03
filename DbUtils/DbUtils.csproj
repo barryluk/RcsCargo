@@ -72,6 +72,7 @@
     <Compile Include="Models\Sea\Booking.cs" />
     <Compile Include="Models\Sea\Invoice.cs" />
     <Compile Include="Models\Sea\Pv.cs" />
+    <Compile Include="Models\Sea\TransferLog.cs" />
     <Compile Include="Sea.cs" />
     <Compile Include="MasterRecords.cs" />
     <Compile Include="Air.cs" />

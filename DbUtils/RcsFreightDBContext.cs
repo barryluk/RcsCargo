@@ -83,6 +83,7 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Sea.SeaPv> SeaPvs { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaPvRefNo> SeaPvRefNos { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaPvItem> SeaPvItems { get; set; }
+        public DbSet<TransferHblLog> TransferHblLogs { get; set; }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }

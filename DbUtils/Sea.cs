@@ -300,6 +300,15 @@ namespace DbUtils
             return result.ToList();
         }
 
+        public string GetJobNoByMasterHbl(string masterHblNo, string companyId, string frtMode)
+        {
+            var jobNo = db.SeaHbls.Where(a => a.MASTER_HBL_NO == masterHblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).Select(a => a.JOB_NO).FirstOrDefault();
+            if (string.IsNullOrEmpty(jobNo))
+                return string.Empty;
+            else
+                return jobNo;
+        }
+
         public SeaHbl GetHbl(string hblNo, string companyId, string frtMode, bool byJob)
         {
             var hbl = db.SeaHbls.Where(a => a.HBL_NO == hblNo && a.COMPANY_ID == companyId && a.FRT_MODE == frtMode).FirstOrDefault();
@@ -768,6 +777,47 @@ namespace DbUtils
             return db.SeaPvs.Count(a => a.PV_NO == pvNo &&
                 a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
         }
+
+        #endregion
+
+        #region Transfer
+
+        public List<HblView> GetTransferList(DateTime startDate, DateTime endDate, string companyId, string frtMode, string hblNo, string vesCode, string voyage)
+        {
+            var selectCmd = @"h.hbl_no, h.job_no, h.booking_no, h.company_id,
+                h.shipper_code, h.shipper_desc, h.consignee_code, h.consignee_desc,
+                h.ves_code, v.ves_desc, h.voyage, h.loading_port, h.discharge_port,
+                h.loading_port_date, h.discharge_port_date, h.create_user, h.create_date,
+                is_s_hbl_transferred(h.hbl_no) as is_transferred";
+            var fromCmd = $@"s_hbl h left outer join vessel v on h.ves_code = v.ves_code
+                where h.loading_port_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
+                and h.loading_port_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD')
+                and h.frt_mode = 'SE'
+                and h.is_voided = 'N'";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "h.hbl_no", ParaName = "hblNo", ParaCompareType = DbParameter.CompareType.like, Value = hblNo },
+                new DbParameter { FieldName = "h.ves_code", ParaName = "vesCode", ParaCompareType = DbParameter.CompareType.like, Value = vesCode },
+                new DbParameter { FieldName = "v.ves_desc", ParaName = "vesCode", ParaCompareType = DbParameter.CompareType.like, Value = vesCode },
+                new DbParameter { FieldName = "h.voyage", ParaName = "voyage", ParaCompareType = DbParameter.CompareType.like, Value = voyage },
+                new DbParameter { FieldName = "h.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+            };
+            var result = Utils.GetSqlQueryResult<HblView>(fromCmd, selectCmd, dbParas);
+
+            return result;
+        }
+
+        public void AddTransferHblLog(TransferHblLog log)
+        {
+            db.TransferHblLogs.Add(log);
+            db.SaveChanges();
+        }
+
+        //public void AddTransferInvoiceLog(TransferInvoiceLog log)
+        //{
+        //    db.TransferInvoiceLogs.Add(log);
+        //    db.SaveChanges();
+        //}
 
         #endregion
     }

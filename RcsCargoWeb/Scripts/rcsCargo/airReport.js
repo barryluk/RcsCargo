@@ -90,14 +90,6 @@
                     case "RCSCFSLAX_Reports":
                         controllers.airReport.dialogRCSCFSLAX_Report();
                         break;
-
-                    case "usSummaryInvoiceReport":
-                        utils.getExcelReport("AirUsSummaryInvoiceReport", paras, "USLAX Invoice Summary Report");
-                        break;
-
-                    case "RCSCFSLAX_SummaryInvoiceReport":
-                        utils.getExcelReport("RCSCFSLAX_SummaryInvoiceReport", paras, "USLAX Monthly Invoice Report");
-                        break;
                 }
             });
         });

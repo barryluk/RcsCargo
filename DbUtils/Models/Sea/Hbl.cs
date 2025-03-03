@@ -354,6 +354,7 @@ namespace DbUtils.Models.Sea
         public DateTime? DISCHARGE_PORT_DATE { get; set; }
         public string CREATE_USER { get; set; }
         public DateTime CREATE_DATE { get; set; }
+        public string IS_TRANSFERRED { get; set; }
     }
 
     public class JobView
