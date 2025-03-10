@@ -1028,6 +1028,7 @@ var indexPages = [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+                { name: "batchPv", text: "Batch PV", iconClass: "k-icon k-i-copy", callbackFunction: "controllers.airPv.batchPv" },
             ],
             columns: [
                 { field: "PV_NO", title: "PV#", attributes: { "class": "link-cell" } },
@@ -1056,6 +1057,10 @@ var indexPages = [
                 { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
             ],
         },
+    },
+    {
+        pageName: "airBatchPv",
+        searchControls: [],
     },
     {
         pageName: "airOtherJob",
@@ -3278,12 +3283,120 @@ var masterForms = [
         ],
     },
     {
+        formName: "airBatchPv",
+        mode: "create",   //create
+        title: "Batch create PV",
+        readUrl: "../Air/Pv/GetPv",
+        updateUrl: "../Air/Pv/UpdateBatchPv",
+        //voidUrl: "../Air/Pv/VoidPv",
+        additionalScript: "initAirPv",
+        idField: "PV_NO",
+        id: "",
+        toolbar: [
+            { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "Save", icon: "save" },
+        ],
+        schema: {
+            fields: [
+                { name: "COMPANY_ID", hidden: "true" },
+                { name: "FRT_MODE", hidden: "true" },
+                { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
+                { name: "IS_PRINTED", hidden: "true", defaultValue: "N" },
+                { name: "IS_POSTED", hidden: "true", defaultValue: "N" },
+                { name: "PV_DATE", required: "true", defaultValue: new Date() },
+                { name: "PV_TYPE", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
+                { name: "CUSTOMER", required: "true" },
+                { name: "AMOUNT", readonly: "always" },
+                { name: "AMOUNT_HOME", readonly: "always" },
+                { name: "PvItems", required: "true" },
+            ],
+        },
+        formTabs: [
+            {
+                title: "Main Info.",
+                name: "MainInfo",
+                formGroups: ["mainInfo", "charges"]
+            },
+        ],
+        formGroups: [
+            {
+                name: "mainInfo",
+                title: "PV Information",
+                colWidth: 12,
+                formControls: [
+                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 4 },
+                    { label: "Pv Type", type: "buttonGroup", name: "PV_TYPE", dataType: "pvType", colWidth: 4 },
+                    { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
+                    { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airPv.selectHawb", colWidth: 4 },
+                    { label: "Cr Invoice", type: "switch", name: "IS_CR_INVOICE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Customer", type: "customerAddr", name: "CUSTOMER", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 8 },
+                    { label: "Currency", type: "currency", name: "CURR_CODE", exRateName: "EX_RATE", colWidth: 4 },
+                    { label: "Amount", type: "text", name: "AMOUNT", colWidth: 4 },
+                    { label: "Amount Home", type: "text", name: "AMOUNT_HOME", colWidth: 4 },
+                    { label: "Remarks", type: "textArea", name: "REMARK", colWidth: 4 },
+                ]
+            },
+            {
+                name: "charges",
+                title: "Charge Items",
+                colWidth: 12,
+                formControls: [
+                    { label: "Charge Template", type: "chargeTemplate", name: "chargeTemplate", exRateName: "EX_RATE", targetControl: "grid_PvItems", colWidth: 4 },
+                    {
+                        label: "", type: "grid", name: "PvItems",
+                        columns: [
+                            {
+                                title: "Charge", field: "CHARGE_CODE", width: 280,
+                                template: function (dataItem) { return `${dataItem.CHARGE_CODE} - ${dataItem.CHARGE_DESC}`; },
+                                editor: function (container, options) { controls.renderGridEditorCharges(container, options) }
+                            },
+                            {
+                                title: "Currency", field: "CURR_CODE", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorCurrency(container, options, "EX_RATE") }
+                            },
+                            { title: "Ex. Rate", field: "EX_RATE", width: 80 },
+                            { title: "Price", field: "PRICE", width: 90 },
+                            { title: "Qty", field: "QTY", width: 90 },
+                            {
+                                title: "Unit", field: "QTY_UNIT", width: 80,
+                                editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
+                            },
+                            { title: "Amount", field: "AMOUNT", width: 90 },
+                            { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                        ],
+                        fields: {
+                            CHARGE_CODE: { validation: { required: true } },
+                            CHARGE_DESC: { defaultValue: "" },
+                            CURR_CODE: { validation: { required: true } },
+                            PRICE: { type: "number", validation: { required: true } },
+                            QTY: { type: "number", validation: { required: true } },
+                            QTY_UNIT: { validation: { required: true } },
+                            EX_RATE: { type: "number", editable: false },
+                            AMOUNT: { type: "number", editable: false },
+                            AMOUNT_HOME: { type: "number", editable: false },
+                        },
+                        formulas: [
+                            { fieldName: "AMOUNT", formula: "{PRICE}*{QTY}" },
+                            { fieldName: "AMOUNT_HOME", formula: "{PRICE}*{QTY}*{EX_RATE}" },
+                            { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
+                            { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
+                        ],
+                    },
+                ]
+            },
+        ],
+    },
+    {
         formName: "airOtherJob",
         mode: "edit",   //create / edit
         title: "Job#",
         readUrl: "../Air/OtherJob/GetOtherJob",
         updateUrl: "../Air/OtherJob/UpdateOtherJob",
-        //additionalScript: "initAirOtherJob",
+        additionalScript: "initAirOtherJob",
         idField: "JOB_NO",
         id: "",
         toolbar: [
@@ -3296,7 +3409,7 @@ var masterForms = [
                 { name: "COMPANY_ID", hidden: "true" },
                 { name: "FRT_MODE", hidden: "true" },
                 { name: "FLIGHT_DATE", required: "true" },
-                { name: "CURR_CODE", required: "true" },
+                { name: "CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "SHIPPER_CODE", required: "true" },
                 { name: "CONSIGNEE_CODE", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
@@ -4801,8 +4914,12 @@ export default class {
                                     var pageSetting = utils.getMasterFormByName(controller);
                                     if (controller.endsWith("Index"))
                                         controls.append_tabStripMain(pageSetting.title, id, controller.replace("Index", ""));
-                                    else
-                                        controls.append_tabStripMain(`${pageSetting.title} ${utils.decodeId(id.split("_")[1])}`, id, controller);
+                                    else {
+                                        if (id.startsWith("airBatchPv"))
+                                            controls.append_tabStripMain(`${pageSetting.title}`, id, controller);
+                                        else
+                                            controls.append_tabStripMain(`${pageSetting.title} ${utils.decodeId(id.split("_")[1])}`, id, controller);
+                                    }
                                 }, 500 * (tabStrips.indexOf(id) + 1));
                             }
                         } else { $(".loadingOverlay").addClass("hidden"); }

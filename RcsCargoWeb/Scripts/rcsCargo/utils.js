@@ -60,7 +60,7 @@
 
     getEditMode = function (selector) {
         var formId = utils.getFormId(selector);
-        if (formId.indexOf("NEW") == -1)
+        if (formId.indexOf("NEW") == -1 && formId.indexOf("airBatchPv") == -1)
             return "edit";
         else
             return "create";

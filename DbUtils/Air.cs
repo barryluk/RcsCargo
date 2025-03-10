@@ -52,11 +52,12 @@ namespace DbUtils
             var selectCmd = "a.*";
             var fromCmd = @"(select job as job_no, mawb as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, 
                     gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, ctns as package, package_unit, company_id, frt_mode from a_mawb
-                    union select job_no, '' as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, 
+                    union select job_no, mbl_no as mawb_no, origin_code, dest_code, trunc(flight_date) as flight_date, 
                     gwts, vwts, case when gwts > vwts then gwts else vwts end as cwts, package, package_unit, company_id, frt_mode from a_other_job) a";
             var dbParas = new List<DbParameter>
             {
                 new DbParameter { FieldName = "a.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "a.mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
                 new DbParameter { FieldName = "a.origin_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
                 new DbParameter { FieldName = "a.dest_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
                 new DbParameter { FieldName = "a.flight_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },

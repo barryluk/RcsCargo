@@ -57,7 +57,7 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("UpdateOtherJob")]
         public ActionResult UpdateOtherJob(OtherJob model, string mode)
         {
-            if (string.IsNullOrEmpty(model.JOB_NO))
+            if (string.IsNullOrEmpty(model.JOB_NO) || mode == "create")
             {
                 model.JOB_NO = admin.GetSequenceNumber("AE_OTHER_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.CREATE_DATE);
                 foreach (var item in model.OtherJobChargesPrepaid)

@@ -56,6 +56,9 @@
             utils.confirmMessage(`Are you sure to transfer the selected shipments to ${$(`#${masterForm.id} [name=targetCompanyId]`).val()}?`,
                 hawbNos, "controllers.airTransfer.transferShipments");
         });
+
+        //Default value for target CompanyId
+        $(`#${masterForm.id} [name="targetCompanyId"]`).data("kendoDropDownList").value("RCSCFSLAX")
     }
 
     transferShipments = function (hawbNos) {

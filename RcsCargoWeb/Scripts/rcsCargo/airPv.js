@@ -17,79 +17,157 @@
             saveInvoiceBtn.enable(false);
 
         //(Print) dropdownbutton events
-        printButton.bind("click", function (e) {
-            let buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
-            let reportName = e.id;
-            let reportType = buttonConfig.type;
-            let filename = `PV# ${pvNo}`;
+        if (printButton != null) {
+            printButton.bind("click", function (e) {
+                let buttonConfig = masterForm.toolbar.filter(a => a.text == "Print")[0].menuButtons.filter(a => a.id == e.id)[0];
+                let reportName = e.id;
+                let reportType = buttonConfig.type;
+                let filename = `PV# ${pvNo}`;
 
-            if (e.id == "AirPaymentVoucherPreview1")
-                reportName = "AirPaymentVoucherPreview";
+                if (e.id == "AirPaymentVoucherPreview1")
+                    reportName = "AirPaymentVoucherPreview";
 
-            let paras = [
-                { name: "CompanyId", value: companyId },
-                { name: "FrtMode", value: frtMode },
-                { name: "PvNo", value: pvNo },
-                { name: "IsPreview", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
-                { name: "IsEmail", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
-                { name: "AddressCode", value: "" },
-                { name: "filename", value: filename }];
+                let paras = [
+                    { name: "CompanyId", value: companyId },
+                    { name: "FrtMode", value: frtMode },
+                    { name: "PvNo", value: pvNo },
+                    { name: "IsPreview", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
+                    { name: "IsEmail", value: e.id == "AirPaymentVoucherPreview" ? "N" : "Y" },
+                    { name: "AddressCode", value: "" },
+                    { name: "filename", value: filename }];
 
-            if (reportType == "pdf") {
-                controls.openReportViewer(reportName, paras);
-            } else if (reportType == "xlsx") {
-                utils.getExcelReport(reportName, paras, filename);
-            }
-        });
+                if (reportType == "pdf") {
+                    controls.openReportViewer(reportName, paras);
+                } else if (reportType == "xlsx") {
+                    utils.getExcelReport(reportName, paras, filename);
+                }
+            });
+        }
 
         //invoice(PV) category events
-        pvCategoryBtn.bind("select", function (e) {
+        if (pvCategoryBtn != null) {
+            pvCategoryBtn.bind("select", function (e) {
+                let ddlHawb = $(`#${masterForm.id} [name="HAWB_NO"]`).data("kendoDropDownList");
+                let ddlMawb = $(`#${masterForm.id} [name="MAWB_NO"]`).data("kendoDropDownList");
+                let ddlJob = $(`#${masterForm.id} [name="JOB_NO"]`).data("kendoDropDownList");
+                let ddlLot = $(`#${masterForm.id} [name="LOT_NO"]`).data("kendoDropDownList");
+
+                switch (pvCategoryBtn.current().text()) {
+                    case "HAWB":
+                        ddlHawb.enable(true);
+                        ddlMawb.enable(false);
+                        ddlJob.enable(false);
+                        ddlLot.enable(false);
+                        break;
+                    case "MAWB":
+                        ddlHawb.enable(false);
+                        ddlMawb.enable(true);
+                        ddlJob.enable(false);
+                        ddlLot.enable(false);
+                        break;
+                    case "Job":
+                        ddlHawb.enable(false);
+                        ddlMawb.enable(false);
+                        ddlJob.enable(true);
+                        ddlLot.enable(false);
+                        break;
+                    case "Lot":
+                        ddlHawb.enable(false);
+                        ddlMawb.enable(false);
+                        ddlJob.enable(false);
+                        ddlLot.enable(true);
+                        break;
+                }
+            });
+
+            pvCategoryBtn.trigger("select");
+        }
+
+        //Batch create PV
+        if (masterForm.id.startsWith("airBatchPv")) {
+            $(`#${masterForm.id} div h3`).text("Batch create Payment Voucher");
+
             let ddlHawb = $(`#${masterForm.id} [name="HAWB_NO"]`).data("kendoDropDownList");
-            let ddlMawb = $(`#${masterForm.id} [name="MAWB_NO"]`).data("kendoDropDownList");
-            let ddlJob = $(`#${masterForm.id} [name="JOB_NO"]`).data("kendoDropDownList");
-            let ddlLot = $(`#${masterForm.id} [name="LOT_NO"]`).data("kendoDropDownList");
+            ddlHawb.element.parent().parent().append(`<div style="margin: 5px;" name="airBatchPv_selectedHawbNos" type="chipList" />`);
 
-            switch (pvCategoryBtn.current().text()) {
-                case "HAWB":
-                    ddlHawb.enable(true);
-                    ddlMawb.enable(false);
-                    ddlJob.enable(false);
-                    ddlLot.enable(false);
-                    break;
-                case "MAWB":
-                    ddlHawb.enable(false);
-                    ddlMawb.enable(true);
-                    ddlJob.enable(false);
-                    ddlLot.enable(false);
-                    break;
-                case "Job":
-                    ddlHawb.enable(false);
-                    ddlMawb.enable(false);
-                    ddlJob.enable(true);
-                    ddlLot.enable(false);
-                    break;
-                case "Lot":
-                    ddlHawb.enable(false);
-                    ddlMawb.enable(false);
-                    ddlJob.enable(false);
-                    ddlLot.enable(true);
-                    break;
-            }
-        });
+            $(`#${masterForm.id} [name="airBatchPv_selectedHawbNos"]`).kendoChipList({
+                itemSize: "small",
+                removable: true,
+            });
 
-        pvCategoryBtn.trigger("select");
+            //Save button click event
+            $(`#${masterForm.id} button .k-i-save`).parent().unbind();
+            $(`#${masterForm.id} button .k-i-save`).parent().bind("click", function () {
+                let validator = $(`#${masterForm.id}`).data("kendoValidator");
+                if (!validator.validate()) {
+                    utils.showNotification("Validation failed, please verify the data entry", "warning");
+                    return;
+                } else {
+                    let model = controls.getValuesFromFormControls(masterForm);
+                    let hawbNos = [];
+                    let chipList = $(`#${masterForm.id} [name="airBatchPv_selectedHawbNos"]`).data("kendoChipList");
+                    chipList.items().each(function (i) {
+                        hawbNos.push($(chipList.items()[i]).text());
+                    })
+                    console.log(masterForm, model, hawbNos);
+                    //return;
+
+                    $.ajax({
+                        url: masterForm.updateUrl,
+                        type: "post",
+                        data: { model: model, hawbNos: hawbNos },
+                        beforeSend: function () {
+                            kendo.ui.progress($(`#${masterForm.id} `), true);
+                        },
+                        success: function (result) {
+                            //console.log(result);
+                            let pvNos = "";
+                            for (var i in result) {
+                                pvNos += `${result[i].PV_NO}, `;
+                            }
+                            pvNos = pvNos.substring(0, pvNos.length - 2);
+                            utils.alertMessage(`Batch create PV success.<br><br>PV#: ${pvNos}`, "Batch create PV");
+                            controls.remove_tabStripMain(utils.getFormId());
+
+                            if ($(`[name="gridAirPvIndex"]`) != null) {
+                                $(`[name="gridAirPvIndex"]`).data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        error: function (err) {
+                            console.log(err);
+                            utils.showNotification("Save failed, please contact system administrator!", "error");
+                        },
+                        complete: function () {
+                            kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    batchPv = function () {
+        let controller = "airBatchPv";
+        controls.append_tabStripMain("Batch create PV", `${controller}_${data.companyId}_${utils.getFrtMode()}`, controller);
     }
 
     selectHawb = function (selector, filterValue) {
-        $.ajax({
-            url: "../Air/Hawb/GetHawbs",
-            data: { searchValue: selector.dataItem.HAWB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
-            success: function (result) {
-                result[0].ORIGIN = result[0].ORIGIN_CODE;
-                result[0].DEST = result[0].DEST_CODE;
-                controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airPv")[0], result[0], true);
-            }
-        });
+        let formId = utils.getFormId();
+
+        if (formId.startsWith("airBatchPv")) {
+            let chipList = $(`#${formId} [name="airBatchPv_selectedHawbNos"]`).data("kendoChipList");
+            chipList.add({ label: selector.dataItem.HAWB_NO, themeColor: "info" });
+        } else {
+            $.ajax({
+                url: "../Air/Hawb/GetHawbs",
+                data: { searchValue: selector.dataItem.HAWB_NO, companyId: data.companyId, frtMode: utils.getFrtMode() },
+                success: function (result) {
+                    result[0].ORIGIN = result[0].ORIGIN_CODE;
+                    result[0].DEST = result[0].DEST_CODE;
+                    controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airPv")[0], result[0], true);
+                }
+            });
+        }
     }
 
     selectMawb = function (selector, filterValue) {
