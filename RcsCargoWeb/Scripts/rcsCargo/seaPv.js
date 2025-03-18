@@ -59,8 +59,20 @@
                     hblNoExist = true;
             });
 
-            if (!hblNoExist)
+            if (!hblNoExist) {
                 chipHblNos.add({ label: e.dataItem.HBL_NO, themeColor: "info" });
+
+                let model = {
+                    VES_CODE: e.dataItem.VES_CODE,
+                    VOYAGE: e.dataItem.VOYAGE,
+                    LOADING_PORT: e.dataItem.LOADING_PORT,
+                    LOADING_PORT_DATE: e.dataItem.LOADING_PORT_DATE,
+                    DISCHARGE_PORT: e.dataItem.DISCHARGE_PORT,
+                    DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
+                    JOB_NO: e.dataItem.JOB_NO,
+                };
+                controls.setValuesToFormControls(masterForm, model, true);
+            }
         });
     }
 }

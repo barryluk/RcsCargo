@@ -70,7 +70,7 @@
         //Select HBL event
         let ddl = $(`#${masterForm.id} [name="selectHbl"]`).data("kendoDropDownList");
         ddl.bind("select", function (e) {
-            console.log(masterForm, e.dataItem);
+            //console.log(masterForm, e.dataItem);
 
             let model = {
                 CARRIER_CODE: e.dataItem.CARRIER_CODE,
