@@ -150,6 +150,7 @@ namespace DbUtils.Models.Air
         public DateTime CREATE_DATE { get; set; }
         public string CREATE_USER { get; set; }
         public string IS_VOIDED { get; set; }
+        public string IS_POSTED { get; set; }
     }
 
 }

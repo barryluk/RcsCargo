@@ -597,6 +597,13 @@
         }
         if (model["IS_VOIDED"] == "Y")
             utils.addVoidOverlay(`#${masterForm.id}`);
+
+        if (model["IS_POSTED"] == "Y") {
+            $(`#${masterForm.id} .k-i-save`).first().parent().data("kendoButton").enable(false);
+            $(`#${masterForm.id} .k-i-cancel`).first().parent().data("kendoButton").enable(false);
+            $(`#${masterForm.id} .toolbar-frtMode`).parent().append("<span><img src='../Content/img/posted.png' style='height: 30px; padding-left:40px;'/></span>");
+            $(`#${masterForm.id} .toolbar-seaFrtMode`).parent().append("<span><img src='../Content/img/posted.png' style='height: 30px; padding-left:40px;'/></span>");
+        }
     }
 
     //Get values from form controls
@@ -1204,8 +1211,12 @@
                         if (td.hasClass("link-cell") && utils.isEmptyString(td.text()))
                             td.removeClass("link-cell");
 
-                        if (td.hasClass("link-cell") && !td.text().endsWith("VOID") && dataItem["IS_VOIDED"] == "Y") {
-                            td.append(`<span class="right badge badge-warning" style="margin-left: 4px">VOID</span>`);
+                        if (td.hasClass("link-cell") && !td.text().endsWith("VOIDED") && dataItem["IS_VOIDED"] == "Y") {
+                            td.append(`<span class="right badge badge-warning" style="margin-left: 4px">VOIDED</span>`);
+                        }
+
+                        if (td.hasClass("link-cell") && !td.text().endsWith("POSTED") && dataItem["IS_POSTED"] == "Y") {
+                            td.append(`<span class="right badge badge-success" style="margin-left: 4px">POSTED</span>`);
                         }
                     });
                     rowIndex++;
@@ -1226,7 +1237,7 @@
                 var selectedCell = this.select()[0];
                 if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
-                    var id = $(selectedCell).text().replace("VOID", "");
+                    var id = $(selectedCell).text().replace("VOIDED", "").replace("POSTED", "");
 
                     //special case for sea Voyage
                     if (grid.element.attr("name") == "gridSeaVoyageIndex") {
@@ -1247,7 +1258,7 @@
                             controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}: ${title}`, id, pageSetting.pageName);
                         }
                         else
-                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOID", "")}`, id, pageSetting.pageName);
+                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOIDED", "").replace("POSTED", "") }`, id, pageSetting.pageName);
                     }
                     grid.clearSelection();
                 }

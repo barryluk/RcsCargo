@@ -268,6 +268,7 @@
     <Content Include="Content\img\photo2.png" />
     <Content Include="Content\img\photo3.jpg" />
     <Content Include="Content\img\photo4.jpg" />
+    <Content Include="Content\img\posted.png" />
     <Content Include="Content\img\prod-1.jpg" />
     <Content Include="Content\img\prod-2.jpg" />
     <Content Include="Content\img\prod-3.jpg" />

@@ -869,7 +869,16 @@
                     <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_monthlyReport"><span class="k-icon k-i-excel"></span>Monthly Report</span>
                 </div>
                 <div class="col-sm-12 dialogFooter">
-                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_weeklyReport"><span class="k-icon k-i-excel"></span>Weekly Report (Wecan) </span>
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_weeklyReport"><span class="k-icon k-i-excel"></span>Weekly Report (Wecan)</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_revenueReport"><span class="k-icon k-i-excel"></span>Revenue Report</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_customersReport"><span class="k-icon k-i-excel"></span>Customers Report</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_vendorsReport"><span class="k-icon k-i-excel"></span>Vendors Report</span>
                 </div>
             </div>`;
 
@@ -904,6 +913,21 @@
         $(`#${utils.getFormId()} [name="RCSCFSLAX_monthlyReport"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
             utils.getExcelReport("RCSCFSLAX_SummaryInvoiceReport", paras, `USLAX Monthly Invoice Report`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_revenueReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_RevenueReport", paras, `USLAX Revenue Report`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_customersReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_CustomersReport", paras, `USLAX Customers Report`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_vendorsReport"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_VendorsReport", paras, `USLAX Vendors Report`);
         });
     }
 
