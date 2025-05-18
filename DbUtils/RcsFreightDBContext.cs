@@ -54,6 +54,7 @@ namespace DbUtils
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
         public DbSet<Pv> Pvs { get; set; }
         public DbSet<PvItem> PvItems { get; set; }
+        public DbSet<PvDoc> PvDocs { get; set; }
         public DbSet<OtherJob> OtherJobs { get; set; }
         public DbSet<OtherJobCharge> OtherJobCharges { get; set; }
         public DbSet<TransferHawbLog> TransferHawbLogs { get; set; }

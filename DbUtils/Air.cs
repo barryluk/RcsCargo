@@ -1019,6 +1019,7 @@ namespace DbUtils
             if (pv != null)
             {
                 pv.PvItems = Utils.GetSqlQueryResult<PvItem>("a_pv_item", "*", dbParas);
+                pv.PvDocs = Utils.GetSqlQueryResult<PvDoc>("a_pv_doc", "pv_no", pv.PV_NO);
             }
 
             if (pv == null)
@@ -1033,6 +1034,7 @@ namespace DbUtils
             {
                 db.Pvs.Add(pv);
                 db.PvItems.AddRange(pv.PvItems);
+                db.PvDocs.AddRange(pv.PvDocs);
                 db.SaveChanges();
             }
             catch (Exception ex)
@@ -1047,11 +1049,17 @@ namespace DbUtils
             {
                 db.Entry(pv).State = EntityState.Modified;
                 var items = db.PvItems.Where(a => a.PV_NO == pv.PV_NO && a.COMPANY_ID == pv.COMPANY_ID && a.FRT_MODE == pv.FRT_MODE);
+                var docs = db.PvDocs.Where(a => a.PV_NO == pv.PV_NO);
 
                 if (items != null)
                 {
                     db.PvItems.RemoveRange(items);
                     db.PvItems.AddRange(pv.PvItems);
+                }
+                if (docs != null)
+                {
+                    db.PvDocs.RemoveRange(docs);
+                    db.PvDocs.AddRange(pv.PvDocs);
                 }
 
                 db.SaveChanges();
@@ -1079,6 +1087,47 @@ namespace DbUtils
         {
             return db.Pvs.Count(a => a.PV_NO == pvNo &&
                 a.COMPANY_ID == companyId && a.FRT_MODE == frtMode) == 1 ? true : false;
+        }
+
+        public List<PvDoc> GetPvDocs(string pvNo)
+        {
+            return db.PvDocs.Where(a => a.PV_NO == pvNo).ToList();
+        }
+
+        public PvDoc GetPvDocByDocId(string docId)
+        {
+            return db.PvDocs.Where(a => a.DOC_ID == docId).FirstOrDefault();
+        }
+
+        public void AddPvDoc(PvDoc pvDoc)
+        {
+            db.PvDocs.Add(pvDoc);
+            db.SaveChanges();
+        }
+
+        public void UpdatePvDoc(PvDoc pvDoc)
+        {
+            db.Entry(pvDoc).State = System.Data.Entity.EntityState.Modified;
+            db.SaveChanges();
+        }
+
+        public void DeletePvDoc(string docId)
+        {
+            var path = new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString();
+            var record = db.PvDocs.Where(a => a.DOC_ID == docId).FirstOrDefault();
+            if (record != null)
+            {
+                try
+                {
+                    System.IO.File.Delete(Path.Combine(path, record.DOC_PATH, record.DOC_ID));
+                    db.PvDocs.Remove(record);
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                }
+            }
         }
 
         #endregion

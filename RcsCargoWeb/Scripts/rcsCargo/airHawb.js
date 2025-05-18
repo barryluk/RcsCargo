@@ -9,6 +9,18 @@
         var companyId = masterForm.id.split("_")[2];
         var frtMode = masterForm.id.split("_")[3];
 
+        //manual input for HAWB# in Air Import
+        $(".toolbar-frtMode").bind("click", function (e) {
+            let index = $(this).kendoButtonGroup().data("kendoButtonGroup").current().index() //0: AE, 1: AI
+            if (masterForm.mode == "create" && index == 1)
+                $(`#${masterForm.id} [name="HAWB_NO"]`).removeAttr("readonly");
+            else
+                $(`#${masterForm.id} [name="HAWB_NO"]`).attr("readonly", "readonly");
+        })
+
+        if (masterForm.mode == "create" && utils.getFrtMode() == "AI")
+            $(`#${masterForm.id} [name="HAWB_NO"]`).removeAttr("readonly");
+
         var printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
 
         //(Print) dropdownbutton events

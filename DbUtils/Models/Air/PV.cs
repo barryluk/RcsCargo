@@ -19,6 +19,7 @@ namespace DbUtils.Models.Air
         [Column(Order = 3)]
         public string FRT_MODE { get; set; }
         public string VENDOR_INV_NO { get; set; }
+        public DateTime? VENDOR_INV_DUE_DATE { get; set; }
         public string PV_TYPE { get; set; }
         public string PV_CATEGORY { get; set; }
         public string JOB_NO { get; set; }
@@ -61,10 +62,13 @@ namespace DbUtils.Models.Air
         public decimal? MAWB_RATE { get; set; }
         [NotMapped]
         public List<PvItem> PvItems { get; set; }
+        [NotMapped]
+        public List<PvDoc> PvDocs { get; set; }
 
         public Pv()
         {
             PvItems = new List<PvItem>();
+            PvDocs = new List<PvDoc>();
         }
     }
 
@@ -92,6 +96,25 @@ namespace DbUtils.Models.Air
         public string QTY_UNIT { get; set; }
         public decimal AMOUNT { get; set; }
         public decimal AMOUNT_HOME { get; set; }
+    }
+
+    [Table("A_PV_DOC")]
+    public class PvDoc
+    {
+        [Key]
+        [Column(Order = 1)]
+        public string PV_NO { get; set; }
+        [Key]
+        [Column(Order = 2)]
+        public string DOC_ID { get; set; }
+        public string DOC_NAME { get; set; }
+        public decimal DOC_SIZE { get; set; }
+        public string DOC_PATH { get; set; }
+        public string COMMENTS { get; set; }
+        public DateTime CREATE_DATE { get; set; }
+        public string CREATE_USER { get; set; }
+        public DateTime MODIFY_DATE { get; set; }
+        public string MODIFY_USER { get; set; }
     }
 
     public class PvView

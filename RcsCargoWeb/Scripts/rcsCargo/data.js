@@ -1017,7 +1017,7 @@ var indexPages = [
         searchControls: [
             { label: "Freight Mode", type: "buttonGroup", name: "frtMode", dataType: "frtMode" },
             { label: "PV Date", type: "dateRange", name: "pvDateRange" },
-            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "PV# / MAWB# / HAWB# / Job# / Customer" },
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "PV# / MAWB# / HAWB# / Job# / Vendor" },
         ],
         gridConfig: {
             gridName: "gridAirPvIndex",
@@ -1050,7 +1050,8 @@ var indexPages = [
                 { field: "FLIGHT_DATE", title: "Flight Date", template: ({ FLIGHT_DATE }) => data.formatDateTime(FLIGHT_DATE, "dateTime") },
                 { field: "ORIGIN", title: "Origin" },
                 { field: "DEST", title: "Destination" },
-                { field: "CUSTOMER_DESC", title: "Customer" },
+                { field: "CUSTOMER_DESC", title: "Vendor" },
+                { field: "PV_DATE", title: "Vendor Inv. Date", template: ({ PV_DATE }) => data.formatDateTime(PV_DATE, "date") },
                 { field: "CURR_CODE", title: "Curr." },
                 { field: "AMOUNT", title: "Amount" },
                 { field: "CREATE_USER", title: "Create User" },
@@ -2592,7 +2593,22 @@ var masterForms = [
                 { name: "C_CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "FRT_PAYMENT_PC", required: "true" },
                 { name: "OTHER_PAYMENT_PC", required: "true" },
+                { name: "PACKAGE_UNIT", required: "true", defaultValue: "CTNS" },
             ],
+            validation: {
+                rules: {
+                    hawbNoExistsRule: function (input) {
+                        if (input.is("[name=HAWB_NO]")) {
+                            return !utils.isExistingHawbNo(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: {
+                    hawbNoExistsRule: "HAWB# already exists in the database!",
+                },
+            },
         },
         formGroups: [
             {
@@ -3196,7 +3212,7 @@ var masterForms = [
             {
                 title: "Main Info.",
                 name: "MainInfo",
-                formGroups: ["mainInfo", "charges"]
+                formGroups: ["mainInfo", "charges", "doc"]
             },
         ],
         formGroups: [
@@ -3206,16 +3222,19 @@ var masterForms = [
                 colWidth: 12,
                 formControls: [
                     { label: "Pv #", type: "text", name: "PV_NO", colWidth: 4 },
-                    { label: "Pv Date", type: "date", name: "PV_DATE", colWidth: 4 },
+                    { label: "Vendor Inv. Date", type: "date", name: "PV_DATE", colWidth: 4 },
                     { label: "Cr Invoice", type: "switch", name: "IS_CR_INVOICE", colWidth: 4 },
                     { label: "Pv Type", type: "buttonGroup", name: "PV_TYPE", dataType: "pvType", colWidth: 4 },
                     { label: "Category", type: "buttonGroup", name: "PV_CATEGORY", dataType: "invoiceCategory", colWidth: 4 },
-                    { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
                     { label: "HAWB #", type: "selectHawb", name: "HAWB_NO", callbackFunction: "controllers.airPv.selectHawb", colWidth: 3 },
                     { label: "MAWB #", type: "selectMawb", name: "MAWB_NO", callbackFunction: "controllers.airPv.selectMawb", colWidth: 3 },
                     { label: "Job #", type: "selectJob", name: "JOB_NO", callbackFunction: "controllers.airPv.selectJob", colWidth: 3 },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airPv.selectLot", colWidth: 3 },
-                    { label: "Customer", type: "customerAddr", name: "CUSTOMER", colWidth: 4 },
+                    { label: "Vendor Inv.#", type: "text", name: "VENDOR_INV_NO", colWidth: 4 },
+                    { label: "Due Date", type: "date", name: "VENDOR_INV_DUE_DATE", colWidth: 4 },
+                    { label: "", type: "emptyBlock", colWidth: 4 },
+                    { label: "Vendor", type: "customerAddr", name: "CUSTOMER", colWidth: 4 },
                     { label: "", type: "emptyBlock", colWidth: 8 },
                     { label: "Airline", type: "airline", name: "AIRLINE_CODE", colWidth: 4 },
                     { label: "Flight #", type: "text", name: "FLIGHT_NO", colWidth: 4 },
@@ -3281,6 +3300,50 @@ var masterForms = [
                             { fieldName: "master.AMOUNT", formula: "SUM({AMOUNT_HOME})" },
                             { fieldName: "master.AMOUNT_HOME", formula: "SUM({AMOUNT_HOME}*{master.EX_RATE})" },
                         ],
+                    },
+                ]
+            },
+            {
+                name: "doc",
+                title: "Documents",
+                colWidth: 12,
+                formControls: [
+                    {
+                        label: "",
+                        type: "grid",
+                        name: "PvDocs",
+                        deleteCallbackFunction: "controllers.airPv.gridPvDocsDelete",
+                        toolbar: [
+                            { name: "uploadFile", text: "Upload File", iconClass: "k-icon k-i-file-add", callbackFunction: "controllers.airPv.uploadFiles" },
+                            { name: "save", callbackFunction: "controllers.airPv.gridPvDocsConfirmSaveChanges" },
+                            { name: "cancel" },
+                        ],
+                        columns: [
+                            //{ title: "Document Name", field: "DOC_NAME", attributes: { "class": "link-cell" }, width: 220 },
+                            { title: "", template: (dataItem) => `<i class="k-icon k-i-download handCursor" onclick="controllers.airPv.downloadFile(this, '${dataItem.DOC_ID}')"></i>`, width: 24 },
+                            { title: "Document Name", field: "DOC_NAME", width: 220 },
+                            { title: "Size", field: "DOC_SIZE", width: 60 },
+                            { title: "Comments", field: "COMMENTS", width: 260 },
+                            { title: "Create", template: function (dataItem) { return `${dataItem.CREATE_USER} - ${kendo.toString(kendo.parseDate(dataItem.CREATE_DATE), data.dateTimeLongFormat)}`; }, width: 160 },
+                            { title: "Modify", template: function (dataItem) { return `${dataItem.MODIFY_USER} - ${kendo.toString(kendo.parseDate(dataItem.MODIFY_DATE), data.dateTimeLongFormat)}`; }, width: 160 },
+                            {
+                                command: [{
+                                    className: "btn-destroy", name: "destroy", text: " "
+                                }], width: 50
+                            },
+                        ],
+                        fields: {
+                            DOC_ID: { type: "string" },
+                            PV_NO: { type: "string" },
+                            DOC_PATH: { type: "string" },
+                            DOC_NAME: { validation: { required: true } },
+                            DOC_SIZE: { type: "number", editable: false },
+                            COMMENTS: { type: "string" },
+                            CREATE_USER: { editable: false },
+                            CREATE_DATE: { type: "date", editable: false },
+                            MODIFY_USER: { editable: false },
+                            MODIFY_DATE: { type: "date", editable: false },
+                        },
                     },
                 ]
             },

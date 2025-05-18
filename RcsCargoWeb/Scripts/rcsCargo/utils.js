@@ -149,6 +149,10 @@
             let masterForm = data.masterForms.filter(a => a.formName == formId.split("_")[0])[0];
             masterForm.id = formId;
             masterForm.mode = utils.getEditMode(selector);
+
+            if (masterForm.formName == "airHawb" && utils.getFrtMode() == "AI") {
+                masterForm.schema.fields.filter(a => a.name == "HAWB_NO")[0].required = true;
+            }
             return masterForm;
         } else {
             let indexPage = data.indexPages.filter(a => a.pageName == formId.split("_")[0].replace("Index", ""))[0];
@@ -559,6 +563,21 @@
             url: "../Air/Booking/IsExistingBookingNo",
             dataType: "text",
             data: { id: bookingNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingHawbNo = function (hawbNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Air/Hawb/IsExistingHawbNo",
+            dataType: "text",
+            data: { id: hawbNo, companyId: data.companyId, frtMode: utils.getFrtMode() },
             async: false,
             success: function (result) {
                 serverResult = result;
