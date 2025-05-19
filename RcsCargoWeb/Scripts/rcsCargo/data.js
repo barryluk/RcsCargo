@@ -2591,8 +2591,8 @@ var masterForms = [
                 { name: "DEST_CODE", required: "true" },
                 { name: "P_CURR_CODE", required: "true", defaultValue: "currency" },
                 { name: "C_CURR_CODE", required: "true", defaultValue: "currency" },
-                { name: "FRT_PAYMENT_PC", required: "true" },
-                { name: "OTHER_PAYMENT_PC", required: "true" },
+                { name: "FRT_PAYMENT_PC", required: "true", defaultValue: "P" },
+                { name: "OTHER_PAYMENT_PC", required: "true", defaultValue: "P" },
                 { name: "PACKAGE_UNIT", required: "true", defaultValue: "CTNS" },
             ],
             validation: {

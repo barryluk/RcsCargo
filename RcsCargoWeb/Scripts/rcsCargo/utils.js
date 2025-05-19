@@ -152,6 +152,11 @@
 
             if (masterForm.formName == "airHawb" && utils.getFrtMode() == "AI") {
                 masterForm.schema.fields.filter(a => a.name == "HAWB_NO")[0].required = true;
+                masterForm.schema.fields.filter(a => a.name == "BOOKING_NO")[0].readonly = "always";
+
+                //let bookingNoCtrl = masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.filter(a => a.name == "BOOKING_NO")[0];
+                //let bookingNoCtrolIndex = masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.indexOf(bookingNoCtrl);
+                //masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.splice(bookingNoCtrolIndex, 1);
             }
             return masterForm;
         } else {
