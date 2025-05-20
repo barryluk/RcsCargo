@@ -3024,6 +3024,7 @@ var masterForms = [
         id: "",
         toolbar: [
             { type: "button", text: "New", icon: "file-add" },
+            { type: "button", text: "New Credit Note", icon: "file-txt" },
             { type: "button", text: "Save", icon: "save" },
             { type: "button", text: "Save New", icon: "copy" },
             { type: "button", text: "Void", icon: "cancel" },
