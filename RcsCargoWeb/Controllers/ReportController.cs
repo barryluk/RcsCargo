@@ -353,6 +353,7 @@ namespace RcsCargoWeb.Controllers
                 case "RCSCFSLAX_RevenueReport": reportName = ReportName.RCSCFSLAX_RevenueReport; break;
                 case "RCSCFSLAX_CustomersReport": reportName = ReportName.RCSCFSLAX_CustomersReport; break;
                 case "RCSCFSLAX_VendorsReport": reportName = ReportName.RCSCFSLAX_VendorsReport; break;
+                case "RCSCFSLAX_StatementReport": reportName = ReportName.RCSCFSLAX_StatementReport; break;
 
                 case "SeaDailyBooking": reportName = ReportName.SeaDailyBooking; break;
                 case "SeaShipmentReport": reportName = ReportName.SeaShipmentReport; break;

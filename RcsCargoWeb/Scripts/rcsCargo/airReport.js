@@ -90,6 +90,10 @@
                     case "RCSCFSLAX_Reports":
                         controllers.airReport.dialogRCSCFSLAX_Report();
                         break;
+
+                    case "RCSCFSLAX_Statement":
+                        controllers.airReport.dialogStatementReport();
+                        break;
                 }
             });
         });
@@ -928,6 +932,34 @@
         $(`#${utils.getFormId()} [name="RCSCFSLAX_vendorsReport"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
             utils.getExcelReport("RCSCFSLAX_VendorsReport", paras, `USLAX Vendors Report`);
+        });
+    }
+
+    dialogStatementReport = function () {
+        let html = `
+            <div class="row col-sm-12" id="${utils.getFormId()}_statementReport" style="width: 460px">
+                <label class="col-sm-3 col-form-label">Payee</label>
+                <div class="col-md-9">
+                    <input type="customer" class="form-control-dropdownlist" name="statementReport_payee" />
+                </div>
+                <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" name="statementReport_print"><span class="k-icon k-i-excel"></span>Print</span>
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "Statement", null, null, false);
+        let formSetting = { id: utils.getFormId() };
+        controls.renderFormControl_kendoUI(formSetting);
+
+        $(`#${utils.getFormId()} [name="statementReport_print"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            let customerCode = $(`#${utils.getFormId()} [name=statementReport_payee]`).data("kendoDropDownList").value();
+            customerCode = customerCode.substring(0, customerCode.indexOf("-"));
+            //console.log(customerCode);
+            //return;
+            paras.push({ name: "CustomerCode", value: customerCode });
+            paras.push({ name: "fileFormat", value: "excel" });
+            utils.getExcelReport("RCSCFSLAX_StatementReport", paras, `Statement-${kendo.toString(new Date(), "MMM dd")}`);
         });
     }
 

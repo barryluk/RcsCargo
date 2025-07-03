@@ -1157,6 +1157,7 @@ var indexPages = [
                     { label: "Payment Voucher Report", name: "pvReport", icon: "k-i-excel" },
                     { label: "SHA / CN Reports", name: "shaReport", icon: "k-i-excel" },
                     { label: "RCSCFSLAX Reports", name: "RCSCFSLAX_Reports", icon: "k-i-excel" },
+                    { label: "RCSCFSLAX Statement", name: "RCSCFSLAX_Statement", icon: "k-i-excel" },
                 ]
             },
             {

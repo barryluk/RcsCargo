@@ -859,7 +859,7 @@ namespace DbUtils
                 }
             }
 
-            return result;
+            return result.OrderByDescending(a => a.CREATE_DATE).ToList();
         }
 
         public List<InvoiceView> GetHawbInvoices(string hawbNo, string companyId, string frtMode)
@@ -1004,7 +1004,7 @@ namespace DbUtils
             };
             var result = Utils.GetSqlQueryResult<PvView>("a_pv", "*", dbParas);
 
-            return result;
+            return result.OrderByDescending(a => a.CREATE_DATE).ToList(); ;
         }
 
         public Pv GetPv(string pvNo, string companyId, string frtMode)
