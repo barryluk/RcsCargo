@@ -6,8 +6,8 @@
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         masterForm.id = utils.getFormId();
         let sobNo = masterForm.id.split("_")[1];
-        let companyId = masterForm.id.split("_")[2];
-        let frtMode = masterForm.id.split("_")[3];
+        let companyId = data.companyId;
+        let frtMode = utils.getFrtMode();
         let createType = "";
         let hblNo = "";
 
