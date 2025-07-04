@@ -6,8 +6,8 @@
         //id format: airBooking_{bookingNo}_{companyId}_{frtMode}
         masterForm.id = utils.getFormId();
         var bookingNo = masterForm.id.split("_")[1];
-        var companyId = masterForm.id.split("_")[2];
-        var frtMode = masterForm.id.split("_")[3];
+        var companyId = data.companyId;
+        var frtMode = utils.getFrtMode();
         
         var printButton = $(`#${masterForm.id} [aria-label="Print dropdownbutton"]`).data("kendoDropDownButton");
 

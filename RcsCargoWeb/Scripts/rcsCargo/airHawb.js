@@ -6,8 +6,8 @@
         //masterForm.id format: linkIdPrefix_{keyValue}_{companyId}_{frtMode}
         masterForm.id = utils.getFormId();
         var hawbNo = masterForm.id.split("_")[1];
-        var companyId = masterForm.id.split("_")[2];
-        var frtMode = masterForm.id.split("_")[3];
+        var companyId = data.companyId;
+        var frtMode = utils.getFrtMode();
 
         //manual input for HAWB# in Air Import
         $(".toolbar-frtMode").bind("click", function (e) {
