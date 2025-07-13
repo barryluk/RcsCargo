@@ -80,6 +80,11 @@
 
             utils.alertMessage(html, "Save as new credit note", "confirm", null, true, "controllers.airInvoice.saveAsNewCreditNoteClick");
         });
+
+        //Hide the credit note button
+        if ($(`#${masterForm.id} [name=INV_TYPE] .k-selected`).text() == "Credit Note") {
+            $(`#${masterForm.id} button .k-i-file-txt`).parent().attr("style", "display: none");
+        }
     }
 
     saveAsNewCreditNoteClick = function (sender) {
@@ -136,6 +141,14 @@
             model.INV_NO = "";
             
             console.log(masterForm, model);
+
+            if (!utils.isEmptyString(model.JOB_NO) && !utils.isEmptyString(model.MAWB_NO)) {
+                if (!utils.isValidJobNo(model.JOB_NO, model.MAWB_NO)) {
+                    utils.showNotification("Invalid Job# / MAWB#, please verify the data entry", "warning");
+                    return;
+                }
+            }
+
             //return;
 
             $.ajax({

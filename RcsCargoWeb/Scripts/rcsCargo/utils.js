@@ -630,6 +630,26 @@
         }
     }
 
+    isValidJobNo = function (jobNo, mawbNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Air/Mawb/IsValidJobNo",
+            dataType: "text",
+            data: {
+                jobNo: jobNo,
+                mawbNo: mawbNo,
+                companyId: data.companyId,
+                frtMode: utils.getFrtMode()
+            },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isExistingSeaBookingNo = function (bookingNo) {
         var serverResult = "";
         $.ajax({

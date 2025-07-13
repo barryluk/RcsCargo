@@ -233,6 +233,12 @@ namespace RcsCargoWeb.Air.Controllers
             return Content(air.IsExistingJobNo(id, companyId, frtMode).ToString());
         }
 
+        [Route("IsValidJobNo")]
+        public ActionResult IsValidJobNo(string mawbNo, string jobNo, string companyId, string frtMode)
+        {
+            return Content(air.IsValidJobNo(mawbNo, jobNo, companyId, frtMode).ToString());
+        }
+
         [Route("GetFlightNos")]
         public ActionResult GetFlightNos(string companyId, DateTime startDate, DateTime endDate)
         {

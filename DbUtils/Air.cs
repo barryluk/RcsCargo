@@ -455,6 +455,40 @@ namespace DbUtils
             return origins.ToList();
         }
 
+        public bool IsValidJobNo(string mawbNo, string jobNo, string companyId, string frtMode)
+        {
+            var valid = true;
+
+            //step 1: Check MAWB#, Job# relationship is correct
+            if (companyId == "RCSCFSLAX")
+            {
+                valid = db.Mawbs.Count(a => a.MAWB == mawbNo
+                    && a.JOB == jobNo
+                    && (a.COMPANY_ID == "RCSCFSLAX" || a.COMPANY_ID == "RCSJFK")
+                    && a.FRT_MODE == frtMode) > 0 ? true : false;
+            }
+            else
+            {
+                valid = db.Mawbs.Count(a => a.MAWB == mawbNo
+                    && a.JOB == jobNo
+                    && a.COMPANY_ID == companyId
+                    && a.FRT_MODE == frtMode) > 0 ? true : false;
+            }
+
+            //step 2: Check when MAWB#, Job# is already exist in invoice / PV, the input Job# must use the original value
+            if (valid)
+            {
+                if (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0 || 
+                    db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0)
+                {
+                    valid = (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0 ||
+                        db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0) ? true : false;
+                }
+            }
+
+            return valid;
+        }
+
         #endregion
 
         #region Booking, Warehouse

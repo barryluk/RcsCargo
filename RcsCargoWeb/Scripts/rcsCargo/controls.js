@@ -1728,6 +1728,14 @@
             } else {
                 var model = controls.getValuesFromFormControls(masterForm);
                 console.log(masterForm, model);
+
+                if (masterForm.formName == "airInvoice" && !utils.isEmptyString(model.JOB_NO) && !utils.isEmptyString(model.MAWB_NO)) {
+                    if (!utils.isValidJobNo(model.JOB_NO, model.MAWB_NO)) {
+                        utils.showNotification("Invalid Job# / MAWB#, please verify the data entry", "warning");
+                        return;
+                    }
+                }
+
                 //return;
 
                 $.ajax({
