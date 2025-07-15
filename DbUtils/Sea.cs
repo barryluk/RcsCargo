@@ -259,7 +259,7 @@ namespace DbUtils
             };
             var result = Utils.GetSqlQueryResult<HblView>(@"s_hbl h join vessel v on h.ves_code = v.ves_code
                 join s_voyage voy on h.ves_code = voy.ves_code and h.voyage = voy.voyage and h.company_id = voy.company_id
-                join carrier c on voy.carrier_code = c.carrier_code", selectCmd, dbParas);
+                left outer join carrier c on voy.carrier_code = c.carrier_code", selectCmd, dbParas);
 
             return result.OrderByDescending(a => a.LOADING_PORT_DATE).ToList();
         }

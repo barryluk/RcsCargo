@@ -475,7 +475,10 @@
                 } else if (data.dropdownlistControls.filter(a => a.indexOf("customer") == -1).includes(control.type)) {
                     $(`#${masterForm.id} [name=${control.name}]`).data("kendoDropDownList").value(model[`${control.name}`]);
                     if (control.name == "HAWB_NO" || control.name == "MAWB_NO" || control.name == "JOB_NO"
-                        || control.name == "LOT_NO" || control.name == "VES_CODE" || control.name == "INIT_VES_CODE" || control.name == "CONTAINER_NO") {
+                        || control.name == "LOT_NO"
+                        || (control.name == "VES_CODE" && control.type == "selectVoyage")
+                        || (control.name == "INIT_VES_CODE" && control.type == "selectVoyage")
+                        || control.name == "CONTAINER_NO") {
                         var controlName = control.name;
                         //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
                             var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
@@ -1752,6 +1755,11 @@
                         } else {
                             var controller = masterForm.id.split("_")[0];
                             var newId = `${controller}_${utils.encodeId(result[masterForm.idField])}_${data.companyId}_${utils.getFrtMode()}`;
+
+                            //Special case for vessel voyage, e.g.: 'seaVoyage_OONET-071E_RCSCFSLAX_SI'
+                            if (masterForm.idField == "VES_CODE,VOYAGE") {
+                                newId = `${controller}_${utils.encodeId(result["VES_CODE"])}-${utils.encodeId(result["VOYAGE"])}_${data.companyId}_${utils.getFrtMode()}`;
+                            }
                             console.log("newID", newId);
 
                             //Change the form control values
@@ -1760,14 +1768,25 @@
                             //seaSob_NEW_RCSHKG_SE_HBL_SHALAX19713
                             if (tabHtml.startsWith("SOB#")) {
                                 tabHtml = `SOB# ${result[masterForm.idField]} &nbsp;&nbsp;<i class="k-icon k-icon-sm k-color-default k-i-unpin btnPin"></i> &nbsp;&nbsp;<i class="k-icon k-icon-sm k-color-default k-i-refresh btnRefresh" id="btnRefresh_${newId}"></i> &nbsp;&nbsp;<i class="k-icon k-i-close k-color-default btnClose" id="btnClose_${newId}"></i>`;
+                            } else {
+                                if (masterForm.idField == "VES_CODE,VOYAGE")
+                                    tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result["VES_CODE"]) + "-" + utils.encodeId(result["VOYAGE"]));
+                                else
+                                    tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result[masterForm.idField]));
                             }
-                            else
-                                tabHtml = tabHtml.replaceAll("NEW", utils.encodeId(result[masterForm.idField]));
 
-                            tabHtml = tabHtml.replace(masterForm.title + " " + utils.encodeId(result[masterForm.idField]), masterForm.title + " " + result[masterForm.idField]);
+                            if (masterForm.idField == "VES_CODE,VOYAGE")
+                                tabHtml = tabHtml.replace(masterForm.title + " " + utils.encodeId(result["VES_CODE"]) + "-" + utils.encodeId(result["VOYAGE"]), masterForm.title + " " + result["VES_CODE"] + "-" + result["VOYAGE"]);
+                            else
+                                tabHtml = tabHtml.replace(masterForm.title + " " + utils.encodeId(result[masterForm.idField]), masterForm.title + " " + result[masterForm.idField]);
+
                             $(`#btnRefresh_${masterForm.id}`).parent().html(tabHtml);
                             $(`#${masterForm.id}`).attr("id", newId);
-                            $(`#${newId} h3`).text(`${masterForm.title} ${utils.encodeId(result[masterForm.idField])}`);
+
+                            if (masterForm.idField == "VES_CODE,VOYAGE")
+                                $(`#${newId} h3`).text(`${masterForm.title} ${utils.encodeId(result["VES_CODE"])}-${utils.encodeId(result["VOYAGE"])}`);
+                            else
+                                $(`#${newId} h3`).text(`${masterForm.title} ${utils.encodeId(result[masterForm.idField])}`);
 
                             $("#btnClose_" + newId).click(function () {
                                 var tabStrip = $("#tabStripMain").data("kendoTabStrip");

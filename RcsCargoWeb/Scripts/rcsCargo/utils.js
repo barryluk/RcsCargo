@@ -296,21 +296,29 @@
     }
 
     encodeId = function (id) {
-        id = id.replaceAll("/", "-slash-");
-        id = id.replaceAll("\\", "-backslash-");
-        id = id.replaceAll(" ", "-space-");
-        id = id.replaceAll("(", "-lbracket-");
-        id = id.replaceAll(")", "-rbracket-");
-        return id;
+        try {
+            id = id.replaceAll("/", "-slash-");
+            id = id.replaceAll("\\", "-backslash-");
+            id = id.replaceAll(" ", "-space-");
+            id = id.replaceAll("(", "-lbracket-");
+            id = id.replaceAll(")", "-rbracket-");
+            return id;
+        } catch {
+            return "";
+        }
     }
 
     decodeId = function (id) {
-        id = id.replaceAll("-slash-", "/");
-        id = id.replaceAll("-backslash-", "\\");
-        id = id.replaceAll("-space-", " ");
-        id = id.replaceAll("-lbracket-", "(");
-        id = id.replaceAll("-rbracket-", ")");
-        return id;
+        try {
+            id = id.replaceAll("-slash-", "/");
+            id = id.replaceAll("-backslash-", "\\");
+            id = id.replaceAll("-space-", " ");
+            id = id.replaceAll("-lbracket-", "(");
+            id = id.replaceAll("-rbracket-", ")");
+            return id;
+        } catch {
+            return "";
+        }
     }
 
     parseDate = function (value) {

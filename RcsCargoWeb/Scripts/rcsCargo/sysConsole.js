@@ -7,9 +7,90 @@
             $(this).click(function () {
                 switch ($(this).attr("name")) {
                     case "sysLogs": controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs"); break;
+                    case "camRecords": controls.append_tabStripMain("SHA Camera Records", "camRecordsIndex", "camRecords"); break;
                     case "getSeqNo": controls.append_tabStripMain("Generate Sequence #", "getSeqNoIndex", "getSeqNo"); break;
                 }
             });
+        });
+    }
+
+    initCamRecords = function () {
+        let ctrlHtml = `<div class="row col-xl-12 col-lg-12"><label class="col-sm-1 col-form-label">Camera</label>
+                        <div class="col-sm-2"><div class="camId" style="width: 120px"></div></div></div>
+                        <div class="row col-xl-12 col-lg-12"><label class="col-sm-1 col-form-label">Date</label>
+                        <div class="col-sm-2"><table><tr><td><div class="dateFolder" style="width: 120px"></div></td><td><span class="k-icon k-i-refresh handCursor" style="font-size: 10pt"></span></td></tr></table></div>
+                        <div class="row col-xl-12 col-lg-12"><label class="col-sm-1 col-form-label">Record Files</label>
+                        <div class="col-sm-8"><div class="gridFiles"></div></div></div>`;
+
+        $("#camRecordsIndex .search-control.row").html(ctrlHtml);
+
+        var ddlcamId = $("#camRecordsIndex .search-control.row .camId").kendoDropDownList({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: {
+                data: [{ text: "Entrance", value: "78DF723EB876" },
+                    { text: "Office", value: "78DF723EAC16" }]
+            },
+            change: function (e) {
+                console.log(e.sender.value());
+
+                $.ajax({
+                    url: "../FileStation/GetCamRecordDateFolders",
+                    dataType: "json",
+                    data: { camId: e.sender.value() },
+                    success: function (result) {
+                        let ds = new kendo.data.DataSource({ data: result });
+                        ddlDateFolder.setDataSource(ds);
+                    }
+                });
+            },
+        }).data("kendoDropDownList");;
+
+        var ddlDateFolder = $("#camRecordsIndex .search-control.row .dateFolder").kendoDropDownList({
+            change: function (e) {
+                console.log(e.sender.value());
+
+                $.ajax({
+                    url: "../FileStation/GetCamRecordFiles",
+                    dataType: "json",
+                    data: { camId: ddlcamId.value(), dateFolder: e.sender.value() },
+                    success: function (result) {
+                        let ds = new kendo.data.DataSource({ data: result });
+                        gridFiles.setDataSource(ds);
+                    }
+                });
+            }
+        }).data("kendoDropDownList");
+
+        var gridFiles = $("#camRecordsIndex .search-control.row .gridFiles").kendoGrid({
+            columns: [
+                { field: "FileName", title: "File Name", attributes: { "class": "link-cell" } },
+                { field: "Size", title: "Size (MB)", template: ({ Size }) => utils.roundUp(Size / 1024 / 1024, 2) },
+                { field: "CamId", title: "Camera ID" },
+                { field: "DateFolder", title: "Folder" },
+                { field: "CreateDate", title: "Create Date", template: ({ CreateDate }) => data.formatDateTime(CreateDate, "dateTimeLong") },
+            ],
+            selectable: "cell",
+            change: function (e) {
+                let selectedCell = gridFiles.select()[0];
+                if ($(selectedCell).hasClass("link-cell")) {
+                    let id = $(selectedCell).text();
+                    gridFiles.clearSelection();
+                    console.log(id);
+
+                    let videoHtml = `<video height="100%" controls autoplay>
+                                        <source src="../CamRecords/${ddlcamId.value()}/${ddlDateFolder.value()}/${id}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                        </video>`;
+                    utils.alertMessage(videoHtml, id, "info", "large", false);
+                }
+            },
+        }).data("kendoGrid");
+
+        ddlcamId.trigger("change");
+
+        $("#camRecordsIndex .search-control.row .k-i-refresh").click(function () {
+            ddlDateFolder.trigger("change");
         });
     }
 

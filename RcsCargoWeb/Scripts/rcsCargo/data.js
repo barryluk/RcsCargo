@@ -1593,6 +1593,7 @@ var indexPages = [
                     { label: "SQL Developer", name: "sqlDeveloper" },
                     { label: "Guid / Password / Encrypt", name: "stringTools" },
                     { label: "Get Sequence Numbers", name: "getSeqNo" },
+                    { label: "SHA Camera Records", name: "camRecords" },
                 ]
             },
         ],
@@ -1606,6 +1607,13 @@ var indexPages = [
             { label: "Log file", type: "logFiles", name: "logFiles", colWidth: 4 },
             { type: "emptyBlock", name: "logContent", colWidth: 12 },
         ],
+    },
+    {
+        pageName: "camRecords",
+        id: "",
+        title: "SHA Camera Records",
+        initScript: "controllers.sysConsole.initCamRecords",
+        controls: [],
     },
     {
         pageName: "getSeqNo",
@@ -3970,7 +3978,6 @@ var masterForms = [
                 { name: "IS_VOIDED", hidden: "true", defaultValue: "N" },
                 { name: "IS_MASTER_HBL", hidden: "true", defaultValue: "N" },
                 { name: "HBL_NO", readonly: "always", required: "true" },
-                { name: "BOOKING_NO", readonly: "edit", required: "true" },
                 { name: "JOB_NO", readonly: "edit", required: "true" },
                 { name: "SHIPPER", required: "true" },
                 { name: "CONSIGNEE", required: "true" },

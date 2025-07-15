@@ -20,9 +20,6 @@ using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Services.Description;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
 using System.Xml.Linq;
 
 namespace RcsCargoWeb.Controllers
@@ -41,9 +38,19 @@ namespace RcsCargoWeb.Controllers
         public DateTime modifiedUtc { get; set; }
     }
 
+    public class CamRecordFile
+    {
+        public string FileName { get; set; }
+        public string CamId { get; set; }
+        public string DateFolder { get; set; }
+        public long Size { get; set; }
+        public DateTime CreateDate { get; set; }
+    }
+
     public class FileStationController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        string[] camIds = { "78DF723EB876", "78DF723EAC16" };
         DbUtils.Admin admin = new DbUtils.Admin();
         DbUtils.MasterRecords masterRecord = new DbUtils.MasterRecords();
 
@@ -268,5 +275,135 @@ namespace RcsCargoWeb.Controllers
             Response.AppendHeader("Content-Disposition", $"attachment;filename={name}");
             return File(fileByte, $"application/{name.Substring(name.LastIndexOf(".") + 1)}");
         }
+
+        public ActionResult GetRecentCamRecords()
+        {
+            var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords");
+            var camRecords = string.Empty;
+
+            foreach(var camId in camIds)
+            {
+                if (Directory.Exists(Path.Combine(camRecordsPath, camId, DateTime.Now.ToString("yyyyMMdd"))))
+                {
+                    var recentFiles = new DirectoryInfo(Path.Combine(camRecordsPath, camId, DateTime.Now.ToString("yyyyMMdd"))).GetFiles();
+                    foreach (var file in recentFiles)
+                        camRecords += $"{file.Name.Substring(0, file.Name.IndexOf('-'))}.mp4;";
+                }
+            }
+
+            return Content(camRecords.Length > 0 ? camRecords.Substring(0, camRecords.Length - 1) : string.Empty, "text/plain");
+        }
+
+        public ActionResult GetCamRecordDateFolders(string camId)
+        {
+            var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId);
+            var folders = new DirectoryInfo(path).GetDirectories();
+            List<string> folderName = new List<string>();
+            foreach(var folder in folders)
+                folderName.Add(folder.Name);
+
+            return Json(folderName.OrderByDescending(a => a), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetCamRecordFiles(string camId, string dateFolder)
+        {
+            var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId, dateFolder);
+            var files = new DirectoryInfo(path).GetFiles();
+            List<CamRecordFile> recordFiles = new List<CamRecordFile>();
+            foreach (var file in files)
+            {
+                recordFiles.Add(new CamRecordFile
+                {
+                    FileName = file.Name,
+                    DateFolder = dateFolder,
+                    CamId = camId,
+                    Size = file.Length,
+                    CreateDate = DateTime.ParseExact($"{dateFolder}{file.Name.Substring(file.Name.IndexOf('-') + 1, 6)}", "yyyyMMddHHmmss", null)
+                });
+            }
+
+            return Json(recordFiles.OrderByDescending(a => a.CreateDate), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public ActionResult UploadCamFile()
+        {
+            try
+            {
+                var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords");
+                var request = HttpContext.Request;
+                var file = request.InputStream;
+                var fileByte = new byte[file.Length];
+                file.Read(fileByte, 0, fileByte.Length);
+                file.Close();
+
+                var dateFolder = DateTime.Now.ToString("yyyyMMdd");
+                var fileName = request.Headers["filename"];
+                var camId = request.Headers["camId"];
+                var time = request.Headers["time"];
+
+                if (!Directory.Exists(Path.Combine(camRecordsPath, camId, dateFolder, fileName)))
+                    Directory.CreateDirectory(Path.Combine(camRecordsPath, camId, dateFolder));
+
+                var fs = new FileStream(Path.Combine(camRecordsPath, camId, dateFolder,
+                    $"{fileName.Substring(0, fileName.IndexOf('.'))}-{time}.mp4"), FileMode.Create, FileAccess.Write);
+                fs.Write(fileByte, 0, fileByte.Length);
+                fs.Close();
+
+                return Content($"{fileName.Substring(0, fileName.IndexOf('.'))}-{time}.mp4");
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+                return Content(ex.Message);
+            }
+        }
+
+        public ActionResult GetCamRecord(string camId, string dateFolder, string filename)
+        {
+            var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId, dateFolder);
+            FileStream fs = new FileStream(Path.Combine(camRecordsPath, filename), FileMode.Open, FileAccess.Read);
+
+            byte[] fileByte = new byte[fs.Length];
+            fs.Read(fileByte, 0, (int)fs.Length);
+            fs.Flush();
+            fs.Close();
+
+            Response.AppendHeader("Content-Type", "video/mp4");
+            return File(fileByte, "video/mp4");
+        }
+
+        public ActionResult TestUpload()
+        {
+            //var camFileContent = new ByteArrayContent(System.IO.File.ReadAllBytes(@"C:\Users\daydr\Downloads\07M50S_1752228470.mp4"));
+            //camFileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("video/mp4");
+
+            //HttpClient client = new HttpClient();
+            //var form = new MultipartFormDataContent();
+            //form.Add(new StringContent("07M50S_1752228470.mp4"), "fileName");
+            //form.Add(new StringContent("CAM01"), "camId");
+            //form.Add(camFileContent, "camFile");
+
+            //client.PostAsync("http://localhost:53696/FileStation/UploadCamFile", form);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://localhost:53696/FileStation/UploadCamFile");
+            request.ContentType = "multipart/form-data;";
+            request.Method = "POST";
+            request.KeepAlive = true;
+            request.Headers.Add("filename: 07M50S_1752228470.mp4");
+
+            //string headerTemplate = @"Content-Disposition: form-data; 07M50S_1752228470.mp4; Content-Type: video/mp4";
+            var requestStream = request.GetRequestStream();
+            byte[] fileBytes = System.IO.File.ReadAllBytes(@"C:\Users\daydr\Downloads\07M50S_1752228470.mp4");
+            requestStream.Write(fileBytes, 0, fileBytes.Length);
+
+            var response = request.GetResponse();
+
+            Stream stream2 = response.GetResponseStream();
+            StreamReader reader2 = new StreamReader(stream2);
+            return Content(reader2.ReadToEnd());
+
+        }
     }
+
 }
