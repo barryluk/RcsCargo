@@ -1023,7 +1023,7 @@ namespace DbUtils
                 return null;
         }
 
-        public List<FileStationLog> GetRecentFiles(int records = 20)
+        public List<FileStationLog> GetRecentFileLogs(int records = 20)
         {
             return db.FileStationLogs.OrderByDescending(a => a.LOG_TIME).Take(records).ToList();
         }

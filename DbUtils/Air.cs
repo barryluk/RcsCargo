@@ -4,20 +4,13 @@ using System;
 using System.Data;
 using System.Data.Entity;
 using System.Collections.Generic;
+using Oracle.ManagedDataAccess.Client;
 using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
-using Oracle.ManagedDataAccess.Client;
-using System.Security.Cryptography;
-using System.Data.SqlTypes;
-using System.IO;
-using System.ComponentModel.Design;
 using System.Web.Configuration;
-using System.Reflection;
-using Newtonsoft.Json.Linq;
-using DbUtils.Models.Admin;
-using Newtonsoft.Json;
 
 namespace DbUtils
 {
@@ -1207,6 +1200,22 @@ namespace DbUtils
                 otherJob.OtherJobChargesCollect = charges.Where(a => a.PAYMENT_TYPE == "C").ToList();
                 otherJob.Invoices = this.GetJobInvoices(jobNo, companyId, frtMode);
             }
+
+            if (otherJob == null)
+                return new OtherJob();
+            else
+                return otherJob;
+        }
+
+        public OtherJob GetOtherJobByContainer(string containerNo, string companyId, string frtMode)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "container_no", ParaName = "container_no", ParaCompareType = DbParameter.CompareType.equals, Value = containerNo },
+                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var otherJob = Utils.GetSqlQueryResult<OtherJob>("a_other_job", "*", dbParas).FirstOrDefault();
 
             if (otherJob == null)
                 return new OtherJob();

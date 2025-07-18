@@ -146,6 +146,120 @@
         }
     }
 
+    //Import From Excel
+    importFromExcel = function () {
+        let result = {};
+        let companyId = data.companyId;
+        let frtMode = utils.getFrtMode();
+        let requestId = kendo.guid();
+        let controlHtml = `<div style="overflow: auto" class="content"><input type="file" name="uploadExcel" /><div name="processedResult"></div></div>`;
+        utils.alertMessage(controlHtml, "Import From Excel", "", "medium", true, "controllers.airPv.importFromExcelSave");
+
+        $(`.kendo-window-alertMessage [name="uploadExcel"]`).kendoUpload({
+            async: {
+                autoUpload: true,
+                saveField: "postedFiles",
+                saveUrl: `../Air/Pv/ImportExcel?requestId=${requestId}`,
+                batch: false
+            },
+            showFileList: false,
+            validation: { allowedExtensions: [".xlsx"] },
+            localization: { dropFilesHere: "&nbsp;&nbsp;Drag & Drop Excel File Here... (xlsx)" },
+            complete: function (e) {
+                kendo.ui.progress($(".wrapper"), true);
+                $.ajax({
+                    url: "../Air/Pv/GetImportExcelResult",
+                    data: {
+                        "requestId": requestId,
+                        "pvCategory": "containerNo",
+                        "companyId": companyId,
+                        "frtMode": frtMode
+                    },
+                    success: function (result) {
+                        kendo.ui.progress($(".wrapper"), false);
+                        //console.log(result);
+                        let resultHtml = "";
+                        for (let i in result) {
+                            let invalidClass = "class='invalid-data'";
+                            if (!utils.isEmptyString(result[i].JOB_NO) && !utils.isEmptyString(result[i].CUSTOMER_DESC))
+                                invalidClass = "";
+
+                            resultHtml += `<div ${invalidClass}><b>PV# ${result[i].PV_NO}</b><br />
+                            PV Date: ${kendo.toString(kendo.parseDate(result[i].PV_DATE), "M/d/yyyy")}<br />
+                            Vendor Inv.#: ${result[i].VENDOR_INV_NO}<br />
+                            Job#: ${result[i].JOB_NO}<br />
+                            Vendor: ${result[i].CUSTOMER_DESC}`;
+
+                            for (let x in result[i].PvItems) {
+                                resultHtml += `<div style="border: 1px solid #80BDFF; padding: 2px;">${result[i].PvItems[x].CHARGE_DESC} - ${result[i].PvItems[x].CURR_CODE} ${result[i].PvItems[x].PRICE} / 
+                                ${result[i].PvItems[x].QTY} ${result[i].PvItems[x].QTY_UNIT} ${result[i].PvItems[x].AMOUNT} </div>`;
+                            }
+
+                            resultHtml += `<div>Total: ${result[i].CURR_CODE} ${result[i].AMOUNT_HOME}</div></div><br />`;
+                        }
+                        $(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data", JSON.stringify(result));
+                        $(`.kendo-window-alertMessage [name="processedResult"]`).html(resultHtml);
+
+                        let contentHeight = $(".kendo-window-alertMessage.k-window-content").height();
+                        $(".kendo-window-alertMessage.k-window-content .content").height(contentHeight - 40);
+                        $(".kendo-window-alertMessage.k-window-content .content .invalid-data").attr("style", "border: 1px solid red; padding: 2px; background-color: pink");
+                    }
+                });
+            }
+        });
+
+        $("em.k-dropzone-hint").append(`&nbsp;&nbsp;<span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">Download Template</span>`);
+        $("span.k-button:contains('Download Template')").click(function () {
+            window.open("../Content/files/Import PV template (by container).xlsx");
+        });
+    }
+
+    importFromExcelSave = function (sender) {
+        if ($(".kendo-window-alertMessage.k-window-content .content .invalid-data").length > 0) {
+            utils.showNotification("Invalid data from the excel file, please verify.", "error", ".k-window .k-i-close")
+            return;
+        }
+        if ($(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data") == null) {
+            utils.showNotification("Please upload the excel file first.", "error", ".k-window .k-i-close")
+            return;
+        }
+
+        let models = JSON.parse($(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data"));
+        let pvNos = "";
+        kendo.ui.progress($(".wrapper"), true);
+
+        for (let i in models) {
+            let model = models[i];
+            model["PV_NO"] = "";
+            model["PV_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["PV_DATE"]));
+            model["FLIGHT_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["FLIGHT_DATE"]));
+            model["COMPANY_ID"] = data.companyId;
+            model["FRT_MODE"] = utils.getFrtMode();
+            model["CREATE_USER"] = data.user.USER_ID;
+            model["CREATE_DATE"] = utils.convertDateToISOString(new Date());
+            model["MODIFY_USER"] = data.user.USER_ID;
+            model["MODIFY_DATE"] = utils.convertDateToISOString(new Date());
+
+            $.ajax({
+                url: "../Air/Pv/UpdatePv",
+                type: "POST",
+                async: false,
+                data: { "model": model, "mode": "create" },
+                success: function (result) {
+                    console.log(result);
+                    pvNos += result.PV_NO + ", ";
+                }
+            });
+        }
+
+        kendo.ui.progress($(".wrapper"), false);
+        $(`#${utils.getFormId()} div.search-control .k-icon.k-i-search`).trigger("click");
+        if (pvNos.length > 2) {
+            utils.showNotification(`PV created: ${pvNos.substr(0, pvNos.length - 2)}`, "success", ".k-button-text:contains('Import From Excel')")
+        }
+        sender.destroy();
+    }
+
     batchPv = function () {
         let controller = "airBatchPv";
         controls.append_tabStripMain("Batch create PV", `${controller}_${data.companyId}_${utils.getFrtMode()}`, controller);

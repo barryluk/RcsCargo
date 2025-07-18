@@ -36,6 +36,7 @@ namespace RcsCargoWeb.Controllers
         public DateTime createdUtc { get; set; }
         public DateTime modified { get; set; }
         public DateTime modifiedUtc { get; set; }
+        public string userId { get; set; }
     }
 
     public class CamRecordFile
@@ -130,9 +131,19 @@ namespace RcsCargoWeb.Controllers
             //    file.PATH = file.PATH.Replace(serverPath, string.Empty);
             var recentFiles = new DirectoryInfo(Path.Combine(serverPath, "FileStation")).GetFiles("*.*", SearchOption.AllDirectories)
                 .OrderByDescending(a => a.CreationTime).Take(20);
+            var logs = masterRecord.GetRecentFileLogs(40);
             var fmData = new List<FileManagerData>();
             foreach (var file in recentFiles)
             {
+                var uploadUser = string.Empty;
+                if (logs.Count(a => a.PATH == file.FullName) > 0)
+                    uploadUser = logs.Where(a => a.PATH == file.FullName).OrderByDescending(a => a.LOG_TIME).FirstOrDefault().USER_ID;
+                else
+                {
+                    if (logs.Count(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")) > 0)
+                        uploadUser = logs.Where(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")).FirstOrDefault().USER_ID;
+                }
+
                 if (HasAccessRight(file.FullName, "READ", userId))
                 {
                     fmData.Add(new FileManagerData
@@ -146,6 +157,7 @@ namespace RcsCargoWeb.Controllers
                         modified = file.LastWriteTime,
                         modifiedUtc = file.LastWriteTimeUtc,
                         size = file.Length,
+                        userId = uploadUser
                     });
                 }
             }

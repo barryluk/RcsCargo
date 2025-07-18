@@ -15,6 +15,7 @@
     }
 
     initCamRecords = function () {
+        let gridHeight = $(".content-wrapper").height() - 232;
         let ctrlHtml = `<div class="row col-xl-12 col-lg-12"><label class="col-sm-1 col-form-label">Camera</label>
                         <div class="col-sm-2"><div class="camId" style="width: 120px"></div></div></div>
                         <div class="row col-xl-12 col-lg-12"><label class="col-sm-1 col-form-label">Date</label>
@@ -41,6 +42,7 @@
                     success: function (result) {
                         let ds = new kendo.data.DataSource({ data: result });
                         ddlDateFolder.setDataSource(ds);
+                        ddlDateFolder.trigger("change");
                     }
                 });
             },
@@ -70,7 +72,15 @@
                 { field: "DateFolder", title: "Folder" },
                 { field: "CreateDate", title: "Create Date", template: ({ CreateDate }) => data.formatDateTime(CreateDate, "dateTimeLong") },
             ],
+            resizable: true,
+            sortable: true,
+            height: gridHeight,
+            scrollable: { endless: true },
             selectable: "cell",
+            pageable: {
+                numeric: false,
+                previousNext: false
+            },
             change: function (e) {
                 let selectedCell = gridFiles.select()[0];
                 if ($(selectedCell).hasClass("link-cell")) {

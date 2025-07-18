@@ -327,6 +327,10 @@ div[type=grid] .btn-destroy.k-grid-delete {
     height: 18px !important;
 }
 
+div[type=grid] .k-command-cell {
+    padding: 3px !important;
+}
+
 td.k-edit-cell {
     padding: 1px !important;
 }

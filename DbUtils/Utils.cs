@@ -85,6 +85,14 @@ namespace DbUtils
             return new DateTime(dt.Year, dt.Month, dt.Day, 23, 59, 59);
         }
 
+        public static string FormatText(this string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+            else
+                return input.Trim().ToUpper();
+        }
+
         public static string JustifyString(this IEnumerable<string> values, char separator = ',')
         {
             var result = string.Empty;

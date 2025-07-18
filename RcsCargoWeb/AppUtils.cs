@@ -17,6 +17,14 @@ namespace RcsCargoWeb
         public static readonly string logPath = new System.Configuration.AppSettingsReader().GetValue("LogPath", typeof(string)).ToString();
         public static string scriptVersion = string.Empty;
 
+        public static string FormatText(this string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+            else
+                return input.Trim().ToUpper();
+        }
+
         public static ContentResult JsonContentResult(IEnumerable<object> obj, int skip = 0, int take = 0)
         {
             string jsonString = string.Empty;

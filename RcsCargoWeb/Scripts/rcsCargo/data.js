@@ -1029,6 +1029,7 @@ var indexPages = [
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
                 { name: "batchPv", text: "Batch PV", iconClass: "k-icon k-i-copy", callbackFunction: "controllers.airPv.batchPv" },
+                { name: "importFromExcel", text: "Import From Excel", iconClass: "k-icon k-i-excel", callbackFunction: "controllers.airPv.importFromExcel" },
             ],
             columns: [
                 { field: "PV_NO", title: "PV#", attributes: { "class": "link-cell" } },
@@ -1695,7 +1696,7 @@ var masterForms = [
                                 editor: function (container, options) { controls.renderGridEditorChargeQtyUnit(container, options) }
                             },
                             { title: "Min. Charge", field: "MIN_AMOUNT", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -1853,7 +1854,7 @@ var masterForms = [
                                 },
                                 width: 180
                             },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             BRANCH_CODE: { validation: { required: true } },
@@ -2056,7 +2057,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -2107,7 +2108,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             //data type of the field {number|string|boolean|date} default is string
@@ -2171,7 +2172,7 @@ var masterForms = [
                             { title: "Height", field: "HEIGHT", width: 90 },
                             { title: "V/Wts", field: "VWTS", width: 90 },
                             { title: "Dimension", field: "DIMENSION", width: 160 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CTNS: { type: "number", validation: { required: true } },
@@ -2209,7 +2210,7 @@ var masterForms = [
                             { title: "Doc Rcvd?", field: "IS_DOC_REC", width: 80 },
                             { title: "Approved?", field: "IS_BOOKING_APP", width: 80 },
                             { title: "Received?", field: "IS_RECEIVED", width: 80 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             BOOKING_NO: { editable: false },
@@ -2276,7 +2277,7 @@ var masterForms = [
                                 editor: function (container, options) { controls.renderGridEditorPackageQtyUnit(container, options) }
                             },
                             { title: "G/Wts", field: "GWTS", width: 100 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             HAWB_NO: { validation: { required: true } },
@@ -2428,7 +2429,7 @@ var masterForms = [
                             { title: "V/Wts", field: "VWTS", width: 80 },
                             { title: "C/Wts", field: "CWTS", width: 80 },
                             { title: "Cu.ft.", field: "CUFT", width: 80 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             PO_NO: { validation: { required: true } },
@@ -2497,7 +2498,7 @@ var masterForms = [
                                         return "N";
                                 }
                             },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             SEQ: { type: "lineNo" },
@@ -2726,7 +2727,7 @@ var masterForms = [
                             { title: "Height", field: "HEIGHT", width: 90 },
                             { title: "V/Wts", field: "VWTS", width: 90 },
                             { title: "Dimension", field: "DIMENSION", width: 160 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CTNS: { type: "number", validation: { required: true } },
@@ -2768,7 +2769,7 @@ var masterForms = [
                             { title: "Issue Date", field: "ISSUE_DATE", width: 100, template: ({ ISSUE_DATE }) => `${kendo.toString(ISSUE_DATE, data.dateTimeFormat)}` },
                             { title: "License No.", field: "LIC_NO", width: 160 },
                             { title: "Expiry Date", field: "EXP_DATE", width: 100, template: ({ EXP_DATE }) => `${kendo.toString(EXP_DATE, data.dateTimeFormat)}` },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             ISSUE_DATE: { type: "date", validation: { required: true } },
@@ -2821,7 +2822,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -2872,7 +2873,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -2936,7 +2937,7 @@ var masterForms = [
                             { title: "V/Wts", field: "VWTS", width: 80 },
                             { title: "C/Wts", field: "CWTS", width: 80 },
                             { title: "Cu.ft.", field: "CUFT", width: 80 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             PO_NO: { validation: { required: true } },
@@ -2980,7 +2981,7 @@ var masterForms = [
                             {
                                 command: [{
                                     className: "btn-destroy", name: "destroy", text: " "
-                                }], width: 50
+                                }], width: 33
                             },
                         ],
                         fields: {
@@ -3009,7 +3010,7 @@ var masterForms = [
                             { title: "Status", field: "STATUS_CODE", width: 120 },
                             { title: "Date/Time", field: "STATUS_DATE", template: function (dataItem) { return `${kendo.toString(dataItem.STATUS_DATE, data.dateTimeFormat)}`; }, width: 100 },
                             { title: "Remarks", field: "REMARKS", width: 220 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             STATUS_CODE: { validation: { required: true } },
@@ -3144,7 +3145,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -3291,7 +3292,7 @@ var masterForms = [
                             },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -3339,7 +3340,7 @@ var masterForms = [
                             {
                                 command: [{
                                     className: "btn-destroy", name: "destroy", text: " "
-                                }], width: 50
+                                }], width: 33
                             },
                         ],
                         fields: {
@@ -3443,7 +3444,7 @@ var masterForms = [
                             },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -3555,7 +3556,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -3604,7 +3605,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -3710,7 +3711,7 @@ var masterForms = [
                             { title: "Departure Date", field: "DEPARTURE_DATE", format: `{0: ${dateFormat}}`, width: 120 },
                             { title: "Closing Date (CY)", field: "CY_CLOSING_DATE", format: `{0: ${dateFormat}}`, width: 120 },
                             { title: "Closing Date (CFS)", field: "CFS_CLOSING_DATE", format: `{0: ${dateFormat}}`, width: 120 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             COUNTRY_CODE: { validation: { required: true } },
@@ -3743,7 +3744,7 @@ var masterForms = [
                                 editor: function (container, options) { controls.renderGridEditorSeaPort(container, options) }
                             },
                             { title: "Arrival Date", field: "ARRIVAL_DATE", format: `{0: ${dateFormat}}`, width: 120 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             COUNTRY_CODE: { validation: { required: true } },
@@ -3855,7 +3856,7 @@ var masterForms = [
                         label: "S/O", type: "grid", name: "SeaBookingSos", colWidth: 6,
                         columns: [
                             { title: "S/O #", field: "SO_NO", width: 180 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             SO_NO: { validation: { required: true } },
@@ -3891,7 +3892,7 @@ var masterForms = [
                             },
                             { title: "Kgs", field: "KGS", width: 120 },
                             { title: "CBM", field: "CBM", width: 120 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             MARKS_NO: { type: "string" },
@@ -3921,7 +3922,7 @@ var masterForms = [
                             { title: "Qty", field: "QTY", width: 120 },
                             { title: "Kgs", field: "KGS", width: 120 },
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CTN_FROM: { type: "number" },
@@ -4076,7 +4077,7 @@ var masterForms = [
                         label: "S/O", type: "grid", name: "SeaHblSos", colWidth: 6,
                         columns: [
                             { title: "S/O #", field: "SO_NO", width: 180 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             SO_NO: { validation: { required: true } },
@@ -4141,7 +4142,7 @@ var masterForms = [
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
                             { title: "S/O #", field: "SO_NO", width: 120 },
                             { title: "Service", field: "SERVICE", width: 120, editor: function (container, options) { controls.renderGridEditorService(container, options) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CONTAINER_NO: { type: "string" },
@@ -4175,7 +4176,7 @@ var masterForms = [
                             { title: "Kgs", field: "KGS", width: 120 },
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
                             { title: "Commodity", field: "COMMODITY", width: 180, editor: function (container, options) { controls.renderGridEditorCommodities(container, options) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             MARKS_NO: { type: "string" },
@@ -4206,7 +4207,7 @@ var masterForms = [
                             { title: "Qty", field: "QTY", width: 120 },
                             { title: "Kgs", field: "KGS", width: 120 },
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CTN_FROM: { type: "number" },
@@ -4249,7 +4250,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -4298,7 +4299,7 @@ var masterForms = [
                             { title: "Min. Charge", field: "MIN_CHARGE", width: 90 },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -4346,7 +4347,7 @@ var masterForms = [
                             {
                                 command: [{
                                     className: "btn-destroy", name: "destroy", text: " "
-                                }], width: 50
+                                }], width: 33
                             },
                         ],
                         fields: {
@@ -4375,7 +4376,7 @@ var masterForms = [
                             { title: "Status", field: "STATUS_CODE", width: 120 },
                             { title: "Date/Time", field: "STATUS_DATE", template: function (dataItem) { return `${kendo.toString(dataItem.STATUS_DATE, data.dateTimeFormat)}`; }, width: 100 },
                             { title: "Remarks", field: "REMARKS", width: 220 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             STATUS_CODE: { validation: { required: true } },
@@ -4501,7 +4502,7 @@ var masterForms = [
                         label: "S/O", type: "grid", name: "SobSos", colWidth: 6,
                         columns: [
                             { title: "S/O #", field: "SO_NO", width: 180 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             SO_NO: { validation: { required: true } },
@@ -4557,7 +4558,7 @@ var masterForms = [
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
                             { title: "S/O #", field: "SO_NO", width: 120 },
                             { title: "Service", field: "SERVICE", width: 120, editor: function (container, options) { controls.renderGridEditorService(container, options) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CONTAINER_NO: { type: "string" },
@@ -4591,7 +4592,7 @@ var masterForms = [
                             { title: "Kgs", field: "KGS", width: 120 },
                             { title: "CBM", field: "CBM", width: 120, editor: function (container, options) { controls.renderGridEditorNumericTextBox(container, options, 3) } },
                             { title: "Commodity", field: "COMMODITY", width: 180, editor: function (container, options) { controls.renderGridEditorCommodities(container, options) } },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             MARKS_NO: { type: "string" },
@@ -4725,7 +4726,7 @@ var masterForms = [
                             },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
@@ -4858,7 +4859,7 @@ var masterForms = [
                             },
                             { title: "Amount", field: "AMOUNT", width: 90 },
                             { title: "Total Amt.", field: "AMOUNT_HOME", width: 90 },
-                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }] },
+                            { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 33 },
                         ],
                         fields: {
                             CHARGE_CODE: { validation: { required: true } },
