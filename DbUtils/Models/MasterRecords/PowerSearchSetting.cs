@@ -21,6 +21,7 @@ namespace DbUtils.Models.MasterRecords
         [Key]
         public string GUID { get; set; }
         public string TABLE_NAME { get; set; }
+        public string JOIN_TABLE { get; set; }
         public string FIELDS { get; set; }
         public string TEMPLATE { get; set; }
     }

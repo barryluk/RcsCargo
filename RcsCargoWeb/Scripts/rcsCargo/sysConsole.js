@@ -6,12 +6,17 @@
         $(`#${pageSetting.id} .menuButton`).each(function () {
             $(this).click(function () {
                 switch ($(this).attr("name")) {
+                    case "users": controls.append_tabStripMain("Users", "UsersIndex", "users"); break;
                     case "sysLogs": controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs"); break;
                     case "camRecords": controls.append_tabStripMain("SHA Camera Records", "camRecordsIndex", "camRecords"); break;
                     case "getSeqNo": controls.append_tabStripMain("Generate Sequence #", "getSeqNoIndex", "getSeqNo"); break;
                 }
             });
         });
+    }
+
+    initUsers = function () {
+
     }
 
     initCamRecords = function () {

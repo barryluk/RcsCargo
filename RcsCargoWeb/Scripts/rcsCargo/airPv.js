@@ -171,7 +171,7 @@
                     url: "../Air/Pv/GetImportExcelResult",
                     data: {
                         "requestId": requestId,
-                        "pvCategory": "containerNo",
+                        "pvCategory": $(`.kendo-window-alertMessage [name="pvCategory"]`).data("kendoDropDownList").value(),
                         "companyId": companyId,
                         "frtMode": frtMode
                     },
@@ -206,6 +206,13 @@
                     }
                 });
             }
+        });
+
+        $(".kendo-window-alertMessage .k-button [name=uploadExcel]").parent().before("<label class='col-form-label'>Import by:&nbsp;&nbsp;</label><span name='pvCategory' style='width: 100px'></span>&nbsp;");
+        $(".kendo-window-alertMessage [name=pvCategory]").kendoDropDownList({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: [{ text: "Container #", value: "containerNo" }, { text: "MAWB #", value: "mawbNo" }],
         });
 
         $("em.k-dropzone-hint").append(`&nbsp;&nbsp;<span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">Download Template</span>`);

@@ -84,8 +84,10 @@
                         { field: "extension", title: "Extension" },
                         { field: "path", title: "Path" },
                         { field: "size", title: "Size (MB)", template: ({ size }) => utils.roundUp(size / 1024 / 1024, 2) },
-                        { field: "userId", title: "Upload User" },
-                        { field: "created", title: "Upload Time", template: ({ created }) => data.formatDateTime(created, "dateTimeLong") },
+                        { field: "userId", title: "Create User" },
+                        { field: "created", title: "Create Time", template: ({ created }) => data.formatDateTime(created, "dateTimeLong") },
+                        { field: "modifiedUserId", title: "Modify User" },
+                        { field: "modified", title: "Modify Time", template: ({ modified }) => data.formatDateTime(modified, "dateTimeLong") },
                     ],
                     dataSource: {
                         type: "json",

@@ -673,6 +673,36 @@
         return serverResult == "True" ? true : false;
     }
 
+    isExistingUserId = function (userId) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Admin/System/IsExistingUserId",
+            dataType: "text",
+            data: { id: userId },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingUserEmail = function (email) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Admin/System/IsExistingUserEmail",
+            dataType: "text",
+            data: { email: email },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isInteger = function (value) {
         var integer = "0123456789";
         for (var i = 0; i < value.toString().length; i++) {

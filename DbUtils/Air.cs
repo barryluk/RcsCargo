@@ -863,20 +863,29 @@ namespace DbUtils
 
         public List<InvoiceView> GetInvoices(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
+            var selectCmd = @"inv.inv_no, inv.company_id, inv.frt_mode, inv.inv_date, inv.inv_type, inv.inv_category, inv.job_no,
+                nvl(inv.mawb_no, j.mbl_no) as mawb_no, nvl(inv.hawb_no, j.container_no) as hawb_no, inv.lot_no,
+                inv.customer_code, inv.customer_desc, inv.origin, inv.dest, inv.flight_no, inv.flight_date,
+                inv.package, inv.gwts, inv.vwts, inv.cwts, inv.curr_code, inv.ex_rate, inv.amount, inv.amount_home,
+                inv.create_date, inv.create_user, inv.is_voided";
+            var fromCmd = $@"a_invoice inv left outer join a_other_job j on inv.job_no = j.job_no and inv.company_id = j.company_id and inv.frt_mode = j.frt_mode";
+
             var dbParas = new List<DbParameter>
             { 
-                new DbParameter { FieldName = "inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
-                new DbParameter { FieldName = "inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
-                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
-                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                new DbParameter { FieldName = "inv.inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "j.mbl_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "j.container_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "inv.inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "inv.inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "inv.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "inv.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<InvoiceView>("a_invoice", "*", dbParas);
+            var result = Utils.GetSqlQueryResult<InvoiceView>(fromCmd, selectCmd, dbParas);
 
             foreach(var item in result)
             {
@@ -1016,20 +1025,29 @@ namespace DbUtils
 
         public List<PvView> GetPvs(DateTime startDate, DateTime endDate, string companyId, string frtMode, string searchValue)
         {
+            var selectCmd = @"pv.pv_no, pv.company_id, pv.frt_mode, pv.pv_date, pv.pv_type, pv.pv_category, pv.job_no,
+                nvl(pv.mawb_no, j.mbl_no) as mawb_no, nvl(pv.hawb_no, j.container_no) as hawb_no, pv.lot_no,
+                pv.customer_code, pv.customer_desc, pv.origin, pv.dest, pv.flight_no, pv.flight_date,
+                pv.package, pv.gwts, pv.vwts, pv.cwts, pv.curr_code, pv.ex_rate, pv.amount, pv.amount_home,
+                pv.create_date, pv.create_user, pv.is_voided";
+            var fromCmd = $@"a_pv pv left outer join a_other_job j on pv.job_no = j.job_no and pv.company_id = j.company_id and pv.frt_mode = j.frt_mode";
+
             var dbParas = new List<DbParameter>
             {
-                new DbParameter { FieldName = "pv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "pv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
-                new DbParameter { FieldName = "pv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
-                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
-                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                new DbParameter { FieldName = "pv.pv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.mawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "j.mbl_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "j.container_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.hawb_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pv.pv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "pv.pv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "pv.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "pv.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<PvView>("a_pv", "*", dbParas);
+            var result = Utils.GetSqlQueryResult<PvView>(fromCmd, selectCmd, dbParas);
 
             return result.OrderByDescending(a => a.CREATE_DATE).ToList(); ;
         }
@@ -1289,15 +1307,32 @@ namespace DbUtils
                     filter = string.Empty;
                 }
 
+
                 foreach (var setting in settings.Where(a => a.TABLE_NAME == tableName))
                 {
-                    sqlCmd += $"select {resultDateField} RESULT_DATE, {frtModeField}, {setting.ID_FIELD} ID, {setting.SEARCH_FIELD} RESULT_VALUE, " +
-                        $"'{tableName}' TABLE_NAME, '{setting.ID_FIELD}' ID_FIELD from {setting.TABLE_NAME} where {setting.SEARCH_FIELD} like '{searchValue}' {filter} union ";
+
+                    //special case for other job in A_PV
+                    if ((tableName == "A_INVOICE" || tableName == "A_PV") && (setting.SEARCH_FIELD == "MBL_NO" || setting.SEARCH_FIELD == "CONTAINER_NO"))
+                    {
+                        sqlCmd += $@"select p.modify_date RESULT_DATE, p.frt_mode, p.{(tableName == "A_INVOICE" ? "INV_NO" : "PV_NO")} ID, j.{setting.SEARCH_FIELD} RESULT_VALUE, 
+                            '{tableName}' TABLE_NAME, '{setting.ID_FIELD}' ID_FIELD
+                            from {tableName} p left outer join a_other_job j on p.job_no = j.job_no and p.company_id = j.company_id and p.frt_mode = j.frt_mode
+                            where j.{setting.SEARCH_FIELD} like '{searchValue}' and p.company_id = '{companyId}' and p.modify_date > sysdate - {days} union ";
+                    }
+                    //else if (tableName == "A_PV" && setting.SEARCH_FIELD == "CONTAINER_NO")
+                    //{
+
+                    //}
+                    else
+                    {
+                        sqlCmd += $"select {resultDateField} RESULT_DATE, {frtModeField}, {setting.ID_FIELD} ID, {setting.SEARCH_FIELD} RESULT_VALUE, " +
+                            $"'{tableName}' TABLE_NAME, '{setting.ID_FIELD}' ID_FIELD from {setting.TABLE_NAME} where {setting.SEARCH_FIELD} like '{searchValue}' {filter} union ";
+                    }
                 }
                 sqlCmd = sqlCmd.Substring(0, sqlCmd.LastIndexOf("union"));
                 sqlCmd += $") result order by result_date desc) where rownum <= {take}";
 
-                log.Debug(sqlCmd);
+                //log.Debug(sqlCmd);
                 var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
                 if (result.Count > 0)
                     results.AddRange(result);
@@ -1318,8 +1353,9 @@ namespace DbUtils
             OracleConnection conn = new OracleConnection(db.Database.Connection.ConnectionString + ";Password=RCSHKG");
             OracleCommand cmd = new OracleCommand();
             cmd.Connection = conn;
-            cmd.CommandText = $"select {template.FIELDS} from {template.TABLE_NAME} " +
-                $"where {idFieldName} = '{id}' and company_id = '{companyId}' and frt_mode = '{frtMode}'";
+
+            cmd.CommandText = $"select {template.FIELDS} from {template.TABLE_NAME} {template.JOIN_TABLE} " +
+                $"where {tableName}.{idFieldName} = '{id}' and {tableName}.company_id = '{companyId}' and {tableName}.frt_mode = '{frtMode}'";
 
             if (tableName == "PDD_BOOKING_DETAIL")
                 cmd.CommandText = $"select {template.FIELDS} from {template.TABLE_NAME} " +

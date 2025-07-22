@@ -37,6 +37,7 @@ namespace RcsCargoWeb.Controllers
         public DateTime modified { get; set; }
         public DateTime modifiedUtc { get; set; }
         public string userId { get; set; }
+        public string modifiedUserId { get; set; }
     }
 
     public class CamRecordFile
@@ -131,18 +132,26 @@ namespace RcsCargoWeb.Controllers
             //    file.PATH = file.PATH.Replace(serverPath, string.Empty);
             var recentFiles = new DirectoryInfo(Path.Combine(serverPath, "FileStation")).GetFiles("*.*", SearchOption.AllDirectories)
                 .OrderByDescending(a => a.CreationTime).Take(20);
-            var logs = masterRecord.GetRecentFileLogs(40);
+            var logs = masterRecord.GetRecentFileLogs(100);
             var fmData = new List<FileManagerData>();
             foreach (var file in recentFiles)
             {
-                var uploadUser = string.Empty;
-                if (logs.Count(a => a.PATH == file.FullName) > 0)
-                    uploadUser = logs.Where(a => a.PATH == file.FullName).OrderByDescending(a => a.LOG_TIME).FirstOrDefault().USER_ID;
-                else
-                {
-                    if (logs.Count(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")) > 0)
-                        uploadUser = logs.Where(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")).FirstOrDefault().USER_ID;
-                }
+                var createLog = logs.Where(a => a.PATH == file.FullName).OrderBy(a => a.LOG_TIME).FirstOrDefault();
+                var modifyLog = logs.Where(a => a.PATH == file.FullName).OrderBy(a => a.LOG_TIME).LastOrDefault();
+
+                if (createLog == null)
+                    createLog = logs.Where(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")).FirstOrDefault();
+                if (modifyLog == null)
+                    modifyLog = logs.Where(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.LastWriteTime.ToString("yyyyMMddHHmmss")).LastOrDefault();
+
+                //var uploadUser = string.Empty;
+                //if (logs.Count(a => a.PATH == file.FullName) > 0)
+                //    uploadUser = logs.Where(a => a.PATH == file.FullName).OrderByDescending(a => a.LOG_TIME).FirstOrDefault().USER_ID;
+                //else
+                //{
+                //    if (logs.Count(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")) > 0)
+                //        uploadUser = logs.Where(a => a.LOG_TIME.ToString("yyyyMMddHHmmss") == file.CreationTime.ToString("yyyyMMddHHmmss")).FirstOrDefault().USER_ID;
+                //}
 
                 if (HasAccessRight(file.FullName, "READ", userId))
                 {
@@ -157,7 +166,8 @@ namespace RcsCargoWeb.Controllers
                         modified = file.LastWriteTime,
                         modifiedUtc = file.LastWriteTimeUtc,
                         size = file.Length,
-                        userId = uploadUser
+                        userId = createLog == null ? string.Empty : createLog.USER_ID,
+                        modifiedUserId = modifyLog == null ? string.Empty : modifyLog.USER_ID,
                     });
                 }
             }
@@ -165,8 +175,9 @@ namespace RcsCargoWeb.Controllers
             return Json(fmData, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Create(string name, string extension, bool isDirectory, string path, string target, string userId)
+        public ActionResult Create(string name, string extension, bool isDirectory, string path, string target)
         {
+            var userId = HttpContext.Request.QueryString["userId"].Trim();
             if (HasAccessRight(target, "ADD", userId))
             {
                 if (isDirectory)
@@ -191,37 +202,46 @@ namespace RcsCargoWeb.Controllers
             return null;
         }
 
-        public ActionResult Rename(string name, string path, string extension, bool isDirectory, string userId)
+        public ActionResult Rename(string name, string path, string extension, bool isDirectory)
         {
+            var userId = HttpContext.Request.QueryString["userId"].Trim();
             if (HasAccessRight(path, "MODIFY", userId))
             {
-                var dir = new DirectoryInfo(path);
-                if (isDirectory)
-                    Directory.Move(path, path.Replace(dir.Name, name));
-                else
-                    System.IO.File.Move(path, path.Replace(dir.Name, name) + extension);
-
-                var newDir = new DirectoryInfo(path.Replace(dir.Name, name));
-
-                return Json(new FileManagerData
+                try
                 {
-                    name = name,
-                    path = newDir.FullName,
-                    isDirectory = isDirectory,
-                    extension = extension,
-                    created = newDir.CreationTime,
-                    createdUtc = newDir.CreationTimeUtc,
-                    modified = newDir.LastWriteTime,
-                    modifiedUtc = newDir.LastWriteTimeUtc,
-                    size = 0,
-                });
+                    var dir = new DirectoryInfo(path);
+                    if (isDirectory)
+                        Directory.Move(path, path.Replace(dir.Name, name));
+                    else
+                        System.IO.File.Move(path, path.Replace(dir.Name, name) + extension);
+
+                    var newDir = new DirectoryInfo(path.Replace(dir.Name, name));
+
+                    return Json(new FileManagerData
+                    {
+                        name = name,
+                        path = newDir.FullName,
+                        isDirectory = isDirectory,
+                        extension = extension,
+                        created = newDir.CreationTime,
+                        createdUtc = newDir.CreationTimeUtc,
+                        modified = newDir.LastWriteTime,
+                        modifiedUtc = newDir.LastWriteTimeUtc,
+                        size = 0,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                }
             }
 
             return null;
         }
 
-        public ActionResult Delete(string name, string path, bool isDirectory, string userId)
+        public ActionResult Delete(string name, string path, bool isDirectory)
         {
+            var userId = HttpContext.Request.QueryString["userId"].Trim();
             if (HasAccessRight(path, "DELETE", userId))
             {
                 if (isDirectory)

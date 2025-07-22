@@ -37,10 +37,10 @@ namespace RcsCargoWeb.MasterRecord.Controllers
         }
 
         [Route("Search")]
-        public ActionResult Search(string searchValue, string companyId)
+        public ActionResult Search(string searchValue, string companyId, int days = 90)
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
-            var results = air.PowerSearch(searchValue, companyId, 90, 10);
+            var results = air.PowerSearch(searchValue, companyId, days, 10);
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 

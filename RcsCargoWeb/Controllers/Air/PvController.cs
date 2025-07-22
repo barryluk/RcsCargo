@@ -190,7 +190,7 @@ namespace RcsCargoWeb.Air.Controllers
                     row = sheet.GetRow(i);
                     if (row != null)
                     {
-                        if (row.Cells.Count >= 10)
+                        if (row.Cells.Count >= 10 && !string.IsNullOrEmpty(row.Cells[0].ToString().FormatText()))
                         {
                             excelResults.Add(new ImportExcelResult
                             {
@@ -218,6 +218,7 @@ namespace RcsCargoWeb.Air.Controllers
                         customer = new DbUtils.Models.MasterRecords.CustomerView();
 
                     var pvModel = new Pv();
+                    pvModel.PV_TYPE = "P";
                     pvModel.PV_NO = pvNo;
                     pvModel.PV_DATE = pvRecords.First().PvDate;
                     pvModel.VENDOR_INV_NO = pvRecords.First().VendorInvNo;
@@ -236,7 +237,6 @@ namespace RcsCargoWeb.Air.Controllers
                     if (pvCategory == "containerNo")
                     {
                         var otherJob = air.GetOtherJobByContainer(pvRecords.First().LinkupField, companyId, frtMode);
-                        pvModel.PV_TYPE = "P";
                         pvModel.PV_CATEGORY = "J";
                         pvModel.JOB_NO = otherJob.JOB_NO;
                         pvModel.FLIGHT_DATE = otherJob.FLIGHT_DATE ?? pvRecords.First().PvDate;
@@ -248,6 +248,27 @@ namespace RcsCargoWeb.Air.Controllers
                         pvModel.GWTS = otherJob.GWTS;
                         pvModel.VWTS = otherJob.VWTS;
                         pvModel.CWTS = otherJob.GWTS > otherJob.VWTS ? otherJob.GWTS : otherJob.VWTS;
+                    }
+                    else if (pvCategory == "mawbNo")
+                    {
+                        log.Debug($"MAWB# {pvRecords.First().LinkupField}");
+                        var mawb = air.GetMawb(pvRecords.First().LinkupField, companyId, frtMode);
+                        if (string.IsNullOrEmpty(mawb.MAWB_NO) && companyId == "RCSCFSLAX")
+                            mawb = air.GetMawb(pvRecords.First().LinkupField, "RCSJFK", frtMode);
+
+                        pvModel.PV_CATEGORY = "M";
+                        pvModel.JOB_NO = mawb.JOB_NO;
+                        pvModel.MAWB_NO = mawb.MAWB;
+                        pvModel.FLIGHT_DATE = mawb.FLIGHT_DATE;
+                        pvModel.FLIGHT_NO = mawb.FLIGHT_NO;
+                        pvModel.ORIGIN = mawb.ORIGIN_CODE;
+                        pvModel.DEST = mawb.DEST_CODE;
+                        pvModel.FRT_PAYMENT_PC = pvRecords.First().FrtChargePC;
+                        pvModel.PACKAGE = mawb.CTNS;
+                        pvModel.PACKAGE_UNIT = string.IsNullOrEmpty(mawb.PACKAGE_UNIT) ? "CTNS" : mawb.PACKAGE_UNIT;
+                        pvModel.GWTS = mawb.GWTS;
+                        pvModel.VWTS = mawb.VWTS;
+                        pvModel.CWTS = mawb.GWTS > mawb.VWTS ? mawb.GWTS : mawb.VWTS;
                     }
 
                     pvModel.PvItems = new List<PvItem>();

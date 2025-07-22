@@ -1,11 +1,13 @@
-﻿using System;
+﻿using DbUtils;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
-using Newtonsoft.Json;
+using DbUtils.Models.Admin;
 
 namespace RcsCargoWeb.Controllers.Admin
 {
@@ -14,6 +16,73 @@ namespace RcsCargoWeb.Controllers.Admin
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Admin admin = new DbUtils.Admin();
+
+        #region User
+
+        [Route("GridUser_Read")]
+        public ActionResult GridUser_Read(string searchValue, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            var sortField = "USER_ID";
+            var sortDir = "asc";
+
+            if (sortings != null)
+            {
+                sortField = sortings.First().Single(a => a.Key == "field").Value;
+                sortDir = sortings.First().Single(a => a.Key == "dir").Value;
+            }
+
+            var results = admin.GetUsers(searchValue);
+
+            if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
+            {
+                if (sortDir == "asc")
+                    results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+                else
+                    results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+            }
+
+            return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        [Route("GetUser")]
+        public ActionResult GetUser(string id)
+        {
+            var user = admin.GetUser(id);
+            return Json(user, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateUser")]
+        public ActionResult UpdateUser(User model, string mode)
+        {
+            if (mode == "edit")
+                admin.UpdateUser(model);
+            else if (mode == "create")
+                admin.AddUser(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
+        [Route("DeleteUser")]
+        public ActionResult DeleteUser(string id)
+        {
+            admin.DeleteUser(id);
+            return Content(id, "text/plain");
+        }
+
+        [Route("IsExistingUserId")]
+        public ActionResult IsExistingUserId(string id)
+        {
+            return Content(admin.IsExistingUserId(id).ToString());
+        }
+
+        [Route("IsExistingUserEmail")]
+        public ActionResult IsExistingUserEmail(string email)
+        {
+            return Content(admin.IsExistingUserEmail(email).ToString());
+        }
+
+        #endregion
 
         #region Log
 

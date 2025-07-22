@@ -122,6 +122,18 @@ namespace DbUtils
 
         #region User, Login, UserLog
 
+        public List<User> GetUsers(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "user_id", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "upper(name)", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "upper(email)", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<User>("web_user", "*", dbParas);
+            return result.ToList();
+        }
+
         public User GetUser(string userId)
         {
             var user = db.Users.AsNoTracking().Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
@@ -177,9 +189,39 @@ namespace DbUtils
             }
         }
 
-        public bool IsExisitingUserId(string userId)
+        public void DeleteUser(string userId)
+        {
+            try
+            {
+                var user = db.Users.FirstOrDefault(a => a.USER_ID == userId);
+                var userCompanies = db.UserCompanies.Where(a => a.USER_ID == userId);
+                var userGroups = db.UserGroups.Where(a => a.USER_ID == userId);
+
+                if (user != null)
+                    db.Users.Remove(user);
+
+                if (userCompanies != null)
+                    db.UserCompanies.RemoveRange(userCompanies);
+
+                if (userGroups != null)
+                    db.UserGroups.RemoveRange(userGroups);
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingUserId(string userId)
         {
             return db.Users.Count(a => a.USER_ID == userId) == 1 ? true : false;
+        }
+
+        public bool IsExistingUserEmail(string email)
+        {
+            return db.Users.Count(a => a.EMAIL == email) == 1 ? true : false;
         }
 
         public string IsValidLogin(string userId, string password)

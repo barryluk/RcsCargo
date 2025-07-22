@@ -1600,6 +1600,69 @@ var indexPages = [
         ],
     },
     {
+        pageName: "users",
+        id: "",
+        title: "Users",
+        initScript: "controllers.sysConsole.initUsers",
+        updateUrl: "../Admin/System/UpdateUser",
+        deleteUrl: "../Admin/System/DeleteUser",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "User ID / Name /  E-mail" },
+        ],
+        gridConfig: {
+            gridName: "gridUserIndex",
+            dataSourceUrl: "../Admin/System/GridUser_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "USER_ID", title: "User ID" },
+                { field: "NAME", title: "Name" },
+                { field: "EMAIL", title: "E-mail" },
+                { field: "TEL", title: "Tel / Mobile" },
+                { field: "DEFAULT_COMPANY", title: "Default Branch" },
+                { field: "USER_TYPE", title: "User Type" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ USER_ID }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${USER_ID}"></i>`, width: 30 },
+                { template: ({ USER_ID }) => `<i class="k-icon k-i-trash handCursor" data-attr="${USER_ID}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "USER_ID",
+            fields: [
+                { name: "USER_ID", label: "User ID", readonly: "edit", required: "true" },
+                { name: "NAME", label: "Name", required: "true" },
+                { name: "EMAIL", label: "E-mail", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    userIdExistsRule: function (input) {
+                        if (input.is("[name=USER_ID]")) {
+                            return !utils.isExistingUserId(input.val());
+                        } else {
+                            return true;
+                        }
+                    },
+                    userEmailExistsRule: function (input) {
+                        if (input.is("[name=EMAIL]")) {
+                            return !utils.isExisitingUserEmail(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: {
+                    userIdExistsRule: "User ID already exists in the database!",
+                    userEmailExistsRule: "E-mail already exists in the database!",
+                },
+            },
+        },
+    },
+    {
         pageName: "sysLogs",
         id: "",
         title: "System Logs",
