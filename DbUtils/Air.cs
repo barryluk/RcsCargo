@@ -867,7 +867,7 @@ namespace DbUtils
                 nvl(inv.mawb_no, j.mbl_no) as mawb_no, nvl(inv.hawb_no, j.container_no) as hawb_no, inv.lot_no,
                 inv.customer_code, inv.customer_desc, inv.origin, inv.dest, inv.flight_no, inv.flight_date,
                 inv.package, inv.gwts, inv.vwts, inv.cwts, inv.curr_code, inv.ex_rate, inv.amount, inv.amount_home,
-                inv.create_date, inv.create_user, inv.is_voided";
+                inv.create_date, inv.create_user, inv.is_voided, inv.is_posted";
             var fromCmd = $@"a_invoice inv left outer join a_other_job j on inv.job_no = j.job_no and inv.company_id = j.company_id and inv.frt_mode = j.frt_mode";
 
             var dbParas = new List<DbParameter>

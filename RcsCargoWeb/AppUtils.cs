@@ -7,9 +7,36 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 using Reporting;
+using DbUtils;
 
 namespace RcsCargoWeb
 {
+    public class CheckTokenAttribute : AuthorizeAttribute
+    {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static string[] bypassUrls = { "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login" };
+        private static DbUtils.Admin admin = new Admin();
+
+        protected override bool AuthorizeCore(HttpContextBase context)
+        {
+            var filePath = HttpContext.Current.Request.FilePath;    //e.g. /Home/Test
+            if (bypassUrls.Contains(filePath))
+                return true;
+
+            var token = HttpContext.Current.Request.Headers["token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                return admin.IsValidToken(token);
+            }
+            else
+                return false;
+        }
+
+        public CheckTokenAttribute() 
+        {
+        }
+    }
+
     public static class AppUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

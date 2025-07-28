@@ -82,7 +82,6 @@ namespace DbUtils.Models.Air
         [Column(Order = 4)]
         public decimal LINE_NO { get; set; }
         public string CHARGE_CODE { get; set; }
-        [NotMapped]
         public string CHARGE_DESC { get; set; }
         public string CURR_CODE { get; set; }
         public decimal EX_RATE { get; set; }

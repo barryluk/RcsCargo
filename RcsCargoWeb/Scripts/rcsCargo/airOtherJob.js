@@ -56,4 +56,128 @@
         }
     }
 
+    createInvoiceClick = function (selector) {
+        var html = `
+            <div class="row" id="${utils.getFormId()}_createInvoice">
+                <label class="col-sm-3 col-form-label">Freight Payment</label>
+                <div class="col-sm-9">
+                    <input type="paymentTerms" name="createInvoice_frtPaymentPc" />
+                </div>
+                <label class="col-sm-3 col-form-label">Invoice Payer</label>
+                <div class="col-sm-9">
+                    <input type="customerAddr" class="form-control" name="invoicePayer" required />
+                    <input type="hidden" name="invoicePayer_CODE" />
+                    <input type="hidden" name="invoicePayer_BRANCH" />
+                    <input type="hidden" name="invoicePayer_SHORT_DESC" />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR1" readonly />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR2" readonly />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR3" readonly />
+                    <input type="text" class="form-control" name="invoicePayer_ADDR4" readonly style="margin-bottom: 4px" />
+                </div>
+            </div>`;
+
+        utils.alertMessage(html, "Create Invoice", null, null, true, "controllers.airOtherJob.createInvoice");
+        var formSetting = {};
+        formSetting.id = `${utils.getFormId()}_createInvoice`;
+        controls.renderFormControl_kendoUI(formSetting);
+    }
+
+    createInvoice = function (sender) {
+        $(`#${utils.getFormId()}`).kendoValidator({ errorTemplate: ({ message }) => utils.validatorErrorTemplate(message) });
+        let validator = $(`#${utils.getFormId()}`).data("kendoValidator");
+        let masterFormId = utils.getFormId().replace("_createInvoice", "");
+        //console.log($(`#${utils.getFormId()}`), utils.getFormId());
+        if (validator.validate()) {
+            var modelData = JSON.parse($(`#${masterFormId}`).attr("modelData"));
+            var model = {
+                INV_NO: "",
+                COMPANY_ID: data.companyId,
+                FRT_MODE: utils.getFrtMode(),
+                IS_VOIDED: "N",
+                IS_PRINTED: "N",
+                IS_POSTED: "N",
+                IS_TRANSFERRED: "N",
+                INV_DATE: utils.convertDateToISOString(new Date()),
+                INV_TYPE: "I",
+                INV_CATEGORY: "J",
+                SHOW_DATE_TYPE: "F",
+                //MAWB_NO: modelData.MAWB,
+                JOB_NO: modelData.JOB_NO,
+                CUSTOMER_CODE: $("[name='invoicePayer_CODE']").val().split("-")[0],
+                CUSTOMER_BRANCH: $("[name='invoicePayer_BRANCH']").val(),
+                CUSTOMER_SHORT_DESC: $("[name='invoicePayer_SHORT_DESC']").val(),
+                CUSTOMER_DESC: $("[name='invoicePayer']").data("kendoDropDownList").text()
+                    .replace(`${$("[name='invoicePayer_CODE']").val().split("-")[0]} - `, ``)
+                    .replace(` - ${$("[name='invoicePayer_CODE']").val().split("-")[1]}`, ``),
+                //AIRLINE_CODE: modelData.AIRLINE_CODE,
+                //FLIGHT_NO: modelData.FLIGHT_NO,
+                FLIGHT_DATE: utils.convertDateToISOString(utils.parseDate(modelData.FLIGHT_DATE)),
+                FRT_PAYMENT_PC: $("[name='createInvoice_frtPaymentPc']").val(),
+                PACKAGE: modelData.CTNS,
+                PACKAGE_UNIT: modelData.PACKAGE_UNIT,
+                GWTS: modelData.GWTS,
+                VWTS: modelData.VWTS,
+                CWTS: modelData.CWTS,
+                ORIGIN: modelData.ORIGIN_CODE,
+                DEST: modelData.DEST_CODE,
+                CURR_CODE: modelData.CURR_CODE,
+                EX_RATE: modelData.EX_RATE,
+                AMOUNT: 0,
+                AMOUNT_HOME: 0,
+                CREATE_USER: data.user.USER_ID,
+                CREATE_DATE: utils.convertDateToISOString(new Date()),
+                MODIFY_USER: data.user.USER_ID,
+                MODIFY_DATE: utils.convertDateToISOString(new Date()),
+            };
+
+            var grid;
+            var gridConfig;
+            if ($("[name='createInvoice_frtPaymentPc']").val() == "P") {
+                grid = $(`#${masterFormId} [name="grid_OtherJobChargesPrepaid"]`).data("kendoGrid");
+                gridConfig = utils.getFormControlByName("OtherJobChargesPrepaid");
+            } else {
+                grid = $(`#${masterFormId} [name="grid_OtherJobChargesCollect"]`).data("kendoGrid");
+                gridConfig = utils.getFormControlByName("OtherJobChargesCollect");
+            }
+
+            model.InvoiceItems = utils.formatGridData(grid, gridConfig);
+            model.InvoiceItems.forEach(function (item) {
+                model.AMOUNT += item.AMOUNT_HOME;
+            });
+            model.AMOUNT = utils.roundUp(model.AMOUNT, 2);
+            model.AMOUNT_HOME = utils.roundUp(model.AMOUNT * model.EX_RATE, 2);
+            console.log(model);
+
+            $.ajax({
+                url: utils.getMasterFormByName("airInvoice").updateUrl,
+                type: "post",
+                data: { model: model, mode: "create" },
+                beforeSend: function () {
+                    kendo.ui.progress($(`#${utils.getFormId()}`), true);
+                },
+                success: function (result) {
+                    console.log(result);
+                    $.ajax({
+                        url: "../Air/OtherJob/GetOtherJobInvoices",
+                        data: { id: model.JOB_NO, companyId: model.COMPANY_ID, frtMode: model.FRT_MODE },
+                        success: function (invoices) {
+                            var invoiceModel = { Invoices: invoices };
+                            controls.setValuesToFormControls(utils.getMasterFormByName("airOtherJob"), invoiceModel, true);
+                            utils.showNotification("Invoice created success", "success");
+                        }
+                    });
+                },
+                error: function (err) {
+                    console.log(err);
+                    utils.showNotification("Invoice created failed, please contact system administrator!", "error");
+                },
+                complete: function () {
+                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
+                    sender.destroy();
+                }
+            });
+
+        }
+    }
+
 }

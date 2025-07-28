@@ -104,11 +104,5 @@ namespace RcsCargoWeb.Controllers.Admin
             user.PASSWORD = string.Empty;
             return Json(user, JsonRequestBehavior.AllowGet);
         }
-
-        //[Route("UpdateUser")]
-        //public ActionResult UpdateUser(User user)
-        //{
-
-        //}
     }
 }

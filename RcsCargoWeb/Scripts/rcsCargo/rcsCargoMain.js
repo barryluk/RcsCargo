@@ -8,7 +8,17 @@ $(document).ready(function () {
     $.ajaxSetup({
         type: "post",
         dataType: "json",
-        cache: false
+        cache: false,
+        headers: { token: localStorage.sessionId },
+        complete: function (request) {
+            if (request.status == "401") {
+                console.log(request.status, "Unauthorized Request, redirect to Login");
+                //Unauthorized Request, redirect to Login
+                localStorage.removeItem("user");
+                localStorage.removeItem("sessionId");
+                window.open("../Home/Login", "_self");
+            }
+        }
     });
 
     loadScripts().then(function () {

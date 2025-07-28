@@ -11,6 +11,12 @@ using DbUtils.Models.Admin;
 
 namespace RcsCargoWeb.Controllers.Admin
 {
+    public class LogFileSetting
+    {
+        public string LogFileName { get; set; }
+        public string LogFilePath { get; set; }
+    }
+
     [RoutePrefix("Admin/System")]
     public class SystemController : Controller
     {
@@ -84,43 +90,76 @@ namespace RcsCargoWeb.Controllers.Admin
 
         #endregion
 
+        #region User Log
+
+        [Route("GridUserLog_Read")]
+        public ActionResult GridUserLog_Read([Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        {
+            var sortField = "USER_ID";
+            var sortDir = "asc";
+
+            if (sortings != null)
+            {
+                sortField = sortings.First().Single(a => a.Key == "field").Value;
+                sortDir = sortings.First().Single(a => a.Key == "dir").Value;
+            }
+
+            var results = admin.GetUserLogs();
+
+            if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
+            {
+                if (sortDir == "asc")
+                    results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+                else
+                    results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+            }
+
+            return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        #endregion
+
         #region Log
 
-        [Route("GetLogFiles")]
-        public ActionResult GetLogFiles()
+        [Route("GetLogFileSettings")]
+        public ActionResult GetLogFileSettings()
         {
-            var files = new DirectoryInfo(AppUtils.logPath).GetFiles("*.*");
+            var logFileSettings = new List<LogFileSetting>();
+            foreach (var value in AppUtils.logPath.Split(';'))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    logFileSettings.Add(new LogFileSetting
+                    {
+                        LogFileName = value.Split(',')[1].Trim(),
+                        LogFilePath = value.Split(',')[0].Trim(),
+                    });
+                }
+            }
+
+            return Json(logFileSettings, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetLogFiles")]
+        public ActionResult GetLogFiles(string path, string filePrefix)
+        {
+            var files = new DirectoryInfo(path).GetFiles("*.*").Where(a => a.Name.StartsWith(filePrefix));
             return Json(files.OrderByDescending(a => a.LastWriteTime).Select(a => a.Name).ToList(), JsonRequestBehavior.AllowGet);
         }
 
         [Route("GetLog")]
-        public string GetLog(string fileName, string filter = "")
+        public string GetLog(string path, string fileName, string filter = "")
         {
-            return GetLogContent(new FileInfo(Path.Combine(AppUtils.logPath, fileName)), filter);
+            return GetLogContent(new FileInfo(Path.Combine(path, fileName)), filter);
         }
 
         private string GetLogContent(FileInfo file, string filter)
         {
             string logContent = string.Empty;
-            //.log file is locked by log4net, so can only copy to another file and read the content
-            if (file.Extension.Equals(".log"))
-            {
-                if (System.IO.File.Exists($"{file.FullName}1"))
-                    System.IO.File.Delete($"{file.FullName}1");
-
-                file.CopyTo($"{file.FullName}1");
-                TextReader reader = new StreamReader($"{file.FullName}1");
-                logContent = reader.ReadToEnd();
-                reader.Close();
-
-                System.IO.File.Delete($"{file.FullName}1");
-            }
-            else
-            {
-                TextReader reader = new StreamReader(file.FullName);
-                logContent = reader.ReadToEnd();
-                reader.Close();
-            }
+            var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            TextReader reader = new StreamReader(fs);
+            logContent = reader.ReadToEnd();
+            reader.Close();
 
             var logLines = logContent.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
 

@@ -658,6 +658,25 @@
         return serverResult == "True" ? true : false;
     }
 
+    isExistingOtherJobNo = function (jobNo) {
+        var serverResult = "";
+        $.ajax({
+            url: "../Air/OtherJob/IsExistingOtherJobNo",
+            dataType: "text",
+            data: {
+                id: jobNo,
+                companyId: data.companyId,
+                frtMode: utils.getFrtMode()
+            },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
     isExistingSeaBookingNo = function (bookingNo) {
         var serverResult = "";
         $.ajax({

@@ -17,16 +17,17 @@ using System.Xml.Linq;
 
 namespace RcsCargoWeb.Controllers
 {
+    [CheckToken]
     public class HomeController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public ActionResult Test()
+        public ActionResult Test(string value)
         {
             DbUtils.RcsFreightDBContext db = new RcsFreightDBContext();
             var items = "";
 
-            Hawb result = DbUtils.Utils.GetSqlQueryResult<Hawb>("a_hawb", "hawb_no", "WFF74277000").FirstOrDefault();
+            Hawb result = DbUtils.Utils.GetSqlQueryResult<Hawb>("a_hawb", "hawb_no", $"{value}").FirstOrDefault();
             foreach (var prop in result.GetType().GetProperties())
             {
                 if (prop.GetValue(result) != null)

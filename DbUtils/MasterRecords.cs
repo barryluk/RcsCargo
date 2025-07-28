@@ -811,11 +811,25 @@ namespace DbUtils
             //    where modify_date > sysdate - 30";
 
             string sqlCmd = @"select customer.customer_code, n.customer_desc, n.branch_code, c.short_desc, c.addr1, c.addr2, c.addr3, c.addr4
-                from (select shipper_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
+                from (select shipper_code customer_code from a_mawb where create_date > sysdate - 90
                 union
-                select consignee_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
+                select consignee_code customer_code from a_mawb where create_date > sysdate - 90
                 union
-                select agent_code customer_code from a_hawb where create_date > sysdate - 60 and frt_mode = 'AE'
+                select agent_code customer_code from a_mawb where create_date > sysdate - 90
+                union
+                select shipper_code customer_code from a_hawb where create_date > sysdate - 90 and frt_mode = 'AE'
+                union
+                select consignee_code customer_code from a_hawb where create_date > sysdate - 90 and frt_mode = 'AE'
+                union
+                select agent_code customer_code from a_hawb where create_date > sysdate - 90 and frt_mode = 'AE'
+                union
+                select shipper_code customer_code from a_other_job where create_date > sysdate - 90
+                union
+                select consignee_code customer_code from a_other_job where create_date > sysdate - 90
+                union
+                select customer_code from a_invoice where create_date > sysdate - 90
+                union
+                select customer_code from a_pv where create_date > sysdate - 90
                 union
                 select customer_code from customer where modify_date > sysdate - 30) customer
                 join customer_name n on customer.customer_code = n.customer_code

@@ -43,7 +43,7 @@ var masterRecords = {
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
-    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFiles", "seqType", "sysCompany", "carrier", "vessel", "seaServiceType", "toOrder",
+    "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFolders", "logFiles", "seqType", "sysCompany", "carrier", "vessel", "seaServiceType", "toOrder",
     "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "selectContainer", "transferSysCompany", "seaInvoiceCategory", "seaInvoiceFormat" ];
 
 var frameworkHtmlElements = {
@@ -1663,11 +1663,42 @@ var indexPages = [
         },
     },
     {
+        pageName: "userLogs",
+        id: "",
+        title: "User Logs",
+        initScript: "controllers.sysConsole.initUserLogs",
+        //updateUrl: "../Admin/System/UpdateUser",
+        deleteUrl: "../Admin/System/DeleteUserLog",
+        targetContainer: {},
+        searchControls: [
+            //{ label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "User ID / Name /  E-mail" },
+        ],
+        gridConfig: {
+            gridName: "gridUserLogIndex",
+            dataSourceUrl: "../Admin/System/GridUserLog_Read",
+            toolbar: [
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "SESSION_ID", title: "Session ID" },
+                { field: "USER_ID", title: "User ID" },
+                { field: "USER_HOST_ADDRESS", title: "IP Address" },
+                { field: "BROWSER_INFO", title: "Browser Information" },
+                { field: "COMPANY_ID", title: "Company ID" },
+                { field: "LOGIN_TIME", title: "Login Time", template: ({ LOGIN_TIME }) => data.formatDateTime(LOGIN_TIME, "dateTimeLong") },
+                { field: "LAST_REQUEST", title: "Last Request", template: ({ LAST_REQUEST }) => data.formatDateTime(LAST_REQUEST, "dateTimeLong") },
+                { template: ({ SESSION_ID }) => `<i class="k-icon k-i-trash handCursor" data-attr="${SESSION_ID}"></i>`, width: 30 },
+            ],
+        },
+    },
+    {
         pageName: "sysLogs",
         id: "",
         title: "System Logs",
         initScript: "controllers.sysConsole.initSysLogs",
         controls: [
+            { label: "Log folder", type: "logFolders", name: "logFolders", colWidth: 4 },
             { label: "Log file", type: "logFiles", name: "logFiles", colWidth: 4 },
             { type: "emptyBlock", name: "logContent", colWidth: 12 },
         ],
@@ -3554,8 +3585,20 @@ var masterForms = [
                 { name: "SHIPPER_CODE", required: "true" },
                 { name: "CONSIGNEE_CODE", required: "true" },
                 { name: "PACKAGE_UNIT", required: "true" },
-                { name: "JOB_NO", readonly: "always" },
+                { name: "JOB_NO", readonly: "edit" },
             ],
+            validation: {
+                rules: {
+                    otherJobNoExistsRule: function (input) {
+                        if (input.is("[name=JOB_NO]")) {
+                            return !utils.isExistingOtherJobNo(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { otherJobNoExistsRule: "Job# already exists in the database!", },
+            },
         },
         formTabs: [
             {
@@ -3570,7 +3613,7 @@ var masterForms = [
                 title: "Other Job Information",
                 colWidth: 12,
                 formControls: [
-                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6 },
+                    { label: "Job #", type: "text", name: "JOB_NO", colWidth: 6, placeholder: "Empty for auto generate" },
                     { label: "Lot #", type: "selectLot", name: "LOT_NO", callbackFunction: "controllers.airOtherJob.selectLot", colWidth: 6 },
                     { label: "Shipper", type: "customerAddrEditable", name: "SHIPPER", colWidth: 6 },
                     { label: "Consignee", type: "customerAddrEditable", name: "CONSIGNEE", colWidth: 6 },
@@ -3696,8 +3739,10 @@ var masterForms = [
                 formControls: [
                     {
                         label: "", type: "grid", name: "Invoices", editable: false,
+                        linkIdPrefix: "airInvoice",
+                        linkTabTitle: "Invoice#",
                         toolbar: [
-                            { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add" },
+                            { name: "createInvoice", text: "Create Invoice", iconClass: "k-icon k-i-file-add", callbackFunction: "controllers.airOtherJob.createInvoiceClick" },
                         ],
                         columns: [
                             { title: "Invoice #", field: "INV_NO", attributes: { "class": "link-cell" }, width: 80 },
@@ -5054,6 +5099,9 @@ export default class {
                                 setTimeout(function () {
                                     var controller = id.split("_")[0];
                                     var pageSetting = utils.getMasterFormByName(controller);
+                                    if (pageSetting == null)
+                                        return;
+
                                     if (controller.endsWith("Index"))
                                         controls.append_tabStripMain(pageSetting.title, id, controller.replace("Index", ""));
                                     else {

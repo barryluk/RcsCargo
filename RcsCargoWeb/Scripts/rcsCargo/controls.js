@@ -916,6 +916,7 @@
                 let formControlClass = utils.getFormControlClass(control.type);
                 let formControlClass2 = control.type2 != null ? utils.getFormControlClass(control.type2) : "";
                 let readonlyAttr = control.readonly == null ? "" : "readonly";
+                let placeholderAttr = control.placeholder == null ? "" : `placeholder="${control.placeholder}"`;
 
                 if (control.colWidth != null)
                     colWidth = `col-xl-${control.colWidth} col-lg-${control.colWidth * 2 > 12 ? 12 : control.colWidth * 2}`;
@@ -930,10 +931,10 @@
                             //if (formControlClass == "form-control")
                             //    formControlClass = "form-control inline";
 
-                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass} inline" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
-                            controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${readonlyAttr} />`;
+                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass} inline" name="${control.name}" ${placeholderAttr} ${readonlyAttr} ${callbackFunction} />`;
+                            controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${placeholderAttr} ${readonlyAttr} />`;
                         } else {
-                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${readonlyAttr} ${callbackFunction} />`;
+                            controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${placeholderAttr} ${readonlyAttr} ${callbackFunction} />`;
                         }
                     }
                 }
@@ -1361,6 +1362,7 @@
                         var formControlType = utils.getFormControlType(control.type);
                         let formControlType2 = control.type2 != null ? utils.getFormControlType(control.type2) : "";
                         var required = "";
+                        let placeholderAttr = control.placeholder == null ? "" : `placeholder="${control.placeholder}"`;
 
                         //skip for empty blocks
                         if (control.name == null) {
@@ -1483,10 +1485,10 @@
                                     if (formControlClass2 == "form-control")
                                         formControlClass2 = "form-control inline";
 
-                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
-                                    controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${required} />`;
+                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${placeholderAttr} ${required} />`;
+                                    controlHtml += `<${formControlType2} type="${control.type2}" class="${formControlClass2}" name="${control.name2}" ${placeholderAttr} ${required} />`;
                                 } else {
-                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${callbackFunction} ${required} />`;
+                                    controlHtml = `<${formControlType} type="${control.type}" class="${formControlClass}" name="${control.name}" ${placeholderAttr} ${callbackFunction} ${required} />`;
                                 }
                             }
                             if (control.colWidth != null)
@@ -2891,6 +2893,45 @@
             }).data("kendoDropDownList");
         });
 
+        //kendoDropDownList for log folders
+        $(`#${masterForm.id} input[type=logFolders]`).each(function () {
+            var ddl = $(this).kendoDropDownList({
+                autoWidth: true,
+                dataTextField: "LogFolderText",
+                dataValueField: "LogFolderValue",
+                optionLabel: "Select log folder",
+                dataSource: {
+                    type: "json",
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                url: "../Admin/System/GetLogFileSettings",
+                                success: function (result) {
+                                    for (let i in result) {
+                                        result[i].LogFolderText = result[i].LogFilePath + " - " + result[i].LogFileName;
+                                        result[i].LogFolderValue = result[i].LogFilePath + "," + result[i].LogFileName;
+                                    }
+                                    options.success(result);
+                                }
+                            });
+                        },
+                    }
+                },
+                select: function (e) {
+                    console.log(e.dataItem);
+
+                    $.ajax({
+                        url: "../Admin/System/GetLogFiles",
+                        data: { path: e.dataItem.LogFilePath, filePrefix: e.dataItem.LogFileName },
+                        success: function (result) {
+                            let dataSource = new kendo.data.DataSource({ data: result });
+                            $(`#${masterForm.id} input[type=logFiles]`).data("kendoDropDownList").setDataSource(dataSource);
+                        }
+                    });
+                },
+            }).data("kendoDropDownList");
+        });
+
         //kendoDropDownList for log files
         $(`#${masterForm.id} input[type=logFiles]`).each(function () {
             var ddl = $(this).kendoDropDownList({
@@ -2900,6 +2941,9 @@
                     type: "json",
                     transport: {
                         read: function (options) {
+                            if (utils.isEmptyString($(`#${utils.getFormId()} input[type=logFolders]`).data("kendoDropDownList").value()))
+                                return;
+
                             $.ajax({
                                 url: "../Admin/System/GetLogFiles",
                                 success: function (result) {
@@ -2910,10 +2954,11 @@
                     }
                 },
                 select: function (e) {
+                    let folder = $(`#${utils.getFormId()} input[type=logFolders]`).data("kendoDropDownList").value().split(",")[0];
                     $.ajax({
                         url: "../Admin/System/GetLog",
                         dataType: "text",
-                        data: { fileName: e.dataItem },
+                        data: { path: folder, fileName: e.dataItem },
                         success: function (result) {
                             $(`#${utils.getFormId()} [name="logContent"]`).html(result.replaceAll("\r\n", "<br>"));
                         }

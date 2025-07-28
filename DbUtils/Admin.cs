@@ -243,6 +243,11 @@ namespace DbUtils
             return status;
         }
 
+        public List<UserLog> GetUserLogs()
+        {
+            return db.UsersLogs.ToList();
+        }
+
         public void AddUserLog(UserLog userLog)
         {
             var oldUserLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userLog.USER_ID) && a.APP_NAME == "RCS Cargo");
@@ -312,6 +317,11 @@ namespace DbUtils
             }
             else
                 return false;
+        }
+
+        public bool IsValidToken(string token)
+        {
+            return db.UsersLogs.Count(a => a.SESSION_ID.Equals(token)) == 1 ? true : false;
         }
 
         public bool IsUserLogExist(string userId)

@@ -57,13 +57,18 @@ namespace RcsCargoWeb.Air.Controllers
         [Route("UpdateOtherJob")]
         public ActionResult UpdateOtherJob(OtherJob model, string mode)
         {
-            if (string.IsNullOrEmpty(model.JOB_NO) || mode == "create")
-            {
+            if (string.IsNullOrEmpty(model.JOB_NO) && mode == "create")
                 model.JOB_NO = admin.GetSequenceNumber("AE_OTHER_JOB", model.COMPANY_ID, model.ORIGIN_CODE, model.DEST_CODE, model.CREATE_DATE);
-                foreach (var item in model.OtherJobChargesPrepaid)
-                    item.JOB_NO = model.JOB_NO; 
-                foreach (var item in model.OtherJobChargesCollect)
-                    item.JOB_NO = model.JOB_NO;
+
+            foreach (var item in model.OtherJobChargesPrepaid)
+            {
+                item.JOB_NO = model.JOB_NO;
+                item.PAYMENT_TYPE = "P";
+            }
+            foreach (var item in model.OtherJobChargesCollect)
+            {
+                item.JOB_NO = model.JOB_NO;
+                item.PAYMENT_TYPE = "C";
             }
 
             if (mode == "edit")
@@ -74,10 +79,18 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(model, JsonRequestBehavior.DenyGet);
         }
 
+        [CheckToken]
         [Route("IsExistingOtherJobNo")]
         public ActionResult IsExistingOtherJobNo(string id, string companyId, string frtMode)
         {
             return Content(air.IsExistingOtherJobNo(id, companyId, frtMode).ToString());
+        }
+
+        [Route("GetOtherJobInvoices")]
+        public ActionResult GetOtherJobInvoices(string id, string companyId, string frtMode)
+        {
+            var result = air.GetJobInvoices(id, companyId, frtMode);
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
     }
 }
