@@ -93,6 +93,10 @@ namespace RcsCargoWeb.Air.Controllers
                     item.INV_NO = model.INV_NO;
             }
 
+            //Make sure the amount is correct
+            model.AMOUNT = model.InvoiceItems.Sum(item => item.AMOUNT_HOME);
+            model.AMOUNT_HOME = Math.Round(model.AMOUNT * model.EX_RATE, 2);
+
             if (mode == "edit")
                 air.UpdateInvoice(model);
             else if (mode == "create")

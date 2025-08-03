@@ -313,7 +313,7 @@ namespace RcsCargoWeb.Controllers
             var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords");
             var camRecords = string.Empty;
 
-            foreach(var camId in camIds)
+            foreach (var camId in camIds)
             {
                 if (Directory.Exists(Path.Combine(camRecordsPath, camId, DateTime.Now.ToString("yyyyMMdd"))))
                 {
@@ -331,7 +331,7 @@ namespace RcsCargoWeb.Controllers
             var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId);
             var folders = new DirectoryInfo(path).GetDirectories();
             List<string> folderName = new List<string>();
-            foreach(var folder in folders)
+            foreach (var folder in folders)
                 folderName.Add(folder.Name);
 
             return Json(folderName.OrderByDescending(a => a), JsonRequestBehavior.AllowGet);
@@ -436,6 +436,97 @@ namespace RcsCargoWeb.Controllers
             return Content(reader2.ReadToEnd());
 
         }
-    }
 
+        public ActionResult GetShaFileTransferList()
+        {
+            var files = masterRecord.GetShaFileTransferList();
+            var fileNames = string.Empty;
+            foreach (var file in files)
+            {
+                fileNames += file.FILE_ID + "|" + file.FILE_PATH + "\r\n";
+            }
+
+            return Content(fileNames.Trim(), "text/plain");
+        }
+
+        [HttpPost]
+        public ActionResult UploadShaFile()
+        {
+            try
+            {
+                var fileServerPath = @"\\fs2020\FileSharing\SHA";
+                var request = HttpContext.Request;
+                var file = request.InputStream;
+                var fileByte = new byte[file.Length];
+                file.Read(fileByte, 0, fileByte.Length);
+                file.Close();
+
+                var fileId = request.Headers["fileId"];
+                var fileName = HttpUtility.UrlDecode(request.Headers["filename"]);
+                var path = HttpUtility.UrlDecode(request.Headers["path"]);
+                path = path.Substring(3);       //remove the driver letter from the path e.g.: E:\rcs-account\01.txt
+
+                if (!Directory.Exists(Path.Combine(fileServerPath, path)))
+                    Directory.CreateDirectory(Path.Combine(fileServerPath, path));
+
+                var fs = new FileStream(Path.Combine(fileServerPath, path, fileName), FileMode.Create, FileAccess.Write);
+                fs.Write(fileByte, 0, fileByte.Length);
+                fs.Close();
+
+                masterRecord.UpdateShaFileTransferStatus(fileId, "SUCCESS", string.Empty);
+
+                return Content(Path.Combine(fileServerPath, path, fileName));
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+                var request = HttpContext.Request;
+                masterRecord.UpdateShaFileTransferStatus(request.Headers["fileid"], "FAILED", ex.Message);
+                return Content(ex.Message);
+            }
+        }
+
+        public ActionResult UploadShaFileFailed(string fileId, string message)
+        {
+            log.Error($"{fileId}: {message}");
+            masterRecord.UpdateShaFileTransferStatus(fileId, "FAILED", message);
+            return Content("DONE");
+        }
+
+        public ActionResult AddShaFileTransfer(string path)
+        {
+            log.Info($"New file: {path}");
+            masterRecord.AddShaFileTransfer(HttpUtility.UrlDecode(path));
+            return Content("DONE");
+        }
+
+        public ActionResult Test()
+        {
+            string url = string.Format($"http://localhost:53696/FileStation/AddShaFileTransfer?path={HttpUtility.UrlEncode("2025应收，应付账款查询.xlsx")}");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "text/plain";
+            request.Accept = "text/plain";
+
+            WebResponse response = request.GetResponse();
+            var respStream = response.GetResponseStream();
+            //StreamReader reader = new StreamReader(respStream);
+            //reader.ReadToEnd().Split('\r');
+            //reader.Close();
+
+            return Content("request done");
+            //var dir = Path.GetDirectoryName(path);
+            //return Content(dir + "," + Directory.Exists(dir).ToString(), "text/plain");
+
+            //try
+            //{
+            //    Directory.CreateDirectory(@"\\fs2020\FileSharing\SHA\Test123");
+            //    return Content("directory created", "text/plain");
+            //}
+            //catch (Exception ex)
+            //{
+            //    return Content(ex.ToString(), "text/plain");
+            //}
+        }
+    }
 }

@@ -27,4 +27,16 @@ namespace DbUtils.Models.MasterRecords
         public string ACCESS_TYPE { get; set; }
         public string USERS { get; set; }
     }
+
+    [Table("SHA_FILE_TRANSFER")]
+    public class ShaFileTransfer
+    {
+        [Key]
+        public string FILE_ID { get; set; }
+        public string FILE_PATH { get; set; }
+        public DateTime CREATE_TIME { get; set; }
+        public DateTime? UPLOAD_TIME { get; set; }
+        public string STATUS { get; set; }
+        public string MESSAGE { get; set; }
+    }
 }

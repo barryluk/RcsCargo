@@ -83,6 +83,10 @@ namespace RcsCargoWeb.Sea.Controllers
                     item.INV_NO = model.INV_NO;
             }
 
+            //Make sure the amount is correct
+            model.AMOUNT = model.SeaInvoiceItems.Sum(item => item.AMOUNT_HOME);
+            model.AMOUNT_HOME = Math.Round(model.AMOUNT * model.EX_RATE, 2);
+
             if (mode == "edit")
                 sea.UpdateInvoice(model);
             else if (mode == "create")

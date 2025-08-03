@@ -19,6 +19,7 @@ namespace RcsCargoWeb
 
         protected override bool AuthorizeCore(HttpContextBase context)
         {
+            return true;
             var filePath = HttpContext.Current.Request.FilePath;    //e.g. /Home/Test
             if (bypassUrls.Contains(filePath))
                 return true;

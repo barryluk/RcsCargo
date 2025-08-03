@@ -10,6 +10,7 @@ using System.Data.Entity;
 using System.Data.SqlTypes;
 using System.ComponentModel.Design;
 using System.Web.Configuration;
+using log4net.Layout;
 
 namespace DbUtils
 {
@@ -1045,6 +1046,36 @@ namespace DbUtils
         public void AddFileStationLog(FileStationLog log)
         {
             db.FileStationLogs.Add(log);
+            db.SaveChanges();
+        }
+
+        public List<ShaFileTransfer> GetShaFileTransferList()
+        {
+            var list = db.ShaFileTransfers.Where(a => string.IsNullOrEmpty(a.STATUS)).Take(1000).ToList();
+            return list.Where(a => a.CREATE_TIME < DateTime.Now.AddMinutes(5)).ToList();
+        }
+
+        public void UpdateShaFileTransferStatus(string fileId, string status, string message)
+        {
+            var record = db.ShaFileTransfers.Find(fileId);
+            if (record != null)
+            {
+                record.UPLOAD_TIME = DateTime.Now;
+                record.STATUS = status;
+                record.MESSAGE = message;
+                db.Entry(record).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+        }
+
+        public void AddShaFileTransfer(string path)
+        {
+            db.ShaFileTransfers.Add(new ShaFileTransfer
+            {
+                FILE_ID = Utils.NewGuid(),
+                CREATE_TIME = DateTime.Now,
+                FILE_PATH = path
+            });
             db.SaveChanges();
         }
 

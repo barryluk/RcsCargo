@@ -66,6 +66,10 @@ namespace RcsCargoWeb.Sea.Controllers
                     item.PV_NO = model.PV_NO;
             }
 
+            //Make sure the amount is correct
+            model.AMOUNT = model.SeaPvItems.Sum(item => item.AMOUNT_HOME);
+            model.AMOUNT_HOME = Math.Round(model.AMOUNT * model.EX_RATE, 2);
+
             if (mode == "edit")
                 sea.UpdatePv(model);
             else if (mode == "create")

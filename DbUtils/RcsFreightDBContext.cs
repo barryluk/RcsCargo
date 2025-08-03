@@ -33,6 +33,7 @@ namespace DbUtils
         public DbSet<Commodity> Commodities { get; set; }
         public DbSet<FileStationLog> FileStationLogs { get; set; }
         public DbSet<FileStationAccessRight> FileStationAccessRights { get; set; }
+        public DbSet<ShaFileTransfer> ShaFileTransfers { get; set; }
 
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }
