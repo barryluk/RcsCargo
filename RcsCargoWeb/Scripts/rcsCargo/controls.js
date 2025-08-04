@@ -2953,6 +2953,8 @@
                         },
                     }
                 },
+                beforeSend: function () { kendo.ui.progress($("[name='logContent']"), true); },
+                complete: function () { kendo.ui.progress($("[name='logContent']"), false); },
                 select: function (e) {
                     let folder = $(`#${utils.getFormId()} input[type=logFolders]`).data("kendoDropDownList").value().split(",")[0];
                     $.ajax({

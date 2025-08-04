@@ -461,7 +461,7 @@ namespace RcsCargoWeb.Controllers
                 file.Read(fileByte, 0, fileByte.Length);
                 file.Close();
 
-                var fileId = request.Headers["fileId"];
+                var fileId = HttpUtility.UrlDecode(request.Headers["fileId"]);
                 var fileName = HttpUtility.UrlDecode(request.Headers["filename"]);
                 var path = HttpUtility.UrlDecode(request.Headers["path"]);
                 path = path.Substring(3);       //remove the driver letter from the path e.g.: E:\rcs-account\01.txt
@@ -473,7 +473,8 @@ namespace RcsCargoWeb.Controllers
                 fs.Write(fileByte, 0, fileByte.Length);
                 fs.Close();
 
-                masterRecord.UpdateShaFileTransferStatus(fileId, "SUCCESS", string.Empty);
+                //log.Debug(Path.Combine(HttpUtility.UrlDecode(request.Headers["path"]), fileName));
+                masterRecord.UpdateShaFileTransferStatus(Path.Combine(HttpUtility.UrlDecode(request.Headers["path"]), fileName), "SUCCESS", string.Empty);
 
                 return Content(Path.Combine(fileServerPath, path, fileName));
             }
@@ -481,13 +482,14 @@ namespace RcsCargoWeb.Controllers
             {
                 log.Error(ex);
                 var request = HttpContext.Request;
-                masterRecord.UpdateShaFileTransferStatus(request.Headers["fileid"], "FAILED", ex.Message);
+                masterRecord.UpdateShaFileTransferStatus(Path.Combine(HttpUtility.UrlDecode(request.Headers["path"]), HttpUtility.UrlDecode(request.Headers["filename"])), "FAILED", ex.Message);
                 return Content(ex.Message);
             }
         }
 
         public ActionResult UploadShaFileFailed(string fileId, string message)
         {
+            fileId = HttpUtility.UrlDecode(fileId);
             log.Error($"{fileId}: {message}");
             masterRecord.UpdateShaFileTransferStatus(fileId, "FAILED", message);
             return Content("DONE");
@@ -495,38 +497,28 @@ namespace RcsCargoWeb.Controllers
 
         public ActionResult AddShaFileTransfer(string path)
         {
-            log.Info($"New file: {path}");
+            log.Info($"New file: {HttpUtility.UrlDecode(path)}");
             masterRecord.AddShaFileTransfer(HttpUtility.UrlDecode(path));
+            return Content("DONE");
+        }
+
+        public ActionResult RequestShaFileWatcherLog()
+        {
+            var logPath = @"D:\FileWatcher\log";
+            log.Info($"Request SHA log files: {Path.Combine(logPath, "FileWatcher.log")}");
+            masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log"));
+            masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.1"));
+            masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.2"));
             return Content("DONE");
         }
 
         public ActionResult Test()
         {
-            string url = string.Format($"http://localhost:53696/FileStation/AddShaFileTransfer?path={HttpUtility.UrlEncode("2025应收，应付账款查询.xlsx")}");
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            request.ContentType = "text/plain";
-            request.Accept = "text/plain";
+            var value = @"e:\rcs-air\TAO\2014\111942.962.978 AVON JCREW 美美 罗友 海珠 674CTNS LIM+JFK";
+            var encodedValue = HttpUtility.UrlEncode(value);
+            var decodedValue = HttpUtility.UrlDecode(encodedValue);
 
-            WebResponse response = request.GetResponse();
-            var respStream = response.GetResponseStream();
-            //StreamReader reader = new StreamReader(respStream);
-            //reader.ReadToEnd().Split('\r');
-            //reader.Close();
-
-            return Content("request done");
-            //var dir = Path.GetDirectoryName(path);
-            //return Content(dir + "," + Directory.Exists(dir).ToString(), "text/plain");
-
-            //try
-            //{
-            //    Directory.CreateDirectory(@"\\fs2020\FileSharing\SHA\Test123");
-            //    return Content("directory created", "text/plain");
-            //}
-            //catch (Exception ex)
-            //{
-            //    return Content(ex.ToString(), "text/plain");
-            //}
+            return Content($"{value}:::{encodedValue}:::{decodedValue}");
         }
     }
 }

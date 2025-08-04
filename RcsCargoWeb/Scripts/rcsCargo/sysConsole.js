@@ -40,7 +40,7 @@
             dataValueField: "value",
             dataSource: {
                 data: [{ text: "Entrance", value: "78DF723EB876" },
-                    { text: "Office", value: "78DF723EAC16" }]
+                { text: "Office", value: "78DF723EAC16" }]
             },
             change: function (e) {
                 console.log(e.sender.value());
@@ -130,21 +130,43 @@
                 <span><i class="k-icon k-i-arrow-end-down handCursor" name="toBottom"></i></span>
             </div>`);
 
+        $($(`#${pageSetting.id} .k-picker.k-dropdownlist`)[0]).after(`&nbsp;<span class="k-icon k-i-download handCursor" title="Request Log from SHA"></span>`)
+
         $(`#${pageSetting.id} [name="logContent"]`).after(`
             <i id="systemLog-main-footer" />
-            <div><img name="toTop" src="../Content/img/top.png" alt="back to top" /></div>`);
+            <div><span name="toTopRefresh" class="k-icon k-i-refresh" /><img name="toTop" src="../Content/img/top.png" alt="back to top" /></div>`);
 
-        $(`#${pageSetting.id} .k-i-refresh`).click(function () { $(`#${pageSetting.id} .logFilter`).first().trigger("click"); });
-        
+        $(`#${pageSetting.id} .k-i-refresh.handCursor`).click(function () { $(`#${pageSetting.id} .logFilter`).first().trigger("click"); });
+
+        $(`#${pageSetting.id} [name="toTopRefresh"]`).click(function () {
+            $($(`#${pageSetting.id} .logFilter`)[0]).trigger("click");
+        });
+
+        $(`#${pageSetting.id} .k-icon.k-i-download`).click(function () {
+            $.ajax({
+                url: "../FileStation/RequestShaFileWatcherLog",
+                dataType: "text",
+                beforeSend: function () { kendo.ui.progress($(`#${pageSetting.id}`), true); },
+                complete: function () { kendo.ui.progress($(`#${pageSetting.id}`), false); },
+                success: function (result) {
+                    utils.showNotification("Request sent, please wait a few minutes...", "success", `#${pageSetting.id} .k-icon.k-i-download`);
+                }
+            });
+        });
+
         $(`#${pageSetting.id} .logFilter`).click(function () {
+            let folder = $(`#${utils.getFormId()} input[type=logFolders]`).data("kendoDropDownList").value().split(",")[0];
             var filter = $(this).text().replace("[", "").replace("]", "").replace("ALL", "");
             $.ajax({
                 url: "../Admin/System/GetLog",
                 dataType: "text",
                 data: {
+                    path: folder,
                     fileName: $(`#${utils.getFormId()} [name="logFiles"]`).data("kendoDropDownList").dataItem(),
                     filter: filter,
                 },
+                beforeSend: function () { kendo.ui.progress($("[name='logContent']"), true); },
+                complete: function () { kendo.ui.progress($("[name='logContent']"), false); },
                 success: function (result) {
                     $(`#${utils.getFormId()} [name="logContent"]`).html(result.replaceAll("\r\n", "<br>"));
                 }

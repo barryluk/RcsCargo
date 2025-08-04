@@ -417,6 +417,20 @@ td.k-edit-cell {
     _background-attachment: fixed;
 }
 
+[name="toTopRefresh"] {
+    position: fixed;
+    bottom: 105px;
+    right: 85px;
+    cursor: pointer;
+    _float: right;
+    _position: absolute;
+    _top: expression(documentElement.scrollTop + documentElement.clientHeight-this.offsetHeight);
+    _background-attachment: fixed;
+    font-size: 20pt;
+    margin-bottom: 8px;
+    color: #999AAA
+}
+
 span.menuButton {
     max-width: 256px;
     margin: 5px;

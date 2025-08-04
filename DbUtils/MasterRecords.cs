@@ -1051,32 +1051,59 @@ namespace DbUtils
 
         public List<ShaFileTransfer> GetShaFileTransferList()
         {
-            var list = db.ShaFileTransfers.Where(a => string.IsNullOrEmpty(a.STATUS)).Take(1000).ToList();
+            var list = db.ShaFileTransfers.Where(a => string.IsNullOrEmpty(a.STATUS)).OrderByDescending(a => a.CREATE_TIME).Take(1000).ToList();
             return list.Where(a => a.CREATE_TIME < DateTime.Now.AddMinutes(5)).ToList();
         }
 
         public void UpdateShaFileTransferStatus(string fileId, string status, string message)
         {
-            var record = db.ShaFileTransfers.Find(fileId);
-            if (record != null)
+            try
             {
-                record.UPLOAD_TIME = DateTime.Now;
-                record.STATUS = status;
-                record.MESSAGE = message;
-                db.Entry(record).State = EntityState.Modified;
-                db.SaveChanges();
+                var records = db.ShaFileTransfers.Where(a => a.FILE_PATH == fileId && a.UPLOAD_TIME == null);
+                if (records.Count() > 0)
+                {
+                    foreach (var record in records)
+                    {
+                        record.UPLOAD_TIME = DateTime.Now;
+                        record.STATUS = status;
+                        record.MESSAGE = message;
+                        db.Entry(record).State = EntityState.Modified;
+                    }
+                    db.SaveChanges();
+                }
+                else
+                {
+                    log.Error(fileId + ":::" + db.ShaFileTransfers.Count(a => a.FILE_PATH == fileId && a.UPLOAD_TIME == null).ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
             }
         }
 
         public void AddShaFileTransfer(string path)
         {
-            db.ShaFileTransfers.Add(new ShaFileTransfer
+            if (db.ShaFileTransfers.Count(a => a.FILE_PATH == path && a.UPLOAD_TIME == null) == 0)
             {
-                FILE_ID = Utils.NewGuid(),
-                CREATE_TIME = DateTime.Now,
-                FILE_PATH = path
-            });
-            db.SaveChanges();
+                db.ShaFileTransfers.Add(new ShaFileTransfer
+                {
+                    FILE_ID = Utils.NewGuid(),
+                    CREATE_TIME = DateTime.Now,
+                    FILE_PATH = path
+                });
+                db.SaveChanges();
+            }
+            else
+            {
+                var records = db.ShaFileTransfers.Where(a => a.FILE_PATH == path && a.UPLOAD_TIME == null);
+                foreach (var record in records)
+                {
+                    record.CREATE_TIME = DateTime.Now;
+                    db.Entry(record).State = EntityState.Modified;
+                }
+                db.SaveChanges();
+            }
         }
 
         #endregion
