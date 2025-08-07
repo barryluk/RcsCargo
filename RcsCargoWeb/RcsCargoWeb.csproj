@@ -119,6 +119,9 @@
     <Reference Include="Oracle.ManagedDataAccess.EntityFramework, Version=6.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
       <HintPath>..\packages\Oracle.ManagedDataAccess.EntityFramework.23.4.0\lib\net472\Oracle.ManagedDataAccess.EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Pri.LongPath, Version=2.0.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Pri.LongPath.2.0.53\lib\net45\Pri.LongPath.dll</HintPath>
+    </Reference>
     <Reference Include="Reporting">
       <HintPath>..\..\RCS-Freight\Reporting\bin\Release\Reporting.dll</HintPath>
     </Reference>

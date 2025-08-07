@@ -461,17 +461,31 @@ namespace RcsCargoWeb.Controllers
                 file.Read(fileByte, 0, fileByte.Length);
                 file.Close();
 
+                //Http headers / form body data need to UrlDecode
                 var fileId = HttpUtility.UrlDecode(request.Headers["fileId"]);
                 var fileName = HttpUtility.UrlDecode(request.Headers["filename"]);
                 var path = HttpUtility.UrlDecode(request.Headers["path"]);
-                path = path.Substring(3);       //remove the driver letter from the path e.g.: E:\rcs-account\01.txt
+                path = path.Substring(3);       //remove the driver letter from the path e.g.: E:\rcs-account\01.txt  => rcs-account\01.txt
 
-                if (!Directory.Exists(Path.Combine(fileServerPath, path)))
-                    Directory.CreateDirectory(Path.Combine(fileServerPath, path));
+                //Create directory if not exist
+                if (!Pri.LongPath.Directory.Exists(Path.Combine(fileServerPath, path)))
+                    Pri.LongPath.Directory.CreateDirectory(Path.Combine(fileServerPath, path));
+                
+                //Handle long path exception
+                if (Path.Combine(fileServerPath, path, fileName).Length > 220)
+                {
+                    var fs = new FileStream(Path.Combine(fileServerPath, "temp", fileName), FileMode.Create, FileAccess.Write);
+                    fs.Write(fileByte, 0, fileByte.Length);
+                    fs.Close();
 
-                var fs = new FileStream(Path.Combine(fileServerPath, path, fileName), FileMode.Create, FileAccess.Write);
-                fs.Write(fileByte, 0, fileByte.Length);
-                fs.Close();
+                    Pri.LongPath.File.Move(Path.Combine(fileServerPath, "temp", fileName), Path.Combine(fileServerPath, path, fileName));
+                }
+                else
+                {
+                    var fs = new FileStream(Path.Combine(fileServerPath, path, fileName), FileMode.Create, FileAccess.Write);
+                    fs.Write(fileByte, 0, fileByte.Length);
+                    fs.Close();
+                }
 
                 //log.Debug(Path.Combine(HttpUtility.UrlDecode(request.Headers["path"]), fileName));
                 masterRecord.UpdateShaFileTransferStatus(Path.Combine(HttpUtility.UrlDecode(request.Headers["path"]), fileName), "SUCCESS", string.Empty);
@@ -487,9 +501,80 @@ namespace RcsCargoWeb.Controllers
             }
         }
 
+        [HttpPost]
+        public ActionResult UploadShaChunkFile()
+        {
+            try
+            {
+                var fileServerPath = @"\\fs2020\FileSharing\SHA\temp";
+                var request = HttpContext.Request;
+                var file = request.InputStream;
+                var fileByte = new byte[file.Length];
+                file.Read(fileByte, 0, fileByte.Length);
+                file.Close();
+
+                //Http headers / form body data need to UrlDecode
+                var fileId = HttpUtility.UrlDecode(request.Headers["fileId"]);
+                var chunkIndex = Convert.ToDecimal(request.Headers["chunkIndex"]);
+                var chunkSize = Convert.ToDecimal(request.Headers["chunkSize"]);
+                var fileLength = Convert.ToDecimal(request.Headers["fileLength"]);
+
+                var fs = new FileStream(Path.Combine(fileServerPath, HttpUtility.UrlEncode(fileId) + "_" + chunkIndex.ToString()), FileMode.Create, FileAccess.Write);
+                fs.Write(fileByte, 0, fileByte.Length);
+                fs.Close();
+
+                masterRecord.UpdateShaFileTransferStatusByFileId(fileId, "CHUNK", $"{chunkSize}:{fileLength}-{chunkIndex + 1}/{Math.Ceiling(fileLength/chunkSize)}");
+
+                if (chunkIndex + 1 == Math.Ceiling(fileLength / chunkSize))
+                {
+                    var serverPath = @"\\fs2020\FileSharing\SHA";
+                    var fileTransfer = masterRecord.GetShaFileTransfer(fileId);
+                    var newFileBytes = new byte[Convert.ToInt32(fileLength)];
+                    log.Info($"Starting to combine chunked files: {fileId} ::: {Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3))}");
+
+                    //Read all chunk file contents into newFileBytes
+                    for (int index = 0; index < Math.Ceiling(fileLength / chunkSize); index++)
+                    {
+                        var chunkFile = new FileInfo(Path.Combine(fileServerPath, HttpUtility.UrlEncode(fileId) + "_" + index.ToString()));
+                        var fs1 = new FileStream(chunkFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        fs1.Read(newFileBytes, index * Convert.ToInt32(chunkSize), Convert.ToInt32(fs1.Length));
+                        fs1.Close();
+                    }
+
+                    //Create directory if not exist
+                    var newPath = Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3, fileTransfer.FILE_PATH.LastIndexOf("\\") - 3));
+                    if (!Pri.LongPath.Directory.Exists(newPath))
+                        Pri.LongPath.Directory.CreateDirectory(newPath);
+
+                    //Convert newFileBytes to File
+                    var newFs = new FileStream(Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3)), FileMode.Create, FileAccess.Write);
+                    newFs.Write(newFileBytes, 0, newFileBytes.Length);
+                    newFs.Close();
+
+                    masterRecord.UpdateShaFileTransferStatusByFileId(fileId, "CHUNK_SUCCESS", $"{chunkSize}:{fileLength}-{Math.Ceiling(fileLength / chunkSize)}/{Math.Ceiling(fileLength / chunkSize)}");
+                    log.Info($"Combine chunked files success: {fileId} Size {Math.Round(fileLength / 1024 / 1024, 2)} MB ::: {Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3))}");
+
+                    //Delete chunk files
+                    for (int index = 0; index < Math.Ceiling(fileLength / chunkSize); index++)
+                    {
+                        System.IO.File.Delete(Path.Combine(fileServerPath, HttpUtility.UrlEncode(fileId) + "_" + index.ToString()));
+                    }
+                }
+
+                return Content(Path.Combine(fileServerPath, HttpUtility.UrlEncode(fileId) + "_" + chunkIndex.ToString()));
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+                var request = HttpContext.Request;
+                masterRecord.UpdateShaFileTransferStatusByFileId(HttpUtility.UrlDecode(request.Headers["fileId"]), "FAILED", ex.Message);
+                return Content(ex.Message);
+            }
+        }
+
+        //Url parameters will be auto UrlDecode, don't run the UrlDecode again ("+" will be replaced to space)
         public ActionResult UploadShaFileFailed(string fileId, string message)
         {
-            fileId = HttpUtility.UrlDecode(fileId);
             log.Error($"{fileId}: {message}");
             masterRecord.UpdateShaFileTransferStatus(fileId, "FAILED", message);
             return Content("DONE");
@@ -497,8 +582,8 @@ namespace RcsCargoWeb.Controllers
 
         public ActionResult AddShaFileTransfer(string path)
         {
-            log.Info($"New file: {HttpUtility.UrlDecode(path)}");
-            masterRecord.AddShaFileTransfer(HttpUtility.UrlDecode(path));
+            log.Info($"New file: {path}");
+            masterRecord.AddShaFileTransfer(path);
             return Content("DONE");
         }
 
@@ -509,16 +594,70 @@ namespace RcsCargoWeb.Controllers
             masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log"));
             masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.1"));
             masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.2"));
+            masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.3"));
+            masterRecord.AddShaFileTransfer(Path.Combine(logPath, "FileWatcher.log.4"));
             return Content("DONE");
         }
 
-        public ActionResult Test()
+        public ActionResult Test(string testValue)
         {
-            var value = @"e:\rcs-air\TAO\2014\111942.962.978 AVON JCREW 美美 罗友 海珠 674CTNS LIM+JFK";
-            var encodedValue = HttpUtility.UrlEncode(value);
-            var decodedValue = HttpUtility.UrlDecode(encodedValue);
+            var FILE_PATH = @"e:\rcs-air\CUSTOMER\PVH\ELLEN\Foxmail 7.0\Data\Indexes\msgBody\bodytxt_txt.rec0";
+            var serverPath = @"\\fs2020\FileSharing\SHA";
+            var newPath = Path.Combine(serverPath, FILE_PATH.Substring(3, FILE_PATH.LastIndexOf("\\") - 3));
+            return Content(newPath);
 
-            return Content($"{value}:::{encodedValue}:::{decodedValue}");
+            var msg = string.Empty;
+            try
+            {
+                var filePath = @"D:\SHA\TestLongPath\SAVEURS.tif";
+                var newFilePath = @"D:\SHA\TestLongPath\NEW_SAVEURS.tif";
+                decimal chunkSize = 5 * 1024 * 1024;    //5MB
+                var fileLength = new FileInfo(filePath).Length;
+
+                var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                byte[] fileBytes = new byte[fileLength];
+                byte[] newFileBytes = new byte[fileLength];
+                //IEnumerable<byte> concatBytes;
+
+                fs.Read(fileBytes, 0, fileBytes.Length);
+                fs.Close();
+
+                var offset = 0;
+                for (int chunkIndex = 0; chunkIndex < Math.Ceiling(fileLength / chunkSize); chunkIndex++)
+                {
+
+                    byte[] chunkByte = new byte[(chunkIndex < Math.Ceiling(fileLength / chunkSize) - 1) ?
+                        Convert.ToInt32(chunkSize) : Convert.ToInt32(fileLength - (chunkIndex * chunkSize))];
+
+                    msg += $"{chunkIndex} / {offset} / {chunkByte.Length}<br>";
+                    var fsWriter = new FileStream($"{filePath}_{chunkIndex.ToString()}", FileMode.Create, FileAccess.Write);
+                    fsWriter.Write(fileBytes, offset, chunkByte.Length);
+                    fsWriter.Close();
+
+                    offset += chunkByte.Length;
+                }
+
+                msg += "<br>";
+                for (int chunkIndex = 0; chunkIndex < Math.Ceiling(fileLength / chunkSize); chunkIndex++)
+                {
+                    var file = new FileInfo(filePath + "_" + chunkIndex);
+                    var fs1 = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    fs1.Read(newFileBytes, chunkIndex * Convert.ToInt32(chunkSize), Convert.ToInt32(fs1.Length));
+
+                    msg += $"{file.Name} / {chunkIndex} / {chunkIndex * Convert.ToInt32(chunkSize)} / {newFileBytes.Length}<br>";
+                    fs1.Close();
+                }
+
+                var newFs = new FileStream(newFilePath, FileMode.Create, FileAccess.Write);
+                newFs.Write(newFileBytes, 0, newFileBytes.Length);
+                newFs.Close();
+
+                return Content(msg);
+            }
+            catch (Exception ex)
+            {
+                return Content(msg + " < br>" + ex.ToString());
+            }
         }
     }
 }

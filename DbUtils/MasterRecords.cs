@@ -1051,8 +1051,42 @@ namespace DbUtils
 
         public List<ShaFileTransfer> GetShaFileTransferList()
         {
-            var list = db.ShaFileTransfers.Where(a => string.IsNullOrEmpty(a.STATUS)).OrderByDescending(a => a.CREATE_TIME).Take(1000).ToList();
-            return list.Where(a => a.CREATE_TIME < DateTime.Now.AddMinutes(5)).ToList();
+            var list = db.ShaFileTransfers.Where(a => string.IsNullOrEmpty(a.STATUS)).OrderByDescending(a => a.CREATE_TIME).Take(500).ToList();
+            list.AddRange(db.ShaFileTransfers.Where(a => a.STATUS == "CHUNK"));
+
+            return list.Where(a => a.CREATE_TIME < DateTime.Now.AddMinutes(1)).OrderByDescending(a => a.CREATE_TIME).ToList();
+        }
+
+        public ShaFileTransfer GetShaFileTransfer(string fileId)
+        {
+            return db.ShaFileTransfers.FirstOrDefault(a => a.FILE_ID == fileId);
+        }
+
+        public void UpdateShaFileTransferStatusByFileId(string fileId, string status, string message)
+        {
+            try
+            {
+                var records = db.ShaFileTransfers.Where(a => a.FILE_ID == fileId);
+                if (records.Count() > 0)
+                {
+                    foreach (var record in records)
+                    {
+                        record.UPLOAD_TIME = DateTime.Now;
+                        record.STATUS = status;
+                        record.MESSAGE = message;
+                        db.Entry(record).State = EntityState.Modified;
+                    }
+                    db.SaveChanges();
+                }
+                else
+                {
+                    log.Error(fileId + ":::" + db.ShaFileTransfers.Count(a => a.FILE_ID == fileId).ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
         }
 
         public void UpdateShaFileTransferStatus(string fileId, string status, string message)
