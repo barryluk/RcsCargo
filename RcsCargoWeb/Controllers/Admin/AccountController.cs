@@ -56,7 +56,7 @@ namespace RcsCargoWeb.Controllers.Admin
         }
 
         [Route("GetSessionStatus")]
-        public ActionResult GetSessionStatus(string userId)
+        public ActionResult GetSessionStatus(string userId, string companyId)
         {
             DbUtils.Admin admin = new DbUtils.Admin();
             var jsonResult = string.Empty;
@@ -66,7 +66,7 @@ namespace RcsCargoWeb.Controllers.Admin
             {
                 if (status)
                 {
-                    admin.UpdateLastRequestTime(userId, Session.SessionID, Request.UserHostAddress, HttpContext.Request.UserAgent);
+                    admin.UpdateLastRequestTime(userId, companyId, Session.SessionID, Request.UserHostAddress, HttpContext.Request.UserAgent);
                     jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\" }";
                 }
                 else

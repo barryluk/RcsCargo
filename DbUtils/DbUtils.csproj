@@ -69,6 +69,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Accounting.cs" />
+    <Compile Include="Models\Accounting\SysSetting.cs" />
+    <Compile Include="Models\Accounting\Customer.cs" />
+    <Compile Include="Models\Accounting\Vendor.cs" />
+    <Compile Include="Models\Accounting\LedgerAccount.cs" />
+    <Compile Include="Models\Accounting\GLAccass.cs" />
+    <Compile Include="Models\Accounting\GLAccsum.cs" />
+    <Compile Include="Models\Accounting\GLVoucher.cs" />
     <Compile Include="Models\Air\TransferLog.cs" />
     <Compile Include="Models\MasterRecords\Commodity.cs" />
     <Compile Include="Models\MasterRecords\FileStation.cs" />

@@ -111,6 +111,7 @@ namespace DbUtils.Models.Sea
         public decimal P_EX_RATE { get; set; }
         public string C_CURR_CODE { get; set; }
         public decimal C_EX_RATE { get; set; }
+        public string PRINT_ON_HBL { get; set; }
         public string ENTRY_WORD1 { get; set; }
         public string ENTRY_WORD2 { get; set; }
         public string COUNTRY_OF_ORIGIN { get; set; }

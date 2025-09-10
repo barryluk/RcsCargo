@@ -61,11 +61,11 @@
                 dataValueField: "value",
                 dataSource: {
                     data: [{ text: "30", value: 30 },
-                        { text: "60", value: 60 },
-                        { text: "90", value: 90 },
-                        { text: "180", value: 180 },
-                        { text: "1 year", value: 365 },
-                        { text: "2 years", value: 730 },]
+                    { text: "60", value: 60 },
+                    { text: "90", value: 90 },
+                    { text: "180", value: 180 },
+                    { text: "1 year", value: 365 },
+                    { text: "2 years", value: 730 },]
                 }
             });
 
@@ -481,13 +481,13 @@
                         || control.name == "CONTAINER_NO") {
                         var controlName = control.name;
                         //if (utils.getEditMode($(`#${masterForm.id} [name=${controlName}]`)) == "edit") {
-                            var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
-                            if (!controls.isEmptyString(model[`${controlName}`])) {
-                                ddl.filterInput.val(model[`${controlName}`]);
-                                ddl.dataSource.data([{ [controlName]: model[`${controlName}`] }]);
-                                ddl.value(model[`${controlName}`]);
-                                ddl.search(model[`${controlName}`]);
-                            }
+                        var ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
+                        if (!controls.isEmptyString(model[`${controlName}`])) {
+                            ddl.filterInput.val(model[`${controlName}`]);
+                            ddl.dataSource.data([{ [controlName]: model[`${controlName}`] }]);
+                            ddl.value(model[`${controlName}`]);
+                            ddl.search(model[`${controlName}`]);
+                        }
                         //}
                     } else if (control.name == "BOOKING_NO") {
                         var controlName = control.name;
@@ -516,7 +516,7 @@
                         let ddl = $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList");
                         //console.log(controlName, $(`#${masterForm.id} [name=${controlName}]`).data("kendoDropDownList").dataSource.data());
                         let customer = data.masterRecords.customers.filter(a =>
-                            a.CUSTOMER_CODE.startsWith(model[`${controlName}_CODE`]) && 
+                            a.CUSTOMER_CODE.startsWith(model[`${controlName}_CODE`]) &&
                             a.BRANCH_CODE == (model[`${controlName}_BRANCH`]) &&
                             a.SHORT_DESC == (model[`${controlName}_SHORT_DESC`])
                         );
@@ -770,7 +770,7 @@
                             REF_NO: $(this).text(),
                         });
                     }
-                    
+
                     lineNo++;
                 });
                 if (masterForm.formName == "seaInvoice")
@@ -1110,6 +1110,14 @@
                                 skip: options.data.skip,
                                 sort: options.data.sort,
                             };
+                        } else if (pageSetting.pageName == "acVoucher") {
+                            searchData = {
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
                         } else {
                             if (pageSetting.searchControls.length <= 1) {
                                 searchData = {
@@ -1181,12 +1189,19 @@
                     controls.gridAutoFitColumns(grid);
                 });
 
-                if (pageSetting.gridConfig.linkIdPrefix != null) {
-                    $(`#${formId} .k-grid button:contains("New")`).unbind("click");
+                //Toolbar new button events
+                if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
-                        var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
-                        controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
+                        utils.alertMessage("New Voucher", `New Voucher`);
                     });
+                } else {
+                    if (pageSetting.gridConfig.linkIdPrefix != null) {
+                        $(`#${formId} .k-grid button:contains("New")`).unbind("click");
+                        $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
+                            var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
+                            controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
+                        });
+                    }
                 }
 
                 //Toolbar custom button events
@@ -1260,9 +1275,16 @@
                             voyage = $(selectedCell).text().substring($(selectedCell).text().indexOf(voyage));
                             let title = `${$(selectedCell).text().split("/")[1].trim()} / ${voyage}`;
                             controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}: ${title}`, id, pageSetting.pageName);
+                        } else if (grid.element.attr("name") == "gridVoucherIndex") {
+                            //special case for accounting voucher
+                            let year = $(selectedCell).prev().text().split("/")[2].trim();
+                            let period = $(selectedCell).prev().text().split("/")[0].trim();
+                            let voucherNo = $(selectedCell).text().substr(4, 4);
+                            utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`);
+                            controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`);
                         }
                         else
-                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOIDED", "").replace("POSTED", "") }`, id, pageSetting.pageName);
+                            controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOIDED", "").replace("POSTED", "")}`, id, pageSetting.pageName);
                     }
                     grid.clearSelection();
                 }
@@ -2690,7 +2712,7 @@
                             DISCHARGE_PORT_DATE: e.dataItem.DISCHARGE_PORT_DATE,
                         };
                     }
-                    
+
                     controls.setValuesToFormControls(masterForm, model, true);
                 },
             }).data("kendoDropDownList");
@@ -3544,6 +3566,40 @@
             dataTextField: "SHORT_DESC",
             dataValueField: "SHORT_DESC",
             dataSource: gridCustomerName.dataSource.data(),
+        });
+    }
+
+    //kendoGrid kendoDropDownList for ledger accounts
+    renderGridEditorLedgerAccount = function (container, options) {
+        var ddl = $(`<input name="${options.field}" />`);
+        ddl.appendTo(container);
+        ddl.kendoDropDownList({
+            autoWidth: true,
+            filter: "startswith",
+            dataTextField: "AC_NAME_DISPLAY",
+            dataValueField: "AC_CODE",
+            optionLabel: `Select ledger accounts ...`,
+            dataSource: {
+                type: "json",
+                data: data.masterRecords.ledgerAccounts,
+            }
+        });
+    }
+
+    //kendoGrid kendoDropDownList for voucher desc
+    renderGridEditorVoucherDesc = function (container, options) {
+        var cbb = $(`<input name="${options.field}" />`);
+        cbb.appendTo(container);
+        cbb.kendoComboBox({
+            autoWidth: true,
+            filter: "startswith",
+            dataTextField: "DESC_TEXT",
+            dataValueField: "DESC_TEXT",
+            optionLabel: ` `,
+            dataSource: {
+                type: "json",
+                data: data.masterRecords.voucherDesc,
+            }
         });
     }
 

@@ -20,35 +20,9 @@ namespace DbUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         RcsFreightDBContext db;
-        public Admin() 
+        public Admin()
         {
             db = new RcsFreightDBContext();
-        }
-
-        public SysCompany GetSysCompany(string companyId)
-        {
-            return db.SysCompanies.Where(a => a.COMPANY_ID == companyId).FirstOrDefault();
-        }
-
-        public List<SysCompanyView> GetSysCompanies()
-        {
-            return db.SysCompanies.Select(a => new SysCompanyView {
-                COMPANY_ID = a.COMPANY_ID,
-                COMPANY_NAME = a.COMPANY_NAME,
-                COUNTRY_CODE = a.COUNTRY_CODE,
-                PORT_CODE = a.PORT_CODE,
-                EX_P_CURR_CODE = a.EX_P_CURR_CODE,
-                EX_C_CURR_CODE = a.EX_C_CURR_CODE,
-                IM_P_CURR_CODE = a.IM_P_CURR_CODE,
-                IM_C_CURR_CODE = a.IM_C_CURR_CODE,
-                EX_CURR_CODE = a.EX_P_CURR_CODE,
-                IM_CURR_CODE = a.IM_P_CURR_CODE,
-            }).ToList();
-        }
-
-        public List<SysModule> GetSysModules()
-        {
-            return db.SysModules.OrderBy(a => a.SEQUENCE).ToList();
         }
 
         public void RunScheduledReports(List<ReportSchedule> reportSchedules)
@@ -227,7 +201,7 @@ namespace DbUtils
         public string IsValidLogin(string userId, string password)
         {
             string status = string.Empty;
-            var user = db.Users.Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) || 
+            var user = db.Users.Where(a => a.USER_ID.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
                 a.EMAIL.Equals(userId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
             if (user != null)
@@ -258,7 +232,7 @@ namespace DbUtils
             db.SaveChanges();
         }
 
-        public bool UpdateLastRequestTime(string userId, string sessionId, string hostAddress, string browserInfo)
+        public bool UpdateLastRequestTime(string userId, string companyId, string sessionId, string hostAddress, string browserInfo)
         {
             bool status = true;
             var userLog = db.UsersLogs.Where(a => a.USER_ID.Equals(userId)).FirstOrDefault();
@@ -268,6 +242,7 @@ namespace DbUtils
                 {
                     if (userLog.SESSION_ID.Equals(sessionId))
                     {
+                        userLog.COMPANY_ID = companyId;
                         userLog.LAST_REQUEST = DateTime.Now;
                         userLog.USER_HOST_ADDRESS = hostAddress;
                         userLog.BROWSER_INFO = browserInfo;
@@ -281,7 +256,7 @@ namespace DbUtils
                             SESSION_ID = sessionId,
                             LAST_REQUEST = DateTime.Now,
                             USER_ID = userId,
-                            COMPANY_ID = userLog.COMPANY_ID,
+                            COMPANY_ID = companyId,
                             USER_HOST_ADDRESS = userLog.USER_HOST_ADDRESS,
                             APP_NAME = "RCS Cargo",
                             BROWSER_INFO = userLog.BROWSER_INFO,
@@ -312,7 +287,21 @@ namespace DbUtils
             {
                 db.UsersLogs.Remove(userLog);
                 db.SaveChanges();
-                log.Info($"User Log deleted: {userId}");
+                log.Info($"User Log deleted: {userLog.SESSION_ID} ::: {userId}");
+                return true;
+            }
+            else
+                return false;
+        }
+
+        public bool DeleteUserLogBySessionId(string sessionId)
+        {
+            var userLog = db.UsersLogs.FirstOrDefault(a => a.SESSION_ID.Equals(sessionId));
+            if (userLog != null)
+            {
+                db.UsersLogs.Remove(userLog);
+                db.SaveChanges();
+                log.Info($"User Log deleted: {sessionId} ::: {userLog.USER_ID}");
                 return true;
             }
             else
@@ -331,11 +320,197 @@ namespace DbUtils
 
         #endregion
 
+        #region Sys Company
+
+        public SysCompany GetSysCompany(string companyId)
+        {
+            return db.SysCompanies.Where(a => a.COMPANY_ID == companyId).FirstOrDefault();
+        }
+
+        public List<SysCompanyView> GetSysCompanies(string searchValue = "%")
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "company_id", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "company_name", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var result = Utils.GetSqlQueryResult<SysCompanyView>("sys_company", "*", dbParas);
+            foreach(var sysCompany in result)
+                sysCompany.ADDR = $"{sysCompany.ADDR1} {sysCompany.ADDR2} {sysCompany.ADDR3} {sysCompany.ADDR4}".Trim();
+
+            return result.ToList();
+        }
+
+        public void AddSysCompany(SysCompany sysCompany)
+        {
+            try
+            {
+                db.SysCompanies.Add(sysCompany);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateSysCompany(SysCompany sysCompany)
+        {
+            try
+            {
+                db.Entry(sysCompany).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteSysCompany(string companyId)
+        {
+            try
+            {
+                var sysCompany = db.SysCompanies.FirstOrDefault(a => a.COMPANY_ID == companyId);
+                if (sysCompany != null)
+                    db.SysCompanies.Remove(sysCompany);
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingSysCompanyId(string companyId)
+        {
+            return db.SysCompanies.Count(a => a.COMPANY_ID == companyId) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Sys Modules
+
+        public List<SysModule> GetSysModules()
+        {
+            return db.SysModules.OrderBy(a => a.SEQUENCE).ToList();
+        }
+
+        public SysModule GetSysModule(string moduleId)
+        {
+            return db.SysModules.Where(a => a.MODULE_ID == moduleId).FirstOrDefault();
+        }
+
+        public void AddSysModule(SysModule sysModule)
+        {
+            try
+            {
+                db.SysModules.Add(sysModule);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateSysModule(SysModule sysModule)
+        {
+            try
+            {
+                db.Entry(sysModule).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteSysModule(string moduleId)
+        {
+            try
+            {
+                var sysModule = db.SysModules.FirstOrDefault(a => a.MODULE_ID == moduleId);
+                if (sysModule != null)
+                    db.SysModules.Remove(sysModule);
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        #endregion
+
+        #region Group Access Right
+        #endregion
+
         #region Sequence Numbers
 
         public List<string> GetSeqTypes()
         {
             return db.SeqFormats.Select(a => a.SEQ_TYPE).Distinct().ToList();
+        }
+
+        public List<SeqFormat> GetSeqFormats(string companyId)
+        {
+            return db.SeqFormats.Where(a => a.COMPANY_ID == companyId).ToList();
+        }
+
+        public SeqFormat GetSeqFormat(string seqType, string companyId)
+        {
+            return db.SeqFormats.FirstOrDefault(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId);
+        }
+
+        public void AddSeqFormat(SeqFormat seqFormat)
+        {
+            try
+            {
+                db.SeqFormats.Add(seqFormat);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateSeqFormat(SeqFormat seqFormat)
+        {
+            try
+            {
+                db.Entry(seqFormat).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteSeqFormat(string seqType, string companyId)
+        {
+            try
+            {
+                var seqFormat = db.SeqFormats.FirstOrDefault(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId);
+                if (seqFormat != null)
+                    db.SeqFormats.Remove(seqFormat);
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingSeqFormat(string seqType, string companyId)
+        {
+            return db.SeqFormats.Count(a => a.SEQ_TYPE == seqType && a.COMPANY_ID == companyId) == 1 ? true : false;
         }
 
         private string GetRCSCFSLAX_InvoiceNo(string keyValue)
@@ -680,5 +855,6 @@ namespace DbUtils
         }
 
         #endregion
+
     }
 }

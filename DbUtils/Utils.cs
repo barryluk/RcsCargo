@@ -246,6 +246,9 @@ namespace DbUtils
                 }
                 sqlCmd = sqlCmd.Trim().Replace("  ", " ").Replace("( ", "(");
 
+                if (sqlCmd.Trim().EndsWith("where"))
+                    sqlCmd = sqlCmd.Trim().Substring(0, sqlCmd.Trim().Length - 5);
+
                 //Debug only, must comment for production
                 //foreach (var para in parameters)
                 //{

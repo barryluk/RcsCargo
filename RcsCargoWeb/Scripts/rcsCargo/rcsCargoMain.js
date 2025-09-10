@@ -55,6 +55,7 @@ async function loadScripts() {
     controllers.seaPv = new ((await import(`../../Scripts/rcsCargo/seaPv.js?v=${version}`)).default);
     controllers.seaReport = new ((await import(`../../Scripts/rcsCargo/seaReport.js?v=${version}`)).default);
     controllers.seaTransfer = new ((await import(`../../Scripts/rcsCargo/seaTransfer.js?v=${version}`)).default);
+    controllers.accounting = new ((await import(`../../Scripts/rcsCargo/accounting.js?v=${version}`)).default);
     controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js?v=${version}`)).default);
 
     $.ajax({
@@ -76,7 +77,10 @@ function setTimer() {
             url: "/Admin/Account/GetSessionStatus",
             type: "post",
             dataType: "json",
-            data: { userId: data.user.USER_ID },
+            data: {
+                userId: data.user.USER_ID,
+                companyId: data.companyId
+            },
             success: function (result) {
                 //console.log(result);
                 if (result.result == "success") {

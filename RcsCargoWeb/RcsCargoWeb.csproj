@@ -204,6 +204,9 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\Accounting\VoucherController.cs" />
+    <Compile Include="Controllers\Accounting\LedgerController.cs" />
+    <Compile Include="Controllers\Accounting\SystemSettingController.cs" />
     <Compile Include="Controllers\Admin\SystemController.cs" />
     <Compile Include="Controllers\Admin\AccountController.cs" />
     <Compile Include="Controllers\Air\TransferController.cs" />
@@ -422,6 +425,7 @@
     <Content Include="Scripts\rcsCargo\airReport.js" />
     <Content Include="Scripts\rcsCargo\seaHbl.js" />
     <Content Include="Scripts\rcsCargo\fileStation.js" />
+    <Content Include="Scripts\rcsCargo\accounting.js" />
     <Content Include="Scripts\rcsCargo\sysConsole.js" />
     <Content Include="Scripts\rcsCargo\airPv.js" />
     <Content Include="Scripts\rcsCargo\airInvoice.js" />

@@ -6,8 +6,9 @@
         $(`#${pageSetting.id} .menuButton`).each(function () {
             $(this).click(function () {
                 switch ($(this).attr("name")) {
-                    case "users": controls.append_tabStripMain("Users", "UsersIndex", "users"); break;
-                    case "userLogs": controls.append_tabStripMain("User Logs", "UserLogsIndex", "userLogs"); break;
+                    case "users": controls.append_tabStripMain("Users", "usersIndex", "users"); break;
+                    case "sysCompanies": controls.append_tabStripMain("System Companies", "sysCompaniesIndex", "sysCompanies"); break;
+                    case "userLogs": controls.append_tabStripMain("User Logs", "userLogsIndex", "userLogs"); break;
                     case "sysLogs": controls.append_tabStripMain("System Logs", "sysLogsIndex", "sysLogs"); break;
                     case "camRecords": controls.append_tabStripMain("SHA Camera Records", "camRecordsIndex", "camRecords"); break;
                     case "getSeqNo": controls.append_tabStripMain("Generate Sequence #", "getSeqNoIndex", "getSeqNo"); break;
@@ -17,7 +18,11 @@
     }
 
     initUsers = function () {
+        controllers.masterRecords.initGridControls(utils.getMasterForm());
+    }
 
+    initSysCompanies = function () {
+        controllers.masterRecords.initGridControls(utils.getMasterForm());
     }
 
     initUserLogs = function () {

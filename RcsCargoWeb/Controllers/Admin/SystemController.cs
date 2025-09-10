@@ -117,6 +117,81 @@ namespace RcsCargoWeb.Controllers.Admin
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
+        [Route("DeleteUserLog")]
+        public ActionResult DeleteUserLog(string id)
+        {
+            var jsonResult = string.Empty;
+            bool status = admin.DeleteUserLogBySessionId(id);
+
+            if (status)
+                jsonResult = "{ \"result\": \"success\" }";
+            else
+                jsonResult = "{ \"result\": \"error\" }";
+
+            return Content(jsonResult, "application/json");
+        }
+
+        #endregion
+
+        #region Sys Company
+
+        [Route("GridSysCompany_Read")]
+        public ActionResult GridSysCompany_Read(string searchValue, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            var sortField = "COMPANY_ID";
+            var sortDir = "asc";
+
+            if (sortings != null)
+            {
+                sortField = sortings.First().Single(a => a.Key == "field").Value;
+                sortDir = sortings.First().Single(a => a.Key == "dir").Value;
+            }
+
+            var results = admin.GetSysCompanies(searchValue);
+
+            if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
+            {
+                if (sortDir == "asc")
+                    results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+                else
+                    results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
+            }
+
+            return AppUtils.JsonContentResult(results, skip, take);
+        }
+
+        [Route("GetSysCompany")]
+        public ActionResult GetSysCompany(string id)
+        {
+            var user = admin.GetSysCompany(id);
+            return Json(user, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("UpdateSysCompany")]
+        public ActionResult UpdateSysCompany(SysCompany model, string mode)
+        {
+            if (mode == "edit")
+                admin.UpdateSysCompany(model);
+            else if (mode == "create")
+                admin.AddSysCompany(model);
+
+            return Json(model, JsonRequestBehavior.DenyGet);
+        }
+
+        [Route("DeleteSysCompany")]
+        public ActionResult DeleteSysCompany(string id)
+        {
+            admin.DeleteSysCompany(id);
+            return Content(id, "text/plain");
+        }
+
+        [Route("IsExistingSysCompanyId")]
+        public ActionResult IsExistingSysCompanyId(string id)
+        {
+            return Content(admin.IsExistingSysCompanyId(id).ToString());
+        }
+
         #endregion
 
         #region Log

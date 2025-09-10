@@ -39,7 +39,7 @@ var masterRecords = {
     printOnHbl: ["THIS SHIPMENT CONTAINS NO SOLID WOOD PACKING MATERIALS", "THIS SHIPMENT CONTAINS HEAT TREATED WOODEN PALLETS WHICH ARE COMPLIED THE STANDARD OF ISPM 15", "SHIPMENT CONTAINS REGULATED WOOD PACKAGING MATERIALS WITH IPPC LOGO MARKED", "PALLETS THAT HAVE TREATED AND MARKED IN COMPLIANCE WITH IPPC 15 STANDARD (WITH IPPC LOGO)"],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
-    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, 
+    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, ledgerAccounts: {}, voucherDesc: {},
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
@@ -1541,6 +1541,63 @@ var indexPages = [
         },
     },
     {
+        pageName: "acLedgerAccount",
+        id: "",
+        title: "Ledger Accounts",
+        initScript: "controllers.accounting.initLedgerAccount",
+        targetContainer: {},
+        searchControls: [],
+        gridConfig: {
+            gridName: "gridLedgerAccountIndex",
+            dataSourceUrl: "../Accounting/Ledger/GridLedgerAccount_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CODE_LEVEL", title: "Level" },
+                { field: "AC_CODE", title: "Code" },
+                { field: "CLASS_ENG", title: "Class" },
+                { field: "AC_NAME", title: "Account Name" },
+                { field: "CURRENCY", title: "Currency" },
+                { field: "CRDR_BALANCE", title: "Balance Cr/Dr" },
+                { field: "BBANK", title: "Bank" },
+                { field: "BCASH", title: "Cash" },
+            ],
+        },
+    },
+    {
+        pageName: "acVoucher",
+        id: "",
+        title: "Vouchers",
+        initScript: "controllers.accounting.initVoucher",
+        targetContainer: {},
+        searchControls: [{ label: "Voucher Date", type: "dateRange", name: "voucherDateRange" }],
+        gridConfig: {
+            gridName: "gridVoucherIndex",
+            dataSourceUrl: "../Accounting/Voucher/GridVoucher_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "VOUCHER_DATE", title: "Date", template: ({ VOUCHER_DATE }) => data.formatDateTime(VOUCHER_DATE, "date") },
+                { field: "VOUCHER_NO", title: "Voucher #", attributes: { "class": "link-cell" } },
+                { field: "DESC_TEXT", title: "Description" },
+                { field: "DR_AMT", title: "Debit Amount" },
+                { field: "CR_AMT", title: "Credit Amount" },
+                { field: "CBILL", title: "Billed" },
+                { field: "CCHECK", title: "Approved" },
+                { field: "IBOOK", title: "Booked" },
+            ],
+        },
+    },
+    {
         pageName: "fileStation",
         id: "",
         title: "File Station",
@@ -1658,6 +1715,63 @@ var indexPages = [
                 messages: {
                     userIdExistsRule: "User ID already exists in the database!",
                     userEmailExistsRule: "E-mail already exists in the database!",
+                },
+            },
+        },
+    },
+    {
+        pageName: "sysCompanies",
+        id: "",
+        title: "System Companies",
+        initScript: "controllers.sysConsole.initSysCompanies",
+        updateUrl: "../Admin/System/UpdateSysCompany",
+        deleteUrl: "../Admin/System/DeleteSysCompany",
+        targetContainer: {},
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Company ID / Name" },
+        ],
+        gridConfig: {
+            gridName: "gridSysCompanyIndex",
+            dataSourceUrl: "../Admin/System/GridSysCompany_Read",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "COMPANY_ID", title: "Company ID" },
+                { field: "COMPANY_NAME", title: "Company Name" },
+                { field: "COUNTRY_CODE", title: "Country" },
+                { field: "PORT_CODE", title: "Port / City" },
+                { field: "ADDR", title: "Address" },
+                { field: "HOME_CURR", title: "Currency" },
+                { field: "CREATE_DATE", title: "Create Date", template: ({ CREATE_DATE }) => data.formatDateTime(CREATE_DATE, "dateTimeLong") },
+                { field: "MODIFY_DATE", title: "Modify Date", template: ({ MODIFY_DATE }) => data.formatDateTime(MODIFY_DATE, "dateTimeLong") },
+                { template: ({ COMPANY_ID }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${COMPANY_ID}"></i>`, width: 30 },
+                { template: ({ COMPANY_ID }) => `<i class="k-icon k-i-trash handCursor" data-attr="${COMPANY_ID}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "USER_ID",
+            fields: [
+                { name: "COMPANY_ID", label: "Company ID", readonly: "edit", required: "true" },
+                { name: "COMPANY_NAME", label: "Company Name", required: "true" },
+                { name: "COUNTRY_CODE", label: "Country", required: "true" },
+                { name: "PORT_CODE", label: "Port / City", required: "true" },
+                { name: "HOME_CURR", label: "Currency", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    companyIdExistsRule: function (input) {
+                        if (input.is("[name=COMPANY_ID]")) {
+                            return !utils.isExistingCompanyId(input.val());
+                        } else {
+                            return true;
+                        }
+                    },
+                },
+                messages: {
+                    companyIdExistsRule: "Company ID already exists in the database!",
                 },
             },
         },
@@ -4644,7 +4758,7 @@ var masterForms = [
                     { label: "Entry Word Line 1", type: "text", name: "ENTRY_WORD1", colWidth: 6 },
                     { label: "Entry Word Line 2", type: "text", name: "ENTRY_WORD2", colWidth: 6 },
                     { label: "Country of Origin", type: "text", name: "COUNTRY_OF_ORIGIN", colWidth: 6 },
-                    { label: "", type: "emptyBlock", colWidth: 6 },
+                    { label: "Print on HBL", type: "printOnHbl", name: "PRINT_ON_HBL", colWidth: 6 },
                     { label: "Remarks", type: "textArea", name: "REMARKS", type2: "switch", name2: "PRINT_REMARKS", colWidth: 6 },
                     { label: "Special Instruction", type: "textArea", name: "SPECIAL_INST", type2: "switch", name2: "PRINT_SPECIAL_INST", colWidth: 6 },
                     { label: "FMC #", type: "text", name: "FMC_NO", type2: "switch", name2: "PRINT_FMC_NO", colWidth: 6 },
@@ -5006,7 +5120,10 @@ export default class {
                     url: "/Admin/Account/GetSessionStatus",
                     type: "post",
                     dataType: "json",
-                    data: { userId: user.USER_ID },
+                    data: {
+                        userId: user.USER_ID,
+                        companyId: data.companyId
+                    },
                     success: function (result) {
                         if (result.result == "success") {
                             //get the latest sessionId from server
@@ -5193,9 +5310,17 @@ export default class {
         await $.ajax({
             url: "../Admin/Account/GetUser",
             data: { userId: user.USER_ID },
+            statusCode: {
+                500: function () {
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("sessionId");
+                    window.open("../Home/Login", "_self");
+                }
+            },
             success: function (result) {
                 user = result;
-            }
+            },
+            
         });
 
         await $.ajax({
@@ -5375,6 +5500,23 @@ export default class {
             },
             complete: function () {
                 masterRecords.lastUpdateTime = new Date();
+            }
+        });
+
+        $.ajax({
+            url: "../Accounting/SystemSetting/GetVoucherDesc",
+            success: function (result) {
+                masterRecords.voucherDesc = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Accounting/Ledger/GetLedgerAccounts",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].AC_NAME_DISPLAY = result[i].AC_CODE + " - " + result[i].AC_NAME;
+                }
+                masterRecords.ledgerAccounts = result;
             }
         });
     }

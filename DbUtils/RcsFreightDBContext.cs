@@ -15,6 +15,7 @@ namespace DbUtils
     {
         public RcsFreightDBContext() : base("name=RcsFreightDbContext") { }
 
+        //Master Records
         public DbSet<PowerSearchSetting> PowerSearchSettings { get; set; }
         public DbSet<PowerSearchTemplate> PowerSearchTemplates { get; set; }
         public DbSet<Airline> Airlines { get; set; }
@@ -35,6 +36,7 @@ namespace DbUtils
         public DbSet<FileStationAccessRight> FileStationAccessRights { get; set; }
         public DbSet<ShaFileTransfer> ShaFileTransfers { get; set; }
 
+        //Air Freight
         public DbSet<Mawb> Mawbs { get; set; }
         public DbSet<MawbCharge> MawbCharges { get; set; }
         public DbSet<MawbDim> MawbDims { get; set; }
@@ -61,6 +63,7 @@ namespace DbUtils
         public DbSet<TransferHawbLog> TransferHawbLogs { get; set; }
         public DbSet<TransferInvoiceLog> TransferInvoiceLogs { get; set; }
 
+        //Sea Freight
         public DbSet<Voyage> Voyages { get; set; }
         public DbSet<VoyageDetail> VoyageDetails { get; set; }
         public DbSet<DbUtils.Models.Sea.SeaBooking> SeaBookings { get; set; }
@@ -87,6 +90,7 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Sea.SeaPvItem> SeaPvItems { get; set; }
         public DbSet<TransferHblLog> TransferHblLogs { get; set; }
 
+        //Admin
         public DbSet<User> Users { get; set; }
         public DbSet<UserCompany> UserCompanies { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
@@ -95,6 +99,19 @@ namespace DbUtils
         public DbSet<ReportData> ReportDatas { get; set; }
         public DbSet<SysModule> SysModules { get; set; }
         public DbSet<SeqFormat> SeqFormats { get; set; }
+
+        //Accounting
+        public DbSet<DbUtils.Models.Accounting.Person> Persons { get; set; }
+        public DbSet<DbUtils.Models.Accounting.Department> Departments { get; set; }
+        public DbSet<DbUtils.Models.Accounting.VoucherDesc> VoucherDesc { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcCustomer> AcCustomers { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcCustomerRegion> AcCustomerRegions { get; set; }
+        public DbSet<DbUtils.Models.Accounting.Vendor> AcVendors { get; set; }
+        public DbSet<DbUtils.Models.Accounting.VendorRegion> AcVendorRegions { get; set; }
+        public DbSet<DbUtils.Models.Accounting.LedgerAccount> LedgerAccounts { get; set; }
+        public DbSet<DbUtils.Models.Accounting.GLAccass> GLAccasses { get; set; }
+        public DbSet<DbUtils.Models.Accounting.GLAccsum> GLAccsums { get; set; }
+        public DbSet<DbUtils.Models.Accounting.GLVoucher> GLVouchers { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

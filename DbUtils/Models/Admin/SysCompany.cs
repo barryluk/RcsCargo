@@ -61,11 +61,21 @@ namespace DbUtils.Models.Admin
         public string COMPANY_NAME { get; set; }
         public string COUNTRY_CODE { get; set; }
         public string PORT_CODE { get; set; }
+        public string ADDR { get; set; }
+        public string ADDR1 { get; set; }
+        public string ADDR2 { get; set; }
+        public string ADDR3 { get; set; }
+        public string ADDR4 { get; set; }
+        public string HOME_CURR { get; set; }
         public string EX_P_CURR_CODE { get; set; }
         public string EX_C_CURR_CODE { get; set; }
         public string IM_P_CURR_CODE { get; set; }
         public string IM_C_CURR_CODE { get; set; }
         public string EX_CURR_CODE { get; set; }
         public string IM_CURR_CODE { get; set; }
+        public string CREATE_USER { get; set; }
+        public DateTime CREATE_DATE { get; set; }
+        public string MODIFY_USER { get; set; }
+        public DateTime MODIFY_DATE { get; set; }
     }
 }
