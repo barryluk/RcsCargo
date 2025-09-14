@@ -146,6 +146,8 @@ namespace DbUtils.Models.Sea
         public string IS_CW1 { get; set; }
         public string CONTRACT_NO { get; set; }
         public DateTime? VGM_DATE { get; set; }
+        public string CARRIER_NAME { get; set; }
+        public string AS_CARRIER { get; set; }
 
         [NotMapped]
         public List<SeaHblCargo> SeaHblCargos { get; set; }

@@ -39,9 +39,11 @@
                 reportName = "SeaHouseBillNoFrame";
                 console.log(paras);
             } else if (e.id == "printHblA4") {
+                paras.filter(a => a.name == "ShowLogo")[0].value = true;
                 paras.push({ name: "ShowWord", value: "ORIGINAL" })
                 reportName = "SeaHouseBill_A4";
             } else if (e.id == "printHblA4Copy") {
+                paras.filter(a => a.name == "ShowLogo")[0].value = true;
                 paras.push({ name: "ShowWord", value: "COPY" })
                 reportName = "SeaHouseBill_A4";
             } else if (e.id == "printFcr") {

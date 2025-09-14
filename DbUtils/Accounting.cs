@@ -104,11 +104,56 @@ namespace DbUtils
                 case sum.beg_ind when 'Dr' then sum.amt_beg else 0 end as open_dr,
                 case sum.beg_ind when 'Cr' then sum.amt_beg else 0 end as open_cr,
                 nvl(sum.amt_dr, 0) current_dr, nvl(sum.amt_cr, 0) current_cr,
-                case sum.end_ind when 'Dr' then sum.amt_beg else 0 end as close_dr,
-                case sum.end_ind when 'Cr' then sum.amt_beg else 0 end as close_cr";
+                0 as close_dr, 0 as close_cr";
             var fromCmd = $@"ac_ledger_account ac left outer join ac_gl_accsum sum on ac.ac_code = sum.ac_code and sum.year = {year} and sum.period = {period}";
             var result = Utils.GetSqlQueryResult<LedgerAccountView>(fromCmd, selectCmd, new List<DbParameter>());
-            return result.OrderBy(a => a.AC_CODE).ToList();
+            result = result.Where(a => 
+                a.OPEN_DR != 0 || a.OPEN_CR != 0 ||
+                a.CURRENT_DR != 0 || a.CURRENT_CR != 0 ||
+                a.CLOSE_DR != 0 || a.CLOSE_CR != 0)
+                .OrderBy(a => a.AC_CODE).ToList();
+
+            foreach(var item in result)
+            {
+                var amt = item.OPEN_DR - item.OPEN_CR + item.CURRENT_DR - item.CURRENT_CR;
+                if (amt > 0 )
+                {
+                    item.CLOSE_DR = amt;
+                    item.CLOSE_CR = 0;
+                } 
+                else
+                {
+                    item.CLOSE_DR = 0;
+                    item.CLOSE_CR = amt * -1;
+                }
+            }
+
+            return result;
+        }
+
+        public List<LedgerAccountBegEndAmount> GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart = true)
+        {
+            var selectCmd = "ac_code, amt_beg, amt_end";
+            if (isYearStart)
+            {
+                var fromCmd = $"ac_gl_accsum where year = {year} and period = 1";
+                var begResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+
+                fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
+                var endResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+
+                foreach (var item in begResult)
+                {
+                    item.AMT_END = endResult.Where(a => a.AC_CODE == item.AC_CODE).Select(a => a.AMT_END).FirstOrDefault();
+                }
+                return begResult;
+            }
+            else
+            {
+                var fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
+                var result = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+                return result;
+            }
         }
 
         #endregion
@@ -149,7 +194,7 @@ namespace DbUtils
                 }
             }
 
-            return results.OrderBy(a => a.VOUCHER_DATE).ThenBy(a => a.VOUCHER_NO).ToList();
+            return results.OrderByDescending(a => a.VOUCHER_DATE).ThenByDescending(a => a.VOUCHER_NO).ToList();
         }
 
         public List<GLVoucher> GetVoucher(int year, int period, int voucherNo)
@@ -159,7 +204,34 @@ namespace DbUtils
             foreach (var voucher in vouchers)
                 voucher.AC_NAME = accounts.Where(a => a.AC_CODE == voucher.AC_CODE).FirstOrDefault().AC_NAME;
 
-            return vouchers.ToList();
+            return vouchers.OrderBy(a => a.LINE_NO).ToList();
+        }
+
+        public int GetVoucherNo(DateTime voucherDate)
+        {
+            if (db.GLVouchers.Count(a => a.YEAR == voucherDate.Year && a.PERIOD == voucherDate.Month) > 0)
+                return db.GLVouchers.Where(a => a.YEAR == voucherDate.Year && a.PERIOD == voucherDate.Month)
+                    .Select(a => a.VOUCHER_NO).Max() + 1;
+            else
+                return 1;
+        }
+
+        public void SaveVoucher(VoucherModel model)
+        {
+            var records = db.GLVouchers.Where(a => a.YEAR == model.YEAR && a.PERIOD == model.PERIOD && a.VOUCHER_NO == model.VOUCHER_NO);
+            if (records.Count() > 0)
+                db.GLVouchers.RemoveRange(records);
+
+            var ID = db.GLVouchers.Select(a => a.ID).Max() + 1;
+            foreach(var voucher in model.Vouchers)
+            {
+                voucher.ID = ID;
+                db.GLVouchers.Add(voucher);
+                ID++;
+                log.Debug(voucher.ID);
+            }
+
+            db.SaveChanges();
         }
 
         #endregion

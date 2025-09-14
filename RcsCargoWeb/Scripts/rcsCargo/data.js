@@ -37,6 +37,7 @@ var masterRecords = {
     seaServiceType: ["CFS/CFS", "CY/CFS", "CY/CY", "CY/DOOR", "DOOR/CY", "CFS/CY", "DR/CFS"],
     toOrder: ["TO ORDER", "TO THE ORDER", "TO THIS ORDER"],
     printOnHbl: ["THIS SHIPMENT CONTAINS NO SOLID WOOD PACKING MATERIALS", "THIS SHIPMENT CONTAINS HEAT TREATED WOODEN PALLETS WHICH ARE COMPLIED THE STANDARD OF ISPM 15", "SHIPMENT CONTAINS REGULATED WOOD PACKAGING MATERIALS WITH IPPC LOGO MARKED", "PALLETS THAT HAVE TREATED AND MARKED IN COMPLIANCE WITH IPPC 15 STANDARD (WITH IPPC LOGO)"],
+    asCarrier: ["RCS LOGISTICS INC. AS CARRIER"],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
     vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, ledgerAccounts: {}, voucherDesc: {},
@@ -1596,6 +1597,21 @@ var indexPages = [
                 { field: "IBOOK", title: "Booked" },
             ],
         },
+    },
+    {
+        pageName: "acReport",
+        id: "",
+        title: "Accounting Reports",
+        initScript: "controllers.accounting.initReport",
+        searchControls: [],
+        groups: [],
+    },
+    {
+        pageName: "ledgerAccountReport",
+        id: "",
+        title: "General Ledger Account Report",
+        initScript: "controllers.accounting.initLedgerAccountReport",
+        controls: [],
     },
     {
         pageName: "fileStation",
@@ -4332,6 +4348,8 @@ var masterForms = [
                 title: "Other Information",
                 colWidth: 12,
                 formControls: [
+                    { label: "Carrier Name", type: "text", name: "CARRIER_NAME", colWidth: 6 },
+                    { label: "... As Carrier", type: "asCarrier", name: "AS_CARRIER", colWidth: 6 },
                     { label: "Print on HBL", type: "printOnHbl", name: "PRINT_ON_HBL", colWidth: 6 },
                     { label: "Country of Origin", type: "text", name: "COUNTRY_OF_ORIGIN", colWidth: 6 },
                     { label: "Entry Word Line 1", type: "text", name: "ENTRY_WORD1", colWidth: 6 },

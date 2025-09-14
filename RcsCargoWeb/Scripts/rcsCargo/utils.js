@@ -1028,7 +1028,7 @@
             formControlClass = "form-control-dateTime";
         } else if (type.startsWith("number")) {
             formControlClass = "form-control-number";
-        } else if (data.dropdownlistControls.includes(type)) {
+        } else if (data.dropdownlistControls.includes(type) || type == "asCarrier") {
             formControlClass = "form-control-dropdownlist";
         } else if (type == "textArea") {
             formControlClass = "form-control-textArea";

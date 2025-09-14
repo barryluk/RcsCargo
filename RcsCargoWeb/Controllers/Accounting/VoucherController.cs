@@ -48,5 +48,28 @@ namespace RcsCargoWeb.Controllers.Accounting
         {
             return Json(accounting.GetVoucher(year, period, voucherNo), JsonRequestBehavior.AllowGet);
         }
+
+        [Route("GetVoucherNo")]
+        public ActionResult GetVoucherNo(DateTime voucherDate)
+        {
+            return Content(accounting.GetVoucherNo(voucherDate).ToString());
+        }
+
+        [Route("SaveVoucher")]
+        public ActionResult SaveVoucher(VoucherModel voucherModel)
+        {
+            foreach (var voucher in voucherModel.Vouchers)
+            {
+                voucher.VOUCHER_TYPE = "记";
+                voucher.YEAR = voucherModel.YEAR;
+                voucher.PERIOD = voucherModel.PERIOD;
+                voucher.VOUCHER_NO = voucherModel.VOUCHER_NO;
+                voucher.VOUCHER_DATE = voucherModel.VOUCHER_DATE;
+                voucher.CBILL = voucherModel.CBILL;
+                voucher.IBOOK = 0;
+            }
+            accounting.SaveVoucher(voucherModel);
+            return Json(voucherModel.Vouchers, JsonRequestBehavior.AllowGet);
+        }
     }
 }

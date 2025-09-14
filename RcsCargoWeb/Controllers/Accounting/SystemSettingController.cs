@@ -47,6 +47,9 @@ namespace RcsCargoWeb.Controllers.Accounting
         [Route("GridCustomer_Read")]
         public ActionResult GridCustomer_Read(string searchValue, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
+            if (string.IsNullOrEmpty(searchValue))
+                searchValue = string.Empty;
+
             searchValue = searchValue.Trim().ToUpper() + "%";
             var sortField = "CUSTOMER_CODE";
             var sortDir = "asc";
@@ -71,7 +74,7 @@ namespace RcsCargoWeb.Controllers.Accounting
         }
 
         [Route("GetCustomers")]
-        public ActionResult GetCustomers(string searchValue)
+        public ActionResult GetCustomers(string searchValue = "")
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             var results = accounting.GetCustomers(searchValue);

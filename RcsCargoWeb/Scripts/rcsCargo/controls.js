@@ -580,6 +580,8 @@
                             buttonGroup.select($(`div[type=buttonGroup][name="${control.name}"] span:contains('${buttonText}')`).parent());
                         }
                     }
+                } else if (control.type == "asCarrier") {
+                    $(`#${masterForm.id} [name=${control.name}]`).data("kendoComboBox").value(model[`${control.name}`]);
                 } else {
                     $(`#${masterForm.id} [name=${control.name}]`).val(model[`${control.name}`]);
                 }
@@ -1190,9 +1192,11 @@
                 });
 
                 //Toolbar new button events
+                //Special case for accounting voucher
                 if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
-                        utils.alertMessage("New Voucher", `New Voucher`);
+                        utils.alertMessage(`New Voucher`, `New Voucher`, null, null, true, "controllers.accounting.saveVoucher");
+                        controllers.accounting.newVoucher();
                     });
                 } else {
                     if (pageSetting.gridConfig.linkIdPrefix != null) {
@@ -1280,7 +1284,7 @@
                             let year = $(selectedCell).prev().text().split("/")[2].trim();
                             let period = $(selectedCell).prev().text().split("/")[0].trim();
                             let voucherNo = $(selectedCell).text().substr(4, 4);
-                            utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`);
+                            utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, null, null, true, "controllers.accounting.saveVoucher");
                             controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`);
                         }
                         else
@@ -3102,6 +3106,14 @@
             });
         });
 
+        //kendoComboBox for As Carrier
+        $(`#${masterForm.id} input[type=asCarrier]`).each(function () {
+            $(this).kendoComboBox({
+                optionLabel: " ",
+                dataSource: data.masterRecords.asCarrier
+            });
+        });
+
         //kendoGrid
         $(`#${masterForm.id} div[type=grid]`).each(function () {
             let editable = { mode: "incell", confirmation: false, createAt: "bottom" };
@@ -3591,15 +3603,11 @@
         var cbb = $(`<input name="${options.field}" />`);
         cbb.appendTo(container);
         cbb.kendoComboBox({
-            autoWidth: true,
             filter: "startswith",
+            optionLabel: " ",
             dataTextField: "DESC_TEXT",
             dataValueField: "DESC_TEXT",
-            optionLabel: ` `,
-            dataSource: {
-                type: "json",
-                data: data.masterRecords.voucherDesc,
-            }
+            dataSource: data.masterRecords.voucherDesc,
         });
     }
 

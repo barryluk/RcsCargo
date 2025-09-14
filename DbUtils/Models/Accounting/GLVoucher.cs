@@ -9,9 +9,10 @@ namespace DbUtils.Models.Accounting
     public class GLVoucher
     {
         [Key]
-        public string ID { get; set; }
+        public decimal ID { get; set; }
         public int YEAR { get; set; }
         public int PERIOD { get; set; }
+        public int VOUCHER_NO { get; set; }
         public string VOUCHER_TYPE { get; set; }
         public int LINE_NO { get; set; }
         public string AC_CODE { get; set; }
@@ -32,7 +33,6 @@ namespace DbUtils.Models.Accounting
         public string CCHECK { get; set; }
         public string CCASHIER { get; set; }
         public int IBOOK { get; set; }
-        public int VOUCHER_NO { get; set; }
     }
 
     [Table("AC_VOUCHER_DESC")]
@@ -55,6 +55,16 @@ namespace DbUtils.Models.Accounting
         public string CBILL { get; set; }
         public string CCHECK { get; set; }
         public int IBOOK { get; set; }
+    }
+
+    public class VoucherModel
+    {
+        public int YEAR { get; set; }
+        public int PERIOD { get; set; }
+        public int VOUCHER_NO { get; set; }
+        public DateTime VOUCHER_DATE { get; set; }
+        public string CBILL { get; set; }
+        public List<GLVoucher> Vouchers { get; set; }
     }
 
 }

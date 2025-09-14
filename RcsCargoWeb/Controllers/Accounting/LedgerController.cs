@@ -50,29 +50,18 @@ namespace RcsCargoWeb.Controllers.Accounting
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
-        [Route("GridLedgerAccountSummary_Read")]
-        public ActionResult GridLedgerAccountSummary_Read(int year, int period, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        [Route("GetLedgerAccountSummary")]
+        public ActionResult GetLedgerAccountSummary(int year, int period)
         {
-            var sortField = "AC_CODE";
-            var sortDir = "asc";
-
-            if (sortings != null)
-            {
-                sortField = sortings.First().Single(a => a.Key == "field").Value;
-                sortDir = sortings.First().Single(a => a.Key == "dir").Value;
-            }
-
             var results = accounting.GetLedgerAccountSummary(year, period);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
 
-            if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
-            {
-                if (sortDir == "asc")
-                    results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
-                else
-                    results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
-            }
-
-            return AppUtils.JsonContentResult(results, skip, take);
+        [Route("GetLedgerAccountBegEndAmount")]
+        public ActionResult GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart)
+        {
+            var results = accounting.GetLedgerAccountBegEndAmount(year, period, isYearStart);
+            return Json(results, JsonRequestBehavior.AllowGet);
         }
 
     }
