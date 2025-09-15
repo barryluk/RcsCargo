@@ -437,14 +437,6 @@
         
     }
 
-    getAccountOpenBalance = function (year, period, code) {
-
-    }
-
-    getAccountCloseBalance = function (year, period, code) {
-
-    }
-
     initLedgerAccount = function () {
     }
 
@@ -457,7 +449,7 @@
         });
     }
 
-    loadVoucher = function (id) {
+    loadVoucher = function (id, popupWin) {
         let year = id.split('-')[0];
         let period = id.split('-')[1];
         let voucherNo = id.split('-')[2];
@@ -469,11 +461,12 @@
             success: function (result) {
                 //console.log(result);
                 controllers.accounting.initVoucherControls(result);
+                popupWin.center();
             }
         });
     }
 
-    newVoucher = function () {
+    newVoucher = function (popupWin) {
         $.ajax({
             url: "../Accounting/Voucher/GetVoucherNo",
             data: { voucherDate: (new Date()).toISOString() },
@@ -503,6 +496,7 @@
                 }];
 
                 controllers.accounting.initVoucherControls(result);
+                popupWin.center();
             }
         });
 
@@ -759,6 +753,10 @@
                 VENDOR_CODE: dataItem.VENDOR_CODE,
             });
         }
+
+        //prevent JS bug: 361371.52999999997 -> 361371.53
+        drAmt = utils.roundUp(drAmt, 2);
+        crAmt = utils.roundUp(crAmt, 2);
 
         let model = {
             YEAR: voucherDate.getFullYear(),

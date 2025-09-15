@@ -5344,6 +5344,10 @@ export default class {
         await $.ajax({
             url: "../Home/GetSysCompanies",
             success: function (result) {
+                for (let i in result) {
+                    result[i].EX_CURR_CODE = result[i].EX_P_CURR_CODE;
+                    result[i].IM_CURR_CODE = result[i].IM_P_CURR_CODE;
+                }
                 masterRecords.sysCompanies = result;
             }
         });

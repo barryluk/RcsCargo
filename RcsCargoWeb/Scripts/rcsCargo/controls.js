@@ -409,6 +409,7 @@
                     if (field.defaultValue == "currency") {
                         let sysCompany = data.masterRecords.sysCompanies.filter(a => a.COMPANY_ID == data.companyId)[0];
                         let currCode = sysCompany[`${(utils.getFrtMode() == "AE" || utils.getFrtMode() == "SE") ? "EX" : "IM"}_${field.name}`];
+                        //let currCode = sysCompany.EX_P_CURR_CODE;
                         let exRate = data.masterRecords.currencies.filter(a => a.CURR_CODE == currCode)[0].EX_RATE;
                         model[field.name] = currCode;
                         model[field.name.replace("CURR_CODE", "EX_RATE")] = exRate;
@@ -1195,8 +1196,8 @@
                 //Special case for accounting voucher
                 if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
-                        utils.alertMessage(`New Voucher`, `New Voucher`, null, null, true, "controllers.accounting.saveVoucher");
-                        controllers.accounting.newVoucher();
+                        let popupWin = utils.alertMessage(`New Voucher`, `New Voucher`, null, null, true, "controllers.accounting.saveVoucher");
+                        controllers.accounting.newVoucher(popupWin);
                     });
                 } else {
                     if (pageSetting.gridConfig.linkIdPrefix != null) {
@@ -1284,8 +1285,8 @@
                             let year = $(selectedCell).prev().text().split("/")[2].trim();
                             let period = $(selectedCell).prev().text().split("/")[0].trim();
                             let voucherNo = $(selectedCell).text().substr(4, 4);
-                            utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, null, null, true, "controllers.accounting.saveVoucher");
-                            controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`);
+                            let popupWin = utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, null, null, true, "controllers.accounting.saveVoucher");
+                            controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`, popupWin);
                         }
                         else
                             controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOIDED", "").replace("POSTED", "")}`, id, pageSetting.pageName);
