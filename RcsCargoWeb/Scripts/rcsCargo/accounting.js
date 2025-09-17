@@ -72,6 +72,8 @@
                 controllers.accounting.getLedgerAccountSummaryReport(spreadsheet, year, period);
             else if (reportType == "Balance Sheet")
                 controllers.accounting.getBalanceSheet(spreadsheet, year, period);
+            else if (reportType == "Profit and Loss")
+                controllers.accounting.getProfitLoss(spreadsheet, year, period);
             else
                 utils.alertMessage("The selected report is not available at this moment, will be available soon...");
         }
@@ -223,80 +225,80 @@
 
     getBalanceSheet = function (spreadsheet, year, period) {
         let rowData = [
-            { index: 1, text: "  货币资金", code: "1001+1002" },
-            { index: 2, text: "  短期投资", code: "" },
-            { index: 3, text: "  应收票据", code: "" },
-            { index: 4, text: "  应收股利", code: "" },
-            { index: 5, text: "  应收利息", code: "" },
+            { index: 1, text: "  货币资金", code: "1001,1002,1009", calcType: "+" },
+            { index: 2, text: "  短期投资", code: "1101" },
+            { index: 3, text: "  应收票据", code: "1111" },
+            { index: 4, text: "  应收股利", code: "1121" },
+            { index: 5, text: "  应收利息", code: "1122" },
             { index: 6, text: "  应收账款", code: "1131" },
             { index: 7, text: "  其它应收款", code: "1133" },
             { index: 8, text: "  预付账款", code: "1151" },
-            { index: 9, text: "  应收补贴款", code: "" },
+            { index: 9, text: "  应收补贴款", code: "1161" },
             { index: 10, text: "  存货", code: "" },
-            { index: 11, text: "  待摊费用", code: "" },
+            { index: 11, text: "  待摊费用", code: "1301" },
             { index: 12, text: "  一年内到期的长期债权投资", code: "" },
             { index: 13, text: "  其它流动资产", code: "" },
             { index: 14, text: "  流动资产合计", code: "", formulaBeg: "SUM(C6:C18)", formulaEnd: "SUM(D6:D18)" },
             { index: 14.1, text: "长期投资：", code: "" },
-            { index: 15, text: "  长期股权投资", code: "" },
-            { index: 16, text: "  长期债权投资", code: "" },
-            { index: 17, text: "  长期投资合计", code: "" },
+            { index: 15, text: "  长期股权投资", code: "1401" },
+            { index: 16, text: "  长期债权投资", code: "1402" },
+            { index: 17, text: "  长期投资合计", code: "", formulaBeg: "C21+C22", formulaEnd: "D21+D22" },
             { index: 17.1, text: "固定资产：", code: "" },
             { index: 18, text: "  固定资产原价", code: "1501" },
             { index: 19, text: "   减：累计折价 ", code: "1502" },
             { index: 20, text: "  固定资产净值", code: "", formulaBeg: "C25-C26", formulaEnd: "D25-D26" },
-            { index: 21, text: "   减：固定资产减值准备  ", code: "" },
-            { index: 22, text: "  固定资产净额", code: "", formulaBeg: "C25-C26", formulaEnd: "D25-D26" },
-            { index: 23, text: "  工程物资", code: "" },
-            { index: 24, text: "  在建工程", code: "" },
-            { index: 25, text: "  固定资产清理", code: "" },
-            { index: 26, text: "  固定资产合计", code: "", formulaBeg: "C25-C26", formulaEnd: "D25-D26" },
-            { index: 26.1, text: "无形资产及其他资产：", code: "" },
-            { index: 27, text: "  无形资产", code: "" },
+            { index: 21, text: "   减：固定资产减值准备", code: "1505" },
+            { index: 22, text: "  固定资产净额", code: "", formulaBeg: "C27-C28", formulaEnd: "D27-D28" },
+            { index: 23, text: "  工程物资", code: "1601" },
+            { index: 24, text: "  在建工程", code: "1603" },
+            { index: 25, text: "  固定资产清理", code: "1701" },
+            { index: 26, text: "  固定资产合计", code: "", formulaBeg: "SUM(C29:C32)", formulaEnd: "SUM(D29:D32)" },
+            { index: 26.1, text: "无形资产及其他资产：", code: "1801,1805", calcType: "-" },
+            { index: 27, text: "  无形资产", code: "1901" },
             { index: 28, text: "  长期待摊费用", code: "" },
             { index: 29, text: "  其它长期资产", code: "" },
-            { index: 30, text: "无形资产及其他资产合计", code: "" },
+            { index: 30, text: "无形资产及其他资产合计", code: "", formulaBeg: "SUM(C35:C37)", formulaEnd: "SUM(D35:D37)" },
             { index: 30.1, text: "", code: "" },
             { index: 30.2, text: "递延税项：", code: "" },
-            { index: 31, text: "  递延税款借项", code: "" },
-            { index: 32, text: "资产总计", code: "", formulaBeg: "C19+C33", formulaEnd: "D19+D33" },
-            { index: 33, text: "  短期借款", code: "" },
-            { index: 34, text: "  应付票据", code: "" },
-            { index: 35, text: "  应付账款", code: "" },
-            { index: 36, text: "  预收账款", code: "" },
-            { index: 37, text: "  应付工资", code: "" },
-            { index: 38, text: "  应付福利费", code: "" },
-            { index: 39, text: "  应付股利", code: "" },
+            { index: 31, text: "  递延税款借项", code: "2341" },
+            { index: 32, text: "资产总计", code: "", formulaBeg: "C19+C23+C33+C38+C41", formulaEnd: "D19+D23+D33+D38+D41" },
+            { index: 33, text: "  短期借款", code: "2101" },
+            { index: 34, text: "  应付票据", code: "2111" },
+            { index: 35, text: "  应付账款", code: "2121" },
+            { index: 36, text: "  预收账款", code: "2131" },
+            { index: 37, text: "  应付工资", code: "2151" },
+            { index: 38, text: "  应付福利费", code: "2153" },
+            { index: 39, text: "  应付股利", code: "2161" },
             { index: 40, text: "  应交税金", code: "2171" },
-            { index: 41, text: "  其它应交款", code: "" },
+            { index: 41, text: "  其它应交款", code: "2176" },
             { index: 42, text: "  其它应付款", code: "2181" },
-            { index: 43, text: "  预提费用", code: "" },
-            { index: 44, text: "  预计负债", code: "" },
+            { index: 43, text: "  预提费用", code: "2191" },
+            { index: 44, text: "  预计负债", code: "2211" },
             { index: 45, text: "  一年内到期的长期负债", code: "" },
             { index: 46, text: "  其它流动负债", code: "" },
             { index: 46.1, text: "", code: "" },
             { index: 47, text: "  流动负债合计", code: "", formulaBeg: "SUM(G8:G20)", formulaEnd: "SUM(H8:H20)" },
             { index: 47.1, text: "长期负债：", code: "" },
-            { index: 48, text: "  长期借款", code: "" },
-            { index: 49, text: "  应付债券", code: "" },
-            { index: 50, text: "  长期应付款", code: "" },
-            { index: 51, text: "  专项应付款", code: "" },
+            { index: 48, text: "  长期借款", code: "2301" },
+            { index: 49, text: "  应付债券", code: "2311" },
+            { index: 50, text: "  长期应付款", code: "2321" },
+            { index: 51, text: "  专项应付款", code: "2331" },
             { index: 52, text: "  其他长期负债", code: "" },
             { index: 53, text: "  长期负债合计", code: "", formulaBeg: "SUM(G23:G27)", formulaEnd: "SUM(H23:H27)" },
             { index: 53.1, text: "递延税项：", code: "" },
-            { index: 54, text: "  递延税款贷项", code: "" },
+            { index: 54, text: "  递延税款贷项", code: "2341" },
             { index: 55, text: "  负债合计", code: "", formulaBeg: "G21+G28+G30", formulaEnd: "H21+H28+H30" },
             { index: 55.1, text: "", code: "" },
             { index: 55.2, text: "所有者权益（或股东权益)：", code: "" },
             { index: 56, text: "  实收资本（或股本）", code: "3101" },
-            { index: 57, text: "    减：已归还投资", code: "" },
-            { index: 58, text: "  实收资本（或股本）净额", code: "3101" },
-            { index: 59, text: "  资本公积", code: "" },
-            { index: 60, text: "  盈余公积", code: "" },
+            { index: 57, text: "    减：已归还投资", code: "3103" },
+            { index: 58, text: "  实收资本（或股本）净额", code: "", formulaBeg: "G34-G35", formulaEnd: "H34-H35" },
+            { index: 59, text: "  资本公积", code: "3111" },
+            { index: 60, text: "  盈余公积", code: "3121" },
             { index: 61, text: "    其中：法定公益金", code: "" },
-            { index: 62, text: "  未分配利润", code: "3141-3131" },
-            { index: 63, text: "  所有者权益（或股东权益)合计", code: "", formulaBeg: "G36+G40", formulaEnd: "H36+H40" },
-            { index: 64, text: "负债和所有者权益(或股东权益)总计", code: "", formulaBeg: "G31+G36+G40", formulaEnd: "H31+H36+H40" },
+            { index: 62, text: "  未分配利润", code: "3141,3131", calcType: "+" },
+            { index: 63, text: "  所有者权益（或股东权益)合计", code: "", formulaBeg: "G36+G37+G38+G40", formulaEnd: "H36+H37+H38+H40" },
+            { index: 64, text: "负债和所有者权益(或股东权益)总计", code: "", formulaBeg: "G31+G41", formulaEnd: "H31+H41" },
         ];
         let reportData = {
             sheets: [{
@@ -377,39 +379,14 @@
             dataType: "json",
             type: "post",
             success: function (results) {
-                let ac1001 = results.filter(a => a.AC_CODE == '1001')[0];
-                let ac1002 = results.filter(a => a.AC_CODE == '1002')[0];
-                let ac3141 = results.filter(a => a.AC_CODE == '3141')[0];
-                let ac3131 = results.filter(a => a.AC_CODE == '3131')[0];
-                results.push({ AC_CODE: "1001+1002", AMT_BEG: ac1001.AMT_BEG + ac1002.AMT_BEG, AMT_END: ac1001.AMT_END + ac1002.AMT_END });
-                results.push({ AC_CODE: "3141-3131", AMT_BEG: ac3141.AMT_BEG - ac3131.AMT_BEG, AMT_END: ac3141.AMT_END - ac3131.AMT_END });
-
                 rowData.forEach(function (row) {
                     if (row.index <= 32) {
                         let row2 = rowData[rowData.indexOf(row) + 37];
+                        let cells1 = controllers.accounting.createCells(results, row);
+                        let cells2 = controllers.accounting.createCells(results, row2);
                         reportData.sheets[0].rows.push({
-                            cells: [
-                                { value: row.text },
-                                { value: row.index.toString().indexOf(".") == -1 ? row.index : "" },
-                                { value: utils.isEmptyString(row.code) ? 0 : results.filter(a => a.AC_CODE == row.code)[0].AMT_BEG },
-                                { value: utils.isEmptyString(row.code) ? 0 : results.filter(a => a.AC_CODE == row.code)[0].AMT_END },
-                                { value: row2.text },
-                                { value: row2.index.toString().indexOf(".") == -1 ? row2.index : "" },
-                                { value: utils.isEmptyString(row2.code) ? 0 : results.filter(a => a.AC_CODE == row2.code)[0].AMT_BEG },
-                                { value: utils.isEmptyString(row2.code) ? 0 : results.filter(a => a.AC_CODE == row2.code)[0].AMT_END },
-                            ]
+                            cells: cells1.concat(cells2)
                         });
-                    }
-                });
-
-                rowData.filter(a => a.formulaBeg != null).forEach(function (row) {
-                    let rowIndex = rowData.indexOf(row) + 5;    //first 5 rows are report header
-                    if (row.index <= 32) {
-                        reportData.sheets[0].rows[rowIndex].cells[2] = { formula: row.formulaBeg };
-                        reportData.sheets[0].rows[rowIndex].cells[3] = { formula: row.formulaEnd };
-                    } else {
-                        reportData.sheets[0].rows[rowIndex - 37].cells[6] = { formula: row.formulaBeg };
-                        reportData.sheets[0].rows[rowIndex - 37].cells[7] = { formula: row.formulaEnd };
                     }
                 });
 
@@ -429,12 +406,152 @@
                         }
                     });
                 });
-                
+
                 spreadsheet.fromJSON(reportData);
             }
         });
+    }
 
-        
+    getProfitLoss = function (spreadsheet, year, period) {
+        let rowData = [
+            { index: 1, text: "一、主营业务收入", code: "5101" },
+            { index: 2, text: "  减：主营业务成本", code: "5401" },
+            { index: 3, text: "      主营业务税金及附加", code: "5402" },
+            { index: 4, text: "二、主营业务利润（亏损以“-”号填列)", code: "", formulaBeg: "C6-C7-C8", formulaEnd: "D6-D7-D8" },
+            { index: 5, text: "  加：其他业务利润（亏损以“-”号填列） ", code: "5102" },
+            { index: 6, text: "  减：营业费用", code: "5501" },
+            { index: 7, text: "      管理费用", code: "5502" },
+            { index: 8, text: "      财务费用", code: "5503" },
+            { index: 9, text: "三、营业利润（亏损以“-”号填列） ", code: "", formulaBeg: "C9+C10-C11-C12-C13", formulaEnd: "D9+D10-D11-D12-D13" },
+            { index: 10, text: "  加：投资收益（损失以“-”号填列）", code: "5201" },
+            { index: 11, text: "     补贴收入", code: "5203" },
+            { index: 12, text: "     营业外收入", code: "5301" },
+            { index: 13, text: "  减：营业外支出", code: "5601" },
+            { index: 14, text: "四、利润总额（亏损总额以“-”号填列）", code: "", formulaBeg: "SUM(C14:C17)-C18", formulaEnd: "SUM(D14:D17)-D18" },
+            { index: 15, text: "  减：所得税", code: "5701" },
+            { index: 16, text: "五、净利润（净亏损以“-”号填列）", code: "", formulaBeg: "C19-C20", formulaEnd: "D19-D20" }];
+        let reportData = {
+            sheets: [{
+                name: "利润表",
+                showGridLines: true,
+                columns: [
+                    { index: 0, width: 210 },
+                    { index: 1, width: 40 },
+                    { index: 2, width: 120 },
+                    { index: 3, width: 120 },
+                ],
+                mergedCells: ["A1:D1", "A3:D3", "A4:C4"],
+                rows: [
+                    {
+                        cells: [
+                            { value: "利润表", textAlign: "center", bold: true },
+                        ]
+                    },
+                    {
+                        cells: [
+                            { value: "" },
+                            { value: "" },
+                            { value: "" },
+                            { value: "会企02表" },
+                        ]
+                    },
+                    {
+                        cells: [
+                            { value: `税款所属期起止: ${year}-01-01 至 ${kendo.toString(new Date(new Date(year, period, 1) - 1), "yyyy-MM-dd")}`, textAlign: "center" },
+                        ]
+                    },
+                    {
+                        cells: [
+                            { value: "编制单位:雅时恒迅国际货运代理(上海)有限公司" },
+                            { value: "" },
+                            { value: "" },
+                            { value: "单位:元" },
+                        ]
+                    },
+                    {
+                        cells: [
+                            { value: "项  目" },
+                            { value: "行次" },
+                            { value: "本月数" },
+                            { value: "本年累计数" }
+                        ]
+                    },
+                ]
+            }]
+        };
+
+        $.ajax({
+            url: "../Accounting/Ledger/GetProfitLossSummary",
+            data: { year: year, period: period },
+            dataType: "json",
+            type: "post",
+            success: function (results) {
+                rowData.forEach(function (row) {
+                    reportData.sheets[0].rows.push({
+                        cells: controllers.accounting.createCells(results, row)
+                    });
+                });
+
+                reportData.sheets[0].rows.forEach(function (row) {
+                    let rowIndex = reportData.sheets[0].rows.indexOf(row);
+                    row.cells.forEach(function (cell) {
+                        let cellIndex = row.cells.indexOf(cell);
+                        let numCol = [2, 3];
+                        if (rowIndex >= 4) {
+                            cell.borderTop = { size: "0.5px" };
+                            cell.borderBottom = { size: "0.5px" };
+                            cell.borderLeft = { size: "0.5px" };
+                            cell.borderRight = { size: "0.5px" };
+                            if (rowIndex >= 5 && numCol.indexOf(cellIndex) != -1) {
+                                cell.format = "#,##0.00";
+                            }
+                        }
+                    });
+                });
+
+                spreadsheet.fromJSON(reportData);
+            }
+        });
+    }
+
+    createCells = function (results, row) {
+        if (row.index.toString().indexOf(".") != -1)
+            return [{ value: row.text }, {}, {}, {}];
+
+        let cells = [];
+        cells.push({ value: row.text });
+        cells.push({ value: row.index });
+        if (utils.isEmptyString(row.code)) {
+            if (row.formulaBeg != null)
+                cells.push({ formula: row.formulaBeg });
+            else
+                cells.push({ value: 0 });
+            if (row.formulaEnd != null)
+                cells.push({ formula: row.formulaEnd });
+            else
+                cells.push({ value: 0 });
+        } else {
+            let amtBeg = 0;
+            let amtEnd = 0;
+            if (row.code.indexOf(",") == -1) {
+                if (results.filter(a => a.AC_CODE == row.code).length > 0) {
+                    let data = results.filter(a => a.AC_CODE == row.code)[0];
+                    amtBeg = data.AMT_BEG;
+                    amtEnd = data.AMT_END;
+                }
+            } else {
+                row.code.split(',').forEach(function (code) {
+                    if (results.filter(a => a.AC_CODE == code).length > 0) {
+                        let data = results.filter(a => a.AC_CODE == code)[0];
+                        amtBeg = eval(amtBeg + row.calcType + data.AMT_BEG);
+                        amtEnd = eval(amtEnd + row.calcType + data.AMT_END);
+                    }
+                });
+            }
+            cells.push({ value: amtBeg });
+            cells.push({ value: amtEnd });
+        }
+        return cells;
     }
 
     initLedgerAccount = function () {
@@ -447,6 +564,7 @@
             var ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
             $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
         });
+        $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setOptions({ filterable: true });
     }
 
     loadVoucher = function (id, popupWin) {
@@ -496,7 +614,8 @@
                 }];
 
                 controllers.accounting.initVoucherControls(result);
-                popupWin.center();
+                if (popupWin != null)
+                    popupWin.center();
             }
         });
 

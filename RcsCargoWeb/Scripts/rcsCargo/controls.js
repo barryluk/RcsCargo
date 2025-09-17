@@ -1117,7 +1117,7 @@
                             searchData = {
                                 dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
                                 dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
-                                take: data.indexGridPageSize,
+                                take: 200,
                                 skip: options.data.skip,
                                 sort: options.data.sort,
                             };
@@ -1168,7 +1168,7 @@
                     }
                 },
                 serverSorting: pageSetting.gridConfig.serverSorting == null ? true : pageSetting.gridConfig.serverSorting,
-                pageSize: data.indexGridPageSize,
+                pageSize: pageSetting.pageName == "acVoucher" ? 200 : data.indexGridPageSize,
                 serverPaging: pageSetting.gridConfig.serverSorting == null ? true : pageSetting.gridConfig.serverSorting,
             },
             resizable: true,
@@ -1194,14 +1194,15 @@
 
                 //Toolbar new button events
                 //Special case for accounting voucher
+                $(`#${formId} .k-grid button:contains("New")`).unbind("click");
                 if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                         let popupWin = utils.alertMessage(`New Voucher`, `New Voucher`, null, null, true, "controllers.accounting.saveVoucher");
                         controllers.accounting.newVoucher(popupWin);
+                        console.log("new Voucher");
                     });
                 } else {
                     if (pageSetting.gridConfig.linkIdPrefix != null) {
-                        $(`#${formId} .k-grid button:contains("New")`).unbind("click");
                         $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                             var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
                             controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);

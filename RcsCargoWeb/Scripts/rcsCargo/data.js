@@ -1575,7 +1575,7 @@ var indexPages = [
         title: "Vouchers",
         initScript: "controllers.accounting.initVoucher",
         targetContainer: {},
-        searchControls: [{ label: "Voucher Date", type: "dateRange", name: "voucherDateRange" }],
+        searchControls: [{ label: "Voucher Date", type: "dateRange", name: "voucherDateRange", daysBefore: 180 }],
         gridConfig: {
             gridName: "gridVoucherIndex",
             dataSourceUrl: "../Accounting/Voucher/GridVoucher_Read",
@@ -1587,14 +1587,19 @@ var indexPages = [
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
             ],
             columns: [
-                { field: "VOUCHER_DATE", title: "Date", template: ({ VOUCHER_DATE }) => data.formatDateTime(VOUCHER_DATE, "date") },
-                { field: "VOUCHER_NO", title: "Voucher #", attributes: { "class": "link-cell" } },
-                { field: "DESC_TEXT", title: "Description" },
-                { field: "DR_AMT", title: "Debit Amount" },
-                { field: "CR_AMT", title: "Credit Amount" },
-                { field: "CBILL", title: "Billed" },
-                { field: "CCHECK", title: "Approved" },
-                { field: "IBOOK", title: "Booked" },
+                { field: "VOUCHER_DATE", title: "Date", template: ({ VOUCHER_DATE }) => data.formatDateTime(VOUCHER_DATE, "date"), filterable: false },
+                { field: "VOUCHER_NO", title: "Voucher #", attributes: { "class": "link-cell" }, filterable: false },
+                {
+                    field: "DESC_TEXT", title: "Description", filterable: {
+                        multi: true,
+                        search: true
+                    }
+                },
+                { field: "DR_AMT", title: "Debit Amount", filterable: false },
+                { field: "CR_AMT", title: "Credit Amount", filterable: false },
+                { field: "CBILL", title: "Billed", filterable: false },
+                { field: "CCHECK", title: "Approved", filterable: false },
+                { field: "IBOOK", title: "Booked", filterable: false },
             ],
         },
     },

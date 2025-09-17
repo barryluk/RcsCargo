@@ -111,6 +111,7 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Accounting.LedgerAccount> LedgerAccounts { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLAccass> GLAccasses { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLAccsum> GLAccsums { get; set; }
+        public DbSet<DbUtils.Models.Accounting.GLAccsumTest> GLAccsumTests { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLVoucher> GLVouchers { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

@@ -64,5 +64,21 @@ namespace RcsCargoWeb.Controllers.Accounting
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetProfitLossSummary")]
+        public ActionResult GetProfitLossSummary(int year, int period)
+        {
+            var results = accounting.GetProfitLossSummary(year, period);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("CalcLedgerAccountSummary")]
+        public ActionResult CalcLedgerAccountSummary(int year, int period)
+        {
+            accounting.CalcAccountSummary(year, period);
+            return Content("success");
+            //var results = accounting.GetLedgerAccountSummary(year, period);
+            //return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
     }
 }

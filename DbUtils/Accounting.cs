@@ -133,7 +133,8 @@ namespace DbUtils
 
         public List<LedgerAccountBegEndAmount> GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart = true)
         {
-            var selectCmd = "ac_code, amt_beg, amt_end";
+            var accounts = db.LedgerAccounts.ToList();
+            var selectCmd = "ac_code, amt_beg, amt_end, beg_ind, end_ind";
             if (isYearStart)
             {
                 var fromCmd = $"ac_gl_accsum where year = {year} and period = 1";
@@ -145,6 +146,17 @@ namespace DbUtils
                 foreach (var item in begResult)
                 {
                     item.AMT_END = endResult.Where(a => a.AC_CODE == item.AC_CODE).Select(a => a.AMT_END).FirstOrDefault();
+
+                    if (item.BEG_IND == "Cr")
+                        item.AMT_BEG = item.AMT_BEG * -1;
+                    if (item.END_IND == "Cr")
+                        item.AMT_END = item.AMT_END * -1;
+
+                    if (accounts.Where(a => a.AC_CODE == item.AC_CODE.ToString()).FirstOrDefault().CRDR_BALANCE == "Cr")
+                    {
+                        item.AMT_BEG = item.AMT_BEG * -1;
+                        item.AMT_END = item.AMT_END * -1;
+                    }
                 }
                 return begResult;
             }
@@ -154,6 +166,87 @@ namespace DbUtils
                 var result = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
                 return result;
             }
+        }
+
+        public List<LedgerAccountBegEndAmount> GetProfitLossSummary(int year, int period)
+        {
+            var results = new List<LedgerAccountBegEndAmount>();
+            var gLAccsums = db.GLAccsums.Where(a => a.YEAR == year && a.PERIOD <= period && a.AC_CODE.ToString().StartsWith("5")).ToList();
+            foreach(var acCode in gLAccsums.Select(a => a.AC_CODE).Distinct())
+            {
+                results.Add(new LedgerAccountBegEndAmount
+                {
+                    AC_CODE = acCode.ToString(),
+                    AMT_BEG = gLAccsums.Where(a => a.AC_CODE == acCode && a.PERIOD == period).Select(a => a.AMT_DR).FirstOrDefault(),
+                    AMT_END = gLAccsums.Where(a => a.AC_CODE == acCode).Sum(a => a.AMT_DR),
+                });
+            }
+            return results;
+        }
+
+        public void CalcAccountSummary(int year, int period)
+        {
+            var accounts = db.LedgerAccounts.ToList();
+            var lastPeriods = new List<GLAccsum>();
+            var results = new List<GLAccsum>();
+            if (period == 1)
+                lastPeriods = db.GLAccsums.Where(a => a.YEAR == year - 1 && a.PERIOD == 12).ToList();
+            else
+                lastPeriods = db.GLAccsums.Where(a => a.YEAR == year && a.PERIOD == period - 1).ToList();
+
+            var id = lastPeriods.Select(a => a.ID).Max() + 1;
+            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD >= period && a.IBOOK == 1).ToList();
+
+            foreach(var lastPeriod in lastPeriods)
+            {
+                var account = accounts.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString()).FirstOrDefault();
+                int currentPeriod = period;
+                decimal amt = lastPeriod.AMT_END;
+                while (currentPeriod <= 12)
+                {
+                    var amtDr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.DR_AMT);
+                    var amtCr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.CR_AMT);
+
+                    results.Add(new GLAccsum 
+                    { 
+                        ID = id,
+                        YEAR = year,
+                        PERIOD = currentPeriod,
+                        AC_CODE = lastPeriod.AC_CODE,
+                        CURRENCY = lastPeriod.CURRENCY,
+                        AMT_BEG = amt,
+                        AMT_DR = amtDr,
+                        AMT_CR = amtCr,
+                        AMT_END = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr),
+                        AMT_BEG_F = 0,
+                        AMT_DR_F = 0,
+                        AMT_CR_F = 0,
+                        AMT_END_F = 0,
+                        BEG_IND = amt == 0 ? "-" : account.CRDR_BALANCE,
+                        END_IND = (account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr)) == 0 ? "-" : account.CRDR_BALANCE,
+                    });
+                    amt = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr);
+                    id++;
+                    currentPeriod++;
+                }
+            }
+
+            foreach(var record in results.Where(a => a.AMT_BEG < 0 || a.AMT_END < 0))
+            {
+                if (record.AMT_BEG < 0)
+                {
+                    record.AMT_BEG = record.AMT_BEG * -1;
+                    record.BEG_IND = record.BEG_IND == "Dr" ? "Cr" : "Dr";
+                }
+                if (record.AMT_END < 0)
+                {
+                    record.AMT_END = record.AMT_END * -1;
+                    record.END_IND = record.END_IND == "Dr" ? "Cr" : "Dr";
+                }
+            }
+            db.Database.ExecuteSqlCommand($"delete from ac_gl_accsum where year = {year} and period >= {period}");
+            db.GLAccsums.AddRange(results);
+            db.SaveChanges();
         }
 
         #endregion
@@ -183,7 +276,7 @@ namespace DbUtils
                             PERIOD = period,
                             VOUCHER_NO = $"{voucherRecord.First().VOUCHER_TYPE} - {voucherNo.ToString().PadLeft(4, '0')}",
                             VOUCHER_DATE = voucherRecord.First().VOUCHER_DATE,
-                            DESC_TEXT = voucherRecord.First().DESC_TEXT,
+                            DESC_TEXT = voucherRecord.Select(a => a.DESC_TEXT).ToList().FormatString("/"),
                             DR_AMT = voucherRecord.Sum(a => a.DR_AMT),
                             CR_AMT = voucherRecord.Sum(a => a.CR_AMT),
                             CBILL = voucherRecord.First().CBILL,
@@ -211,7 +304,7 @@ namespace DbUtils
         {
             if (db.GLVouchers.Count(a => a.YEAR == voucherDate.Year && a.PERIOD == voucherDate.Month) > 0)
                 return db.GLVouchers.Where(a => a.YEAR == voucherDate.Year && a.PERIOD == voucherDate.Month)
-                    .Select(a => a.VOUCHER_NO).Max() + 1;
+                    .Select(a => a.VOUCHER_NO ?? 0).Max() + 1;
             else
                 return 1;
         }
@@ -228,7 +321,7 @@ namespace DbUtils
                 voucher.ID = ID;
                 db.GLVouchers.Add(voucher);
                 ID++;
-                log.Debug(voucher.ID);
+                //log.Debug(voucher.ID);
             }
 
             db.SaveChanges();

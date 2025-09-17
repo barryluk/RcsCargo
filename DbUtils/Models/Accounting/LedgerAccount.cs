@@ -45,6 +45,8 @@ namespace DbUtils.Models.Accounting
     public class LedgerAccountBegEndAmount
     {
         public string AC_CODE { get; set; }
+        public string BEG_IND { get; set; }
+        public string END_IND { get; set; }
         public decimal AMT_BEG { get; set; }
         public decimal AMT_END { get; set; }
     }

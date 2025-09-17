@@ -12,7 +12,7 @@ namespace DbUtils.Models.Accounting
         public decimal ID { get; set; }
         public int YEAR { get; set; }
         public int PERIOD { get; set; }
-        public int VOUCHER_NO { get; set; }
+        public int? VOUCHER_NO { get; set; }
         public string VOUCHER_TYPE { get; set; }
         public int LINE_NO { get; set; }
         public string AC_CODE { get; set; }

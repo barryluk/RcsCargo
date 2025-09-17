@@ -121,6 +121,19 @@ namespace DbUtils
                 return string.Empty;
         }
 
+        public static string FormatString(this List<string> values, string separator)
+        {
+            string formattedString = string.Empty;
+            foreach (var value in values.Distinct())
+            {
+                formattedString += $"{value}{separator}";
+            }
+            if (formattedString.Length > 0)
+                return formattedString.Substring(0, formattedString.Length - separator.Length);
+            else
+                return string.Empty;
+        }
+
         public static string FormatErrorMessage(this Exception ex, int maxChars = 0)
         {
             string message = ($"Error source: {ex.Source}, Error Message: {ex.Message}, StackTrace: {ex.StackTrace}");

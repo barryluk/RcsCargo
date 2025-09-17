@@ -809,6 +809,9 @@
 
     //type: "info", "warning", "error", "confirm", size: "small", "medium", "large"
     alertMessage = function (msg, title, type = "info", size, showCloseButtons = true, callbackFunction) {
+        if ($("div.kendo-window-alertMessage").length > 0)
+            return;
+
         var contentHeight = "100%";
         if (showCloseButtons)
             contentHeight = "calc(100% - 35px)";
