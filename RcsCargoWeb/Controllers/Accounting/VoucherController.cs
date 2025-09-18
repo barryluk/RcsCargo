@@ -21,25 +21,7 @@ namespace RcsCargoWeb.Controllers.Accounting
         [Route("GridVoucher_Read")]
         public ActionResult GridVoucher_Read(DateTime dateFrom, DateTime dateTo, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
-            //var sortField = "VOUCHER_DATE";
-            //var sortDir = "asc";
-
-            //if (sortings != null)
-            //{
-            //    sortField = sortings.First().Single(a => a.Key == "field").Value;
-            //    sortDir = sortings.First().Single(a => a.Key == "dir").Value;
-            //}
-
             var results = accounting.GetVouchers(dateFrom, dateTo);
-
-            //if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
-            //{
-            //    if (sortDir == "asc")
-            //        results = results.OrderBy(a => Utils.GetDynamicProperty(a, sortField)).ToList();
-            //    else
-            //        results = results.OrderByDescending(a => Utils.GetDynamicProperty(a, sortField)).ToList();
-            //}
-
             return AppUtils.JsonContentResult(results, skip, take);
         }
 

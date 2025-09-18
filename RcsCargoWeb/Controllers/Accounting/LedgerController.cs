@@ -50,35 +50,5 @@ namespace RcsCargoWeb.Controllers.Accounting
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
-        [Route("GetLedgerAccountSummary")]
-        public ActionResult GetLedgerAccountSummary(int year, int period)
-        {
-            var results = accounting.GetLedgerAccountSummary(year, period);
-            return Json(results, JsonRequestBehavior.AllowGet);
-        }
-
-        [Route("GetLedgerAccountBegEndAmount")]
-        public ActionResult GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart)
-        {
-            var results = accounting.GetLedgerAccountBegEndAmount(year, period, isYearStart);
-            return Json(results, JsonRequestBehavior.AllowGet);
-        }
-
-        [Route("GetProfitLossSummary")]
-        public ActionResult GetProfitLossSummary(int year, int period)
-        {
-            var results = accounting.GetProfitLossSummary(year, period);
-            return Json(results, JsonRequestBehavior.AllowGet);
-        }
-
-        [Route("CalcLedgerAccountSummary")]
-        public ActionResult CalcLedgerAccountSummary(int year, int period)
-        {
-            accounting.CalcAccountSummary(year, period);
-            return Content("success");
-            //var results = accounting.GetLedgerAccountSummary(year, period);
-            //return Json(results, JsonRequestBehavior.AllowGet);
-        }
-
     }
 }

@@ -956,7 +956,7 @@
         var str = "";
         $.ajax({
             url: "../Home/EncryptString",
-            data: {value: value},
+            data: { value: value },
             dataType: "text",
             async: false,
             success: function (result) { str = result; }
@@ -1056,5 +1056,23 @@
             formControlType = "span"
         }
         return formControlType;
+    }
+
+    getDistinctValues = function (array, fieldName) {
+        let result = [];
+        if (fieldName == null) {
+            for (let i in array) {
+                if (result.indexOf(array[i]) == -1) {
+                    result.push(array[i]);
+                }
+            }
+        } else {
+            for (let i in array) {
+                if (result.indexOf(array[i][`${fieldName}`]) == -1) {
+                    result.push(array[i][`${fieldName}`]);
+                }
+            }
+        }
+        return result;
     }
 }

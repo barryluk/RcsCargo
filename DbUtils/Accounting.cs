@@ -90,98 +90,12 @@ namespace DbUtils
 
         #endregion
 
-        #region General Ledger
+        #region General Ledger / GL_ACCSUM
 
         public List<LedgerAccount> GetLedgerAccounts()
         {
             var result = Utils.GetSqlQueryResult<LedgerAccount>("ac_ledger_account", "*", new List<DbParameter>());
             return result.OrderBy(a => a.AC_CODE).ToList();
-        }
-
-        public List<LedgerAccountView> GetLedgerAccountSummary(int year, int period)
-        {
-            var selectCmd = @"ac.*,
-                case sum.beg_ind when 'Dr' then sum.amt_beg else 0 end as open_dr,
-                case sum.beg_ind when 'Cr' then sum.amt_beg else 0 end as open_cr,
-                nvl(sum.amt_dr, 0) current_dr, nvl(sum.amt_cr, 0) current_cr,
-                0 as close_dr, 0 as close_cr";
-            var fromCmd = $@"ac_ledger_account ac left outer join ac_gl_accsum sum on ac.ac_code = sum.ac_code and sum.year = {year} and sum.period = {period}";
-            var result = Utils.GetSqlQueryResult<LedgerAccountView>(fromCmd, selectCmd, new List<DbParameter>());
-            result = result.Where(a => 
-                a.OPEN_DR != 0 || a.OPEN_CR != 0 ||
-                a.CURRENT_DR != 0 || a.CURRENT_CR != 0 ||
-                a.CLOSE_DR != 0 || a.CLOSE_CR != 0)
-                .OrderBy(a => a.AC_CODE).ToList();
-
-            foreach(var item in result)
-            {
-                var amt = item.OPEN_DR - item.OPEN_CR + item.CURRENT_DR - item.CURRENT_CR;
-                if (amt > 0 )
-                {
-                    item.CLOSE_DR = amt;
-                    item.CLOSE_CR = 0;
-                } 
-                else
-                {
-                    item.CLOSE_DR = 0;
-                    item.CLOSE_CR = amt * -1;
-                }
-            }
-
-            return result;
-        }
-
-        public List<LedgerAccountBegEndAmount> GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart = true)
-        {
-            var accounts = db.LedgerAccounts.ToList();
-            var selectCmd = "ac_code, amt_beg, amt_end, beg_ind, end_ind";
-            if (isYearStart)
-            {
-                var fromCmd = $"ac_gl_accsum where year = {year} and period = 1";
-                var begResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
-
-                fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
-                var endResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
-
-                foreach (var item in begResult)
-                {
-                    item.AMT_END = endResult.Where(a => a.AC_CODE == item.AC_CODE).Select(a => a.AMT_END).FirstOrDefault();
-
-                    if (item.BEG_IND == "Cr")
-                        item.AMT_BEG = item.AMT_BEG * -1;
-                    if (item.END_IND == "Cr")
-                        item.AMT_END = item.AMT_END * -1;
-
-                    if (accounts.Where(a => a.AC_CODE == item.AC_CODE.ToString()).FirstOrDefault().CRDR_BALANCE == "Cr")
-                    {
-                        item.AMT_BEG = item.AMT_BEG * -1;
-                        item.AMT_END = item.AMT_END * -1;
-                    }
-                }
-                return begResult;
-            }
-            else
-            {
-                var fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
-                var result = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
-                return result;
-            }
-        }
-
-        public List<LedgerAccountBegEndAmount> GetProfitLossSummary(int year, int period)
-        {
-            var results = new List<LedgerAccountBegEndAmount>();
-            var gLAccsums = db.GLAccsums.Where(a => a.YEAR == year && a.PERIOD <= period && a.AC_CODE.ToString().StartsWith("5")).ToList();
-            foreach(var acCode in gLAccsums.Select(a => a.AC_CODE).Distinct())
-            {
-                results.Add(new LedgerAccountBegEndAmount
-                {
-                    AC_CODE = acCode.ToString(),
-                    AMT_BEG = gLAccsums.Where(a => a.AC_CODE == acCode && a.PERIOD == period).Select(a => a.AMT_DR).FirstOrDefault(),
-                    AMT_END = gLAccsums.Where(a => a.AC_CODE == acCode).Sum(a => a.AMT_DR),
-                });
-            }
-            return results;
         }
 
         public void CalcAccountSummary(int year, int period)
@@ -197,7 +111,7 @@ namespace DbUtils
             var id = lastPeriods.Select(a => a.ID).Max() + 1;
             var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD >= period && a.IBOOK == 1).ToList();
 
-            foreach(var lastPeriod in lastPeriods)
+            foreach (var lastPeriod in lastPeriods)
             {
                 var account = accounts.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString()).FirstOrDefault();
                 int currentPeriod = period;
@@ -207,8 +121,8 @@ namespace DbUtils
                     var amtDr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.DR_AMT);
                     var amtCr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.CR_AMT);
 
-                    results.Add(new GLAccsum 
-                    { 
+                    results.Add(new GLAccsum
+                    {
                         ID = id,
                         YEAR = year,
                         PERIOD = currentPeriod,
@@ -231,7 +145,7 @@ namespace DbUtils
                 }
             }
 
-            foreach(var record in results.Where(a => a.AMT_BEG < 0 || a.AMT_END < 0))
+            foreach (var record in results.Where(a => a.AMT_BEG < 0 || a.AMT_END < 0))
             {
                 if (record.AMT_BEG < 0)
                 {
@@ -316,7 +230,7 @@ namespace DbUtils
                 db.GLVouchers.RemoveRange(records);
 
             var ID = db.GLVouchers.Select(a => a.ID).Max() + 1;
-            foreach(var voucher in model.Vouchers)
+            foreach (var voucher in model.Vouchers)
             {
                 voucher.ID = ID;
                 db.GLVouchers.Add(voucher);
@@ -325,6 +239,156 @@ namespace DbUtils
             }
 
             db.SaveChanges();
+        }
+
+        #endregion
+
+        #region Reports
+
+        public List<LedgerAccountView> GetLedgerAccountSummary(int year, int period)
+        {
+            var selectCmd = @"ac.*,
+                case sum.beg_ind when 'Dr' then sum.amt_beg else 0 end as open_dr,
+                case sum.beg_ind when 'Cr' then sum.amt_beg else 0 end as open_cr,
+                nvl(sum.amt_dr, 0) current_dr, nvl(sum.amt_cr, 0) current_cr,
+                0 as close_dr, 0 as close_cr";
+            var fromCmd = $@"ac_ledger_account ac left outer join ac_gl_accsum sum on ac.ac_code = sum.ac_code and sum.year = {year} and sum.period = {period}";
+            var result = Utils.GetSqlQueryResult<LedgerAccountView>(fromCmd, selectCmd, new List<DbParameter>());
+            result = result.Where(a =>
+                a.OPEN_DR != 0 || a.OPEN_CR != 0 ||
+                a.CURRENT_DR != 0 || a.CURRENT_CR != 0 ||
+                a.CLOSE_DR != 0 || a.CLOSE_CR != 0)
+                .OrderBy(a => a.AC_CODE).ToList();
+
+            foreach (var item in result)
+            {
+                var amt = item.OPEN_DR - item.OPEN_CR + item.CURRENT_DR - item.CURRENT_CR;
+                if (amt > 0)
+                {
+                    item.CLOSE_DR = amt;
+                    item.CLOSE_CR = 0;
+                }
+                else
+                {
+                    item.CLOSE_DR = 0;
+                    item.CLOSE_CR = amt * -1;
+                }
+            }
+
+            return result;
+        }
+
+        public List<LedgerAccountBegEndAmount> GetLedgerAccountBegEndAmount(int year, int period, bool isYearStart = true)
+        {
+            var accounts = db.LedgerAccounts.ToList();
+            var selectCmd = "ac_code, amt_beg, amt_end, beg_ind, end_ind";
+            if (isYearStart)
+            {
+                var fromCmd = $"ac_gl_accsum where year = {year} and period = 1";
+                var begResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+
+                fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
+                var endResult = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+
+                foreach (var item in begResult)
+                {
+                    item.AMT_END = endResult.Where(a => a.AC_CODE == item.AC_CODE).Select(a => a.AMT_END).FirstOrDefault();
+
+                    if (item.BEG_IND == "Cr")
+                        item.AMT_BEG = item.AMT_BEG * -1;
+                    if (item.END_IND == "Cr")
+                        item.AMT_END = item.AMT_END * -1;
+
+                    if (accounts.Where(a => a.AC_CODE == item.AC_CODE.ToString()).FirstOrDefault().CRDR_BALANCE == "Cr")
+                    {
+                        item.AMT_BEG = item.AMT_BEG * -1;
+                        item.AMT_END = item.AMT_END * -1;
+                    }
+                }
+                return begResult;
+            }
+            else
+            {
+                var fromCmd = $"ac_gl_accsum where year = {year} and period = {period}";
+                var result = Utils.GetSqlQueryResult<LedgerAccountBegEndAmount>(fromCmd, selectCmd, new List<DbParameter>()).ToList();
+                return result;
+            }
+        }
+
+        public List<LedgerAccountBegEndAmount> GetProfitLossSummary(int year, int period)
+        {
+            var results = new List<LedgerAccountBegEndAmount>();
+            var gLAccsums = db.GLAccsums.Where(a => a.YEAR == year && a.PERIOD <= period && a.AC_CODE.ToString().StartsWith("5")).ToList();
+            foreach (var acCode in gLAccsums.Select(a => a.AC_CODE).Distinct())
+            {
+                results.Add(new LedgerAccountBegEndAmount
+                {
+                    AC_CODE = acCode.ToString(),
+                    AMT_BEG = gLAccsums.Where(a => a.AC_CODE == acCode && a.PERIOD == period).Select(a => a.AMT_DR).FirstOrDefault(),
+                    AMT_END = gLAccsums.Where(a => a.AC_CODE == acCode).Sum(a => a.AMT_DR),
+                });
+            }
+            return results;
+        }
+
+        public List<BankTransaction> GetBankTransaction(int year, int period)
+        {
+            var results = new List<BankTransaction>();
+            var acCodes = db.Database.SqlQuery<string>("select distinct ac_code from ac_gl_accsum where ac_code like '10020%' " +
+                $"and year = {year} and period <= {period} and (amt_beg <> 0 or amt_dr <> 0 or amt_cr <> 0 or amt_end <> 0)").ToList();
+            var accounts = db.LedgerAccounts.Where(a => acCodes.Contains(a.AC_CODE)).ToList();
+
+            foreach (var acCode in acCodes)
+            {
+                int code = int.Parse(acCode);
+                var gLAccsums = db.GLAccsums.Where(a => a.YEAR == year && a.PERIOD <= period && a.AC_CODE == code).ToList();
+                var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.AC_CODE == acCode).ToList();
+                var account = accounts.Where(a => a.AC_CODE == acCode).FirstOrDefault();
+                var openBalance = gLAccsums.Where(a => a.PERIOD == period).Select(a => a.AMT_BEG).First();
+                var closeBalance = gLAccsums.Where(a => a.PERIOD == period).Select(a => a.AMT_END).First();
+                results.Add(new BankTransaction
+                {
+                    AC_CODE = acCode,
+                    AC_NAME = account.AC_NAME,
+                    DrCr = account.CRDR_BALANCE,
+                    DESC_TEXT = "月初余额",
+                    DR_AMT = 0,
+                    CR_AMT = 0,
+                    BALANCE = openBalance
+                });
+
+                foreach (var voucher in vouchers)
+                {
+                    openBalance = voucher.DR_AMT - voucher.CR_AMT + openBalance;
+
+                    results.Add(new BankTransaction
+                    {
+                        AC_CODE = acCode,
+                        AC_NAME = account.AC_NAME,
+                        DrCr = account.CRDR_BALANCE,
+                        YEAR = year,
+                        PERIOD = period,
+                        Day = voucher.VOUCHER_DATE.Day,
+                        DESC_TEXT = voucher.DESC_TEXT,
+                        VOUCHER_NO = voucher.VOUCHER_NO ?? 0,
+                        DR_AMT = voucher.DR_AMT,
+                        CR_AMT = voucher.CR_AMT,
+                        BALANCE = openBalance
+                    });
+                }
+
+                results.Add(new BankTransaction
+                {
+                    AC_CODE = acCode,
+                    AC_NAME = account.AC_NAME,
+                    DrCr = account.CRDR_BALANCE,
+                    DESC_TEXT = "当前累计",
+                    DR_AMT = gLAccsums.Sum(a => a.AMT_DR),
+                    CR_AMT = gLAccsums.Sum(a => a.AMT_CR),
+                    BALANCE = closeBalance
+                });
+            }
+            return results;
         }
 
         #endregion

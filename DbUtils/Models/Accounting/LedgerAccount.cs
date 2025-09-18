@@ -41,13 +41,4 @@ namespace DbUtils.Models.Accounting
         public decimal CLOSE_DR { get; set; }
         public decimal CLOSE_CR { get; set; }
     }
-
-    public class LedgerAccountBegEndAmount
-    {
-        public string AC_CODE { get; set; }
-        public string BEG_IND { get; set; }
-        public string END_IND { get; set; }
-        public decimal AMT_BEG { get; set; }
-        public decimal AMT_END { get; set; }
-    }
 }

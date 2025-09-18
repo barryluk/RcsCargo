@@ -53,6 +53,7 @@
             }
         });
 
+        //Focus the report tab
         $(`#${utils.getFormId()} .k-spreadsheet-tabstrip`).data("kendoTabStrip").select(3);
     }
 
@@ -74,6 +75,8 @@
                 controllers.accounting.getBalanceSheet(spreadsheet, year, period);
             else if (reportType == "Profit and Loss")
                 controllers.accounting.getProfitLoss(spreadsheet, year, period);
+            else if (reportType == "Bank Transactions")
+                controllers.accounting.getBankTransaction(spreadsheet, year, period);
             else
                 utils.alertMessage("The selected report is not available at this moment, will be available soon...");
         }
@@ -128,10 +131,12 @@
         }
 
         $.ajax({
-            url: "../Accounting/Ledger/GetLedgerAccountSummary",
+            url: "../Accounting/Report/GetLedgerAccountSummary",
             data: { year: year, period: period },
             dataType: "json",
             type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), true); },
+            complete: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), false); },
             success: function (result) {
                 testObj = result;
                 let openDrTotal = 0;
@@ -374,10 +379,12 @@
         };
 
         $.ajax({
-            url: "../Accounting/Ledger/GetLedgerAccountBegEndAmount",
+            url: "../Accounting/Report/GetLedgerAccountBegEndAmount",
             data: { year: year, period: period, isYearStart: true },
             dataType: "json",
             type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), true); },
+            complete: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), false); },
             success: function (results) {
                 rowData.forEach(function (row) {
                     if (row.index <= 32) {
@@ -481,10 +488,12 @@
         };
 
         $.ajax({
-            url: "../Accounting/Ledger/GetProfitLossSummary",
+            url: "../Accounting/Report/GetProfitLossSummary",
             data: { year: year, period: period },
             dataType: "json",
             type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), true); },
+            complete: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), false); },
             success: function (results) {
                 rowData.forEach(function (row) {
                     reportData.sheets[0].rows.push({
@@ -507,6 +516,119 @@
                             }
                         }
                     });
+                });
+
+                spreadsheet.fromJSON(reportData);
+            }
+        });
+    }
+
+    getBankTransaction = function (spreadsheet, year, period) {
+        let reportData = { sheets: [] };
+        $.ajax({
+            url: "../Accounting/Report/GetBankTransaction",
+            data: { year: year, period: period },
+            dataType: "json",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), true); },
+            complete: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), false); },
+            success: function (results) {
+                let acCodes = utils.getDistinctValues(results, "AC_CODE");
+
+                acCodes.forEach(function (acCode) {
+                    let openBalance = results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "月初余额")[0].BALANCE;
+                    let drAmt = 0;
+                    let crAmt = 0;
+                    let sheet = {
+                        name: results.filter(a => a.AC_CODE == acCode)[0].AC_NAME,
+                        showGridLines: true,
+                        columns: [
+                            { index: 0, width: 40 },
+                            { index: 1, width: 40 },
+                            { index: 2, width: 60 },
+                            { index: 3, width: 160 },
+                            { index: 4, width: 120 },
+                            { index: 5, width: 120 },
+                            { index: 6, width: 60 },
+                            { index: 7, width: 120 },
+                        ],
+                        mergedCells: ["A1:H1", "A3:H3"],
+                        rows: [
+                            { cells: [{ value: results.filter(a => a.AC_CODE == acCode)[0].AC_NAME, textAlign: "center", bold: true }] },
+                            { cells: [{ value: "" }] },
+                            { cells: [{ value: `${year}年${period}月`, textAlign: "center", bold: true }] },
+                            {
+                                cells: [
+                                    { value: "月", bold: true },
+                                    { value: "日", bold: true },
+                                    { value: "凭证号数", bold: true },
+                                    { value: "摘要", bold: true },
+                                    { value: "借方", textAlign: "right", bold: true },
+                                    { value: "贷方", textAlign: "right", bold: true },
+                                    { value: "方向", textAlign: "center", bold: true },
+                                    { value: "余额", textAlign: "right", bold: true }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    { value: "" },
+                                    { value: "" },
+                                    { value: "" },
+                                    { value: "月初余额" },
+                                    { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "月初余额")[0].DR_AMT },
+                                    { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "月初余额")[0].CR_AMT },
+                                    { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "月初余额")[0].DrCr == "DrCr" ? "借" : "贷", textAlign: "center" },
+                                    { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "月初余额")[0].BALANCE },
+                                ]
+                            },
+                        ]
+                    }
+
+                    results.filter(a => a.AC_CODE == acCode && a.VOUCHER_NO != 0).forEach(function (row) {
+                        drAmt += row.DR_AMT;
+                        crAmt += row.CR_AMT;
+                        sheet.rows.push({
+                            cells: [
+                                { value: row.PERIOD },
+                                { value: row.Day },
+                                { value: `记-${row.VOUCHER_NO.toString().padStart(4, "0")}` },
+                                { value: row.DESC_TEXT },
+                                { value: row.DR_AMT },
+                                { value: row.CR_AMT },
+                                { value: row.DrCr == "DrCr" ? "借" : "贷", textAlign: "center" },
+                                { value: row.BALANCE },
+                            ]
+                        });
+                    });
+
+                    sheet.rows.push({
+                        cells: [
+                            { value: "" },
+                            { value: "" },
+                            { value: "" },
+                            { value: "当前合计" },
+                            { value: drAmt },
+                            { value: crAmt },
+                            { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "当前累计")[0].DrCr == "DrCr" ? "借" : "贷", textAlign: "center" },
+                            { value: openBalance + drAmt - crAmt },
+                        ]
+                    });
+                    sheet.rows.push({
+                        cells: [
+                            { value: "" },
+                            { value: "" },
+                            { value: "" },
+                            { value: "当前累计" },
+                            { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "当前累计")[0].DR_AMT },
+                            { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "当前累计")[0].CR_AMT },
+                            { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "当前累计")[0].DrCr == "DrCr" ? "借" : "贷", textAlign: "center" },
+                            { value: results.filter(a => a.AC_CODE == acCode && a.DESC_TEXT == "当前累计")[0].BALANCE },
+                        ]
+                    });
+                    controllers.accounting.formatCellBorder(sheet, 3, 0);
+                    controllers.accounting.cellDisplayFormat(sheet, "#,##0.00", "right", 4, 4, null, 5);
+                    controllers.accounting.cellDisplayFormat(sheet, "#,##0.00", "right", 4, 7, null, 7);
+                    reportData.sheets.push(sheet);
                 });
 
                 spreadsheet.fromJSON(reportData);
@@ -552,6 +674,54 @@
             cells.push({ value: amtEnd });
         }
         return cells;
+    }
+
+    cellDisplayFormat = function (sheet, format, textAlign, rowIndex, colIndex, rowEndIndex, colEndIndex) {
+        if (rowEndIndex == null)
+            rowEndIndex = sheet.rows.length;
+
+        sheet.rows.forEach(function (row) {
+            let i = sheet.rows.indexOf(row);
+
+            if (i >= rowIndex && i <= rowEndIndex) {
+                if (colEndIndex == null)
+                    colEndIndex = row.cells.length;
+
+                row.cells.forEach(function (cell) {
+                    let j = row.cells.indexOf(cell);
+                    if (j >= colIndex && j <= colEndIndex) {
+                        if (format != null)
+                            cell.format = format;
+                        if (textAlign != null)
+                            cell.textAlign = textAlign;
+                    }
+                });
+            }
+        });
+    }
+
+    formatCellBorder = function (sheet, rowIndex, colIndex, rowCount, colCount) {
+        if (rowCount == null)
+            rowCount = sheet.rows.length;
+
+        sheet.rows.forEach(function (row) {
+
+            let i = sheet.rows.indexOf(row);
+            if (i >= rowIndex && i <= rowCount) {
+                if (colCount == null)
+                    colCount = row.cells.length;
+
+                row.cells.forEach(function (cell) {
+                    let j = row.cells.indexOf(cell);
+                    if (j >= colIndex && j <= colCount) {
+                        cell.borderTop = { size: "0.5px" };
+                        cell.borderBottom = { size: "0.5px" };
+                        cell.borderLeft = { size: "0.5px" };
+                        cell.borderRight = { size: "0.5px" };
+                    }
+                });
+            }
+        });
     }
 
     initLedgerAccount = function () {
