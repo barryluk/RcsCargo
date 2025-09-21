@@ -807,7 +807,7 @@
         }
     }
 
-    //type: "info", "warning", "error", "confirm", size: "small", "medium", "large"
+    //type: "info", "warning", "error", "confirm", "acVoucher"   size: "small", "medium", "large"
     alertMessage = function (msg, title, type = "info", size, showCloseButtons = true, callbackFunction) {
         if ($("div.kendo-window-alertMessage").length > 0)
             return;
@@ -822,7 +822,7 @@
                 cancelButton = `<button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>`;
             }
             closeButtons = `<div style="text-align: center;">
-                    <button type="button" class="customButton button-icon-check-outline" style="width: 80px; margin: 4px;">Ok</button>
+                    <button type="button" class="customButton button-icon-${type == "acVoucher" ? "save" : "check-outline"}" style="width: 80px; margin: 4px;">${type == "acVoucher" ? "Save" : "Ok"}</button>
                     ${cancelButton}
                 </div>`;
         }
@@ -840,6 +840,8 @@
             icon = "<i class='k-icon k-i-x-outline fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
         else if (type == "confirm")
             icon = "<i class='k-icon question-circle fa-beat-fade' style='margin-left: 5px; margin-right: 10px; margin-top: 2px; color: red; --fa-beat-fade-scale: 1.5'></i>";
+        else if (type == "acVoucher")
+            icon = "<i class='k-icon k-i-book' style='margin-left: 5px; margin-right: 5px; margin-top: 2px;'></i>";
 
         if (utils.isEmptyString(title))
             title = "RCS Cargo System";
@@ -879,7 +881,7 @@
                 $(this).attr("class").split(" ").filter(a => a.indexOf("button-icon-") != -1)[0].replace("button-icon-", "") : "";
 
             $(this).kendoButton({ icon: icon });
-            if (icon == "check-outline") {
+            if (icon == "check-outline" || icon == "save") {
                 if (callbackFunction != null) {
                     $(this).bind("click", function () {
                         eval(`${callbackFunction}(alertWin)`);

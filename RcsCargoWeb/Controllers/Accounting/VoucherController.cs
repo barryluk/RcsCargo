@@ -48,10 +48,18 @@ namespace RcsCargoWeb.Controllers.Accounting
                 voucher.VOUCHER_NO = voucherModel.VOUCHER_NO;
                 voucher.VOUCHER_DATE = voucherModel.VOUCHER_DATE;
                 voucher.CBILL = voucherModel.CBILL;
+                voucher.CCHECK = string.Empty;
                 voucher.IBOOK = 0;
             }
             accounting.SaveVoucher(voucherModel);
             return Json(voucherModel.Vouchers, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("DeleteVoucher")]
+        public ActionResult DeleteVoucher(int year, int period, int voucherNo)
+        {
+            accounting.DeleteVoucher(year, period, voucherNo);
+            return Content("success");
         }
     }
 }

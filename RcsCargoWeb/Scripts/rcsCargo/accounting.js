@@ -731,10 +731,28 @@
         let formId = utils.getFormId();
         $(`#${formId} [name="voucherDateRange"]`).append(`<span class="k-icon k-i-refresh" name="reloadData" style="cursor: pointer; margin-bottom: 6px"></span>`);
         $(`#${formId} [name="voucherDateRange"]`).click(function () {
-            var ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
+            let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
             $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
         });
         $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setOptions({ filterable: true });
+        $(`#${formId} [name="gridVoucherIndex"] .ckb-select-all`).parent().parent().attr("style", "padding: 4px;");
+        $(`#${formId} [name="gridVoucherIndex"] .ckb-select-all`).change(function () {
+            if (this.checked) {
+                $(`#${formId} .k-checkbox`).each(function () {
+                    let ckb = $(this);
+                    if (ckb.attr("disabled") == null) {
+                        ckb.prop("checked", true);
+                    }
+                });
+            } else {
+                $(`#${formId} .k-checkbox`).each(function () {
+                    let ckb = $(this);
+                    if (ckb.attr("disabled") == null) {
+                        ckb.prop("checked", false);
+                    }
+                });
+            }
+        });
     }
 
     loadVoucher = function (id, popupWin) {
@@ -746,9 +764,30 @@
             data: { year: year, period: period, voucherNo: voucherNo },
             dataType: "json",
             type: "post",
+            beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+            complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
             success: function (result) {
-                //console.log(result);
-                controllers.accounting.initVoucherControls(result);
+                //disable save if voucher is approved or booked
+                if (result[0].IBOOK == 1 || !utils.isEmptyString(result[0].CCHECK))
+                    $(".customButton.button-icon-save").attr("disabled", "disabled");
+                else {
+                    let deleteBtn = `<button type="button" class="customButton button-icon-delete" style="width: 80px; margin: 4px;">Delete</button>`;
+                    $("button.customButton.button-icon-x-outline").after(deleteBtn);
+                    $("button.customButton.button-icon-delete").kendoButton({
+                        icon: "delete",
+                        click: function () {
+                            let model = {
+                                year: year,
+                                period: period,
+                                voucherNo: voucherNo,
+                                ctrl: popupWin
+                            };
+                            utils.confirmMessage("Are you sure to delete this voucher?", model, "controllers.accounting.deleteVoucher");
+                        }
+                    });
+                }
+
+                controllers.accounting.initVoucherControls(result, popupWin);
                 popupWin.center();
             }
         });
@@ -783,7 +822,7 @@
                     IBOOK: 0
                 }];
 
-                controllers.accounting.initVoucherControls(result);
+                controllers.accounting.initVoucherControls(result, popupWin);
                 if (popupWin != null)
                     popupWin.center();
             }
@@ -791,7 +830,42 @@
 
     }
 
-    initVoucherControls = function (result) {
+    copyVoucher = function (popupWin) {
+        $.ajax({
+            url: "../Accounting/Voucher/GetVoucherNo",
+            data: { voucherDate: new Date().toISOString() },
+            dataType: "text",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+            complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
+            success: function (voucherNo) {
+                $("[name='kendo-window-alertMessage-content'] th span").first().text(voucherNo.toString().padStart(4, "0"));
+                $(".k-window-title b").text("New Voucher");
+                $("[name='kendo-window-alertMessage-content'] [name='voucherDate']").data("kendoDatePicker").value(new Date().toISOString());
+                $(".customButton.button-icon-save").removeAttr("disabled");
+                $("[name='kendo-window-alertMessage-content'] [name='copyVoucher']").attr("style", "display: none");
+            }
+        });
+        //let dataItems = $("[name='kendo-window-alertMessage-content'] [name='gridVoucherItem']").data("kendoGrid").dataItems();
+        //console.log(dataItems);
+        //let vouchers = [];
+        //dataItems.forEach(function (item) {
+        //    vouchers.push({
+        //        LINE_NO: i + 1,
+        //        AC_CODE: dataItem.AC_CODE,
+        //        DESC_TEXT: dataItem.DESC_TEXT,
+        //        DR_AMT: dataItem.DR_AMT,
+        //        CR_AMT: dataItem.CR_AMT,
+        //        INV_NO: dataItem.INV_NO,
+        //        INV_DATE: dataItem.INV_DATE,
+        //        CUSTOMER_CODE: dataItem.CUSTOMER_CODE,
+        //        VENDOR_CODE: dataItem.VENDOR_CODE,
+        //    });
+        //});
+        //popupWin.destroy();
+    }
+
+    initVoucherControls = function (result, popupWin) {
         let html = `<table style="width: 700px">
                     <tr><td style="text-align: center"><h3>记 账 凭 证</h3></td></tr>
                     <tr>
@@ -827,6 +901,14 @@
                 }
             }
         });
+        $("[name='voucherDate']").parent().after("&nbsp;&nbsp;&nbsp;<span><button name='copyVoucher'>Copy Voucher</button></span>");
+        $("[name='copyVoucher']").kendoButton({
+            icon: "copy",
+            click: function () {
+                controllers.accounting.copyVoucher(popupWin);
+            }
+        });
+
         $("[name='kendo-window-alertMessage-content'] [name='gridVoucherItem']").kendoGrid({
             toolbar: ["create", "cancel"],
             editable: { mode: "incell", confirmation: false, createAt: "bottom" },
@@ -848,7 +930,8 @@
                     title: "Account Name"
                 },
                 { field: "DR_AMT", title: "Debit Amount", footerTemplate: ({ DR_AMT }) => `${kendo.toString(DR_AMT.sum, "n")}` },
-                { field: "CR_AMT", title: "Credit Amount", footerTemplate: ({ CR_AMT }) => `${kendo.toString(CR_AMT.sum, "n")}` }
+                { field: "CR_AMT", title: "Credit Amount", footerTemplate: ({ CR_AMT }) => `${kendo.toString(CR_AMT.sum, "n")}` },
+                { command: [{ className: "btn-destroy", name: "destroy", text: " " }], width: 50 },
             ],
             fields: {
                 LINE_NO: { type: "number" },
@@ -1070,22 +1153,64 @@
         console.log(drAmt, crAmt, model, valid);
 
         if (valid) {
-            kendo.ui.progress($(`#${utils.getFormId()}`), true);
             $.ajax({
                 url: "../Accounting/Voucher/SaveVoucher",
                 data: { voucherModel: model },
                 dataType: "json",
                 type: "post",
+                beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+                complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
                 success: function (result) {
                     console.log("success", model);
                     let formId = utils.getFormId();
-                    var ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
+                    let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
                     $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
+                    utils.showNotification("Voucher saved.", "success", ".k-window .k-i-close");
                     ctrl.destroy();
-                    kendo.ui.progress($(`#${utils.getFormId()}`), false);
                 }
             });
         }
 
     }
+
+    deleteVoucher = function (model) {
+        console.log("delete voucher");
+        $.ajax({
+            url: "../Accounting/Voucher/DeleteVoucher",
+            data: { year: model.year, period: model.period, voucherNo: model.voucherNo },
+            dataType: "text",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+            complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
+            success: function (result) {
+                utils.showNotification("Voucher deleted.", "success", ".k-window .k-i-close");
+                let formId = utils.getFormId();
+                let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
+                $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
+                model.ctrl.destroy();
+            }
+        });
+    }
+
+    approveVouchers = function () {
+        let vouchers = [];
+        $(`#${utils.getFormId()} [name="gridVoucherIndex"] .k-checkbox`).each(function () {
+            let ckb = $(this);
+            if (ckb.attr("disabled") == null) {
+                if (ckb.prop("checked") == true && ckb.attr("voucherDate") != null) {
+                    vouchers.push({
+                        year: ckb.attr("voucherDate").split("/")[2],
+                        period: ckb.attr("voucherDate").split("/")[0],
+                        voucherNo: Number(ckb.attr("voucherNo").replace("记 - ", "")) 
+                    });
+                }
+            }
+        });
+        console.log(vouchers);
+    }
+
+    periodProfitLoss = function () {
+
+    }
+
 }

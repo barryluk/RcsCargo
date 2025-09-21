@@ -1197,7 +1197,7 @@
                 $(`#${formId} .k-grid button:contains("New")`).unbind("click");
                 if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
-                        let popupWin = utils.alertMessage(`New Voucher`, `New Voucher`, null, null, true, "controllers.accounting.saveVoucher");
+                        let popupWin = utils.alertMessage(`New Voucher`, `New Voucher`, "acVoucher", null, true, "controllers.accounting.saveVoucher");
                         controllers.accounting.newVoucher(popupWin);
                         console.log("new Voucher");
                     });
@@ -1286,7 +1286,7 @@
                             let year = $(selectedCell).prev().text().split("/")[2].trim();
                             let period = $(selectedCell).prev().text().split("/")[0].trim();
                             let voucherNo = $(selectedCell).text().substr(4, 4);
-                            let popupWin = utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, null, null, true, "controllers.accounting.saveVoucher");
+                            let popupWin = utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, "acVoucher", null, true, "controllers.accounting.saveVoucher");
                             controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`, popupWin);
                         }
                         else
@@ -3589,7 +3589,7 @@
         ddl.appendTo(container);
         ddl.kendoDropDownList({
             autoWidth: true,
-            filter: "startswith",
+            filter: "contains",
             dataTextField: "AC_NAME_DISPLAY",
             dataValueField: "AC_CODE",
             optionLabel: `Select ledger accounts ...`,

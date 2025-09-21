@@ -1585,8 +1585,22 @@ var indexPages = [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+                { name: "approveVouchers", text: "审批/记账", iconClass: "k-icon k-i-check-outline", callbackFunction: "controllers.accounting.approveVouchers" },
+                { name: "periodProfitLoss", text: "期间损益结转", iconClass: "k-icon k-i-calculator", callbackFunction: "controllers.accounting.periodProfitLoss" },
             ],
             columns: [
+                //{ selectable: true, width: 25 },
+                {
+                    template: function (dataItem) {
+                        let disable = "";
+                        if (dataItem.IBOOK == "1")
+                            disable = "disabled='disabled'";
+
+                        return `<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md" voucherDate="${data.formatDateTime(dataItem.VOUCHER_DATE, "date")}" voucherNo="${dataItem.VOUCHER_NO}" ${disable} />`;
+                    },
+                    headerTemplate: '<input type="checkbox" class="k-checkbox k-checkbox-sm k-rounded-md ckb-select-all" />',
+                    width: 20
+                },
                 { field: "VOUCHER_DATE", title: "Date", template: ({ VOUCHER_DATE }) => data.formatDateTime(VOUCHER_DATE, "date"), filterable: false },
                 { field: "VOUCHER_NO", title: "Voucher #", attributes: { "class": "link-cell" }, filterable: false },
                 {

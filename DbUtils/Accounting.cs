@@ -90,7 +90,7 @@ namespace DbUtils
 
         #endregion
 
-        #region General Ledger / GL_ACCSUM
+        #region Ledger Account / GL_ACCSUM
 
         public List<LedgerAccount> GetLedgerAccounts()
         {
@@ -237,6 +237,15 @@ namespace DbUtils
                 ID++;
                 //log.Debug(voucher.ID);
             }
+
+            db.SaveChanges();
+        }
+
+        public void DeleteVoucher(int year, int period, int voucherNo)
+        {
+            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.VOUCHER_NO == voucherNo);
+            if (vouchers.Count() > 0)
+                db.GLVouchers.RemoveRange(vouchers);
 
             db.SaveChanges();
         }
