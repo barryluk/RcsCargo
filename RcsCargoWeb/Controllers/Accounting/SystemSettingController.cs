@@ -73,6 +73,12 @@ namespace RcsCargoWeb.Controllers.Accounting
             return AppUtils.JsonContentResult(results, skip, take);
         }
 
+        [Route("GetAccountingYears")]
+        public ActionResult GetAccountingYears()
+        {
+            return Json(accounting.GetVoucherAccountYears(), JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetCustomers")]
         public ActionResult GetCustomers(string searchValue = "")
         {

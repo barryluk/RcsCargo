@@ -764,8 +764,8 @@
             data: { year: year, period: period, voucherNo: voucherNo },
             dataType: "json",
             type: "post",
-            beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
-            complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
+            beforeSend: function () { kendo.ui.progress($(".kendo-window-alertMessage"), true); },
+            complete: function () { kendo.ui.progress($(".kendo-window-alertMessage"), false); },
             success: function (result) {
                 //disable save if voucher is approved or booked
                 if (result[0].IBOOK == 1 || !utils.isEmptyString(result[0].CCHECK))
@@ -1192,7 +1192,7 @@
         });
     }
 
-    approveVouchers = function () {
+    initApproveVouchers = function () {
         let vouchers = [];
         $(`#${utils.getFormId()} [name="gridVoucherIndex"] .k-checkbox`).each(function () {
             let ckb = $(this);
@@ -1201,16 +1201,192 @@
                     vouchers.push({
                         year: ckb.attr("voucherDate").split("/")[2],
                         period: ckb.attr("voucherDate").split("/")[0],
-                        voucherNo: Number(ckb.attr("voucherNo").replace("记 - ", "")) 
+                        voucherNo: Number(ckb.attr("voucherNo").replace("记 - ", ""))
                     });
                 }
             }
         });
-        console.log(vouchers);
+
+        if (vouchers.length > 0) {
+            let html = "Are you sure to approve and post those selected vouchers?";
+            utils.confirmMessage(html, vouchers, "controllers.accounting.approveVouchers", null, "审批/记账");
+        }
     }
 
-    periodProfitLoss = function () {
+    approveVouchers = function (vouchers) {
+        let model = [];
+        let formId = utils.getFormId();
 
+        for (let i in vouchers) {
+            model.push({
+                YEAR: vouchers[i].year,
+                PERIOD: vouchers[i].period,
+                VOUCHER_NO: vouchers[i].voucherNo,
+                CCHECK: data.user.USER_ID
+            });
+        }
+        console.log(model);
+
+        $.ajax({
+            url: "../Accounting/Voucher/ApproveVouchers",
+            data: { vouchers: model },
+            dataType: "text",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${formId}`), true); },
+            complete: function () { kendo.ui.progress($(`#${formId}`), false); },
+            success: function (result) {
+                utils.showNotification("Vouchers have been approved and posted.", "success");
+                let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
+                $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
+            }
+        });
+    }
+
+    initPeriodProfitLoss = function () {
+        let html = `<span>Accounting Year: </span><input name="accountingYear" style="width: 100px" />
+            <span>Period: </span><input name="period" style="width: 100px" /><br><br><div class="result"></div><br>`;
+
+        let popupWin = utils.alertMessage("", "期间损益结转", "acVoucher", null, true, "controllers.accounting.getPeriodProfitLossVoucher");
+
+        $("[name='kendo-window-alertMessage-content']").html(html);
+        $(`[name="kendo-window-alertMessage-content"] [name="accountingYear"]`).kendoDropDownList({
+            dataSource: data.masterRecords.accountingYears,
+            value: new Date().getFullYear(),
+            cascade: function (e) {
+                controllers.accounting.getPeriodProfitLossVoucher(popupWin);
+            }
+        });
+        $(`[name="kendo-window-alertMessage-content"] [name="period"]`).kendoDropDownList({
+            dataSource: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+            value: new Date().getMonth() + 1,
+            cascade: function (e) {
+                controllers.accounting.getPeriodProfitLossVoucher(popupWin);
+            }
+        });
+        $(".kendo-window-alertMessage button:contains('Save')").attr("style", "width: 120px");
+        $(".kendo-window-alertMessage button span:contains('Save')").text("Create Voucher");
+        $(".kendo-window-alertMessage button span.k-i-save").attr("class", "k-icon k-i-file-add k-button-icon");
+    }
+
+    getPeriodProfitLossVoucher = function (popupWin) {
+
+        if ($(`[name="kendo-window-alertMessage-content"] [name="accountingYear"]`).data("kendoDropDownList") != null &&
+            $(`[name="kendo-window-alertMessage-content"] [name="period"]`).data("kendoDropDownList") != null) {
+            let year = $(`[name="kendo-window-alertMessage-content"] [name="accountingYear"]`).data("kendoDropDownList").value();
+            let period = $(`[name="kendo-window-alertMessage-content"] [name="period"]`).data("kendoDropDownList").value();
+
+            $.ajax({
+                url: "../Accounting/Voucher/GetProfitLossVouchers",
+                data: { year: year, period: period },
+                dataType: "json",
+                type: "post",
+                beforeSend: function () { kendo.ui.progress($(".kendo-window-alertMessage"), true); },
+                complete: function () { kendo.ui.progress($(".kendo-window-alertMessage"), false); },
+                success: function (results) {
+                    let html = "<table class='dataTable'><tr><th>Account</th><th class='fixlength150'>Debit</th><th class='fixlength150'>Credit</th></tr>";
+                    let totalDr = 0, totalCr = 0;
+                    for (let i in results) {
+                        html += `<tr><td>${results[i].AC_CODE}-${results[i].AC_NAME}</td>
+                            <td class='fixlength150'>${kendo.toString(results[i].DR_AMT, "n")}</td>
+                            <td class='fixlength150'>${kendo.toString(results[i].CR_AMT, "n")}</td></tr>`;
+                        totalDr += results[i].DR_AMT;
+                        totalCr += results[i].CR_AMT;
+                    }
+                    html += `<tr class='footer'><td>Total</td><td class='fixlength150'>${kendo.toString(totalDr, "n")}</td>
+                        <td class='fixlength150'>${kendo.toString(totalCr, "n")}</td></tr></table>`;
+                    html += `<div style='font-size: 12px; font-weight: bold'>本期利润: ${kendo.toString(totalDr - totalCr, "n")}</div>`;
+
+                    $(".kendo-window-alertMessage .result").html(html);
+
+                    if (utils.roundUp(totalDr, 2) == utils.roundUp(totalCr, 2))
+                        $(".kendo-window-alertMessage button:contains('Create Voucher')").attr("disabled", "disabled");
+                    else {
+                        $(".kendo-window-alertMessage button:contains('Create Voucher')").unbind("click");
+                        $(".kendo-window-alertMessage button:contains('Create Voucher')").removeAttr("disabled");
+                        $(".kendo-window-alertMessage button:contains('Create Voucher')").click(function () {
+                            controllers.accounting.savePeriodProfitLossVoucher(results, utils.roundUp(totalDr - totalCr, 2), popupWin);
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    savePeriodProfitLossVoucher = function (results, profit, popupWin) {
+        let voucherDate;
+        if (results[0].PERIOD == 12)
+            voucherDate = new Date(`${results[0].YEAR}/12/31`);
+        else
+            voucherDate = new Date(new Date(`${results[0].YEAR}/${results[0].PERIOD + 1}/1`) - 1);
+
+        $.ajax({
+            url: "../Accounting/Voucher/GetVoucherNo",
+            data: { voucherDate: voucherDate.toISOString() },
+            dataType: "text",
+            type: "post",
+            success: function (voucherNo) {
+                for (let i in results) {
+                    results[i].VOUCHER_NO = voucherNo;
+                    results[i].VOUCHER_TYPE = "记";
+                    results[i].LINE_NO = Number(i) + 1;
+                    results[i].VOUCHER_DATE = voucherDate;
+                    results[i].DESC_TEXT = "期间损益结转";
+                    results[i].CBILL = data.user.USER_ID;
+                    results[i].CCHECK = "";
+                    results[i].CCASHIER = "";
+                    results[i].IBOOK = 0;
+                }
+
+                //acCode: 3131, 本年利润
+                results.push({
+                    VOUCHER_TYPE: "记",
+                    VOUCHER_NO: voucherNo,
+                    LINE_NO: results.length + 1,
+                    AC_CODE: "3131",
+                    DESC_TEXT: "期间损益结转",
+                    DR_AMT: profit < 0 ? profit * -1 : 0,
+                    CR_AMT: profit < 0 ? 0 : profit,
+                    INV_NO: "",
+                    INV_DATE: null,
+                    CUSTOMER_CODE: "",
+                    VENDOR_CODE: "",
+                    DEP_CODE: "",
+                    PERSON_CODE: "",
+                    RELATED_AC: "",
+                    VOUCHER_DATE: voucherDate,
+                    CBILL: data.user.USER_ID,
+                    CCHECK: "",
+                    CCASHIER: "",
+                    IBOOK: 0
+                });
+
+                let model = {
+                    YEAR: voucherDate.getFullYear(),
+                    PERIOD: voucherDate.getMonth() + 1, //Jan = 0, Feb = 1
+                    VOUCHER_NO: voucherNo,
+                    VOUCHER_DATE: voucherDate.toISOString(),
+                    CBILL: data.user.USER_ID,
+                    Vouchers: results
+                };
+
+                $.ajax({
+                    url: "../Accounting/Voucher/SaveVoucher",
+                    data: { voucherModel: model },
+                    dataType: "json",
+                    type: "post",
+                    beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+                    complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
+                    success: function (result) {
+                        console.log("success", model);
+                        let formId = utils.getFormId();
+                        let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
+                        $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
+                        utils.showNotification("Voucher saved.", "success", ".k-window .k-i-close");
+                        popupWin.destroy();
+                    }
+                });
+            }
+        });
     }
 
 }

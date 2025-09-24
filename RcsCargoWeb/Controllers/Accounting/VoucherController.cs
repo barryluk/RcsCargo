@@ -61,5 +61,20 @@ namespace RcsCargoWeb.Controllers.Accounting
             accounting.DeleteVoucher(year, period, voucherNo);
             return Content("success");
         }
+
+        [Route("ApproveVouchers")]
+        public ActionResult ApproveVouchers(GLVoucher[] vouchers)
+        {
+            accounting.ApproveVouchers(vouchers);
+            accounting.CalcAccountSummary(vouchers.Select(a => a.YEAR).First(), vouchers.Select(a => a.PERIOD).Min());
+            return Content("success");
+        }
+
+        [Route("GetProfitLossVouchers")]
+        public ActionResult GetProfitLossVouchers(int year, int period)
+        {
+            var vouchers = accounting.GetProfitLossVouchers(year, period);
+            return Json(vouchers, JsonRequestBehavior.AllowGet);
+        }
     }
 }

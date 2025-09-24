@@ -169,7 +169,7 @@ namespace DbUtils
 
         public List<int> GetVoucherAccountYears()
         {
-            return db.GLVouchers.Select(a => a.YEAR).Distinct().ToList();
+            return db.GLVouchers.Select(a => a.YEAR).Distinct().OrderByDescending(a => a).ToList();
         }
 
         public List<VoucherView> GetVouchers(DateTime dateFrom, DateTime dateTo)
@@ -248,6 +248,51 @@ namespace DbUtils
                 db.GLVouchers.RemoveRange(vouchers);
 
             db.SaveChanges();
+        }
+
+        public void ApproveVouchers(GLVoucher[] vouchers)
+        {
+            foreach (var voucher in vouchers)
+            {
+                var records = db.GLVouchers.Where(a => a.YEAR == voucher.YEAR && a.PERIOD == voucher.PERIOD && a.VOUCHER_NO == voucher.VOUCHER_NO);
+                foreach(var record in records)
+                {
+                    record.CCHECK = voucher.CCHECK;
+                    record.IBOOK = 1;
+                    db.Entry(record).State = EntityState.Modified;
+                }
+            }
+            db.SaveChanges();
+        }
+
+        public List<GLVoucher> GetProfitLossVouchers(int year, int period)
+        {
+            var accounts = db.LedgerAccounts.ToList();
+            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.AC_CODE.StartsWith("5")).ToList();
+            var plVouchers = new List<GLVoucher>();
+
+            foreach (var acCode in vouchers.Select(a => a.AC_CODE).Distinct().OrderBy(a => a))
+            {
+                var account = accounts.Where(a => a.AC_CODE == acCode).FirstOrDefault();
+                var voucher = vouchers.Where(a => a.AC_CODE == acCode).ToList();
+
+                plVouchers.Add(new GLVoucher
+                {
+                    AC_CODE = acCode,
+                    AC_NAME = account.AC_NAME,
+                    YEAR = year,
+                    PERIOD = period,
+                    DR_AMT = voucher.Sum(a => a.CR_AMT),
+                    CR_AMT = voucher.Sum(a => a.DR_AMT),
+                    DEP_CODE =  voucher.FirstOrDefault().DEP_CODE,
+                    PERSON_CODE = voucher.FirstOrDefault().PERSON_CODE,
+                    CUSTOMER_CODE = voucher.FirstOrDefault().CUSTOMER_CODE,
+                    VENDOR_CODE = voucher.FirstOrDefault().VENDOR_CODE,
+                    INV_DATE = voucher.FirstOrDefault().INV_DATE,
+                    INV_NO = voucher.FirstOrDefault().INV_NO,
+                });
+            }
+            return plVouchers;
         }
 
         #endregion

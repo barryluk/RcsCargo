@@ -40,7 +40,7 @@ var masterRecords = {
     asCarrier: ["RCS LOGISTICS INC. AS CARRIER"],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
-    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, ledgerAccounts: {}, voucherDesc: {},
+    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, accountingYears: {}, ledgerAccounts: {}, voucherDesc: {},
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
@@ -1585,8 +1585,8 @@ var indexPages = [
                 { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
-                { name: "approveVouchers", text: "审批/记账", iconClass: "k-icon k-i-check-outline", callbackFunction: "controllers.accounting.approveVouchers" },
-                { name: "periodProfitLoss", text: "期间损益结转", iconClass: "k-icon k-i-calculator", callbackFunction: "controllers.accounting.periodProfitLoss" },
+                { name: "approveVouchers", text: "审批/记账", iconClass: "k-icon k-i-check-outline", callbackFunction: "controllers.accounting.initApproveVouchers" },
+                { name: "periodProfitLoss", text: "期间损益结转", iconClass: "k-icon k-i-calculator", callbackFunction: "controllers.accounting.initPeriodProfitLoss" },
             ],
             columns: [
                 //{ selectable: true, width: 25 },
@@ -1613,7 +1613,7 @@ var indexPages = [
                 { field: "CR_AMT", title: "Credit Amount", filterable: false },
                 { field: "CBILL", title: "Billed", filterable: false },
                 { field: "CCHECK", title: "Approved", filterable: false },
-                { field: "IBOOK", title: "Booked", filterable: false },
+                { field: "IBOOK", title: "Posted", filterable: false },
             ],
         },
     },
@@ -5545,6 +5545,16 @@ export default class {
         });
 
         $.ajax({
+            url: "../Accounting/Ledger/GetLedgerAccounts",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].AC_NAME_DISPLAY = result[i].AC_CODE + " - " + result[i].AC_NAME;
+                }
+                masterRecords.ledgerAccounts = result;
+            }
+        });
+
+        $.ajax({
             url: "../Accounting/SystemSetting/GetVoucherDesc",
             success: function (result) {
                 masterRecords.voucherDesc = result;
@@ -5552,12 +5562,9 @@ export default class {
         });
 
         $.ajax({
-            url: "../Accounting/Ledger/GetLedgerAccounts",
+            url: "../Accounting/SystemSetting/GetAccountingYears",
             success: function (result) {
-                for (var i in result) {
-                    result[i].AC_NAME_DISPLAY = result[i].AC_CODE + " - " + result[i].AC_NAME;
-                }
-                masterRecords.ledgerAccounts = result;
+                masterRecords.accountingYears = result;
             }
         });
     }

@@ -448,3 +448,26 @@ span.menuButton {
 .highlight {
     background-color: yellow;
 }
+
+table.dataTable {
+    border-collapse: collapse; /* Collapses table borders into a single border */
+    font-size: 12px;
+}
+
+    table.dataTable th {
+        background-color: #F5F5F5;
+    }
+
+    table.dataTable th, table.dataTable td {
+        border: 0.5px solid #DADADA;
+        padding: 2px 5px 2px 5px;
+    }
+
+    table.dataTable tr:nth-child(odd) {
+        background-color: #F5F5F5;
+    }
+
+    table.dataTable tr.footer {
+        font-weight: bold;
+        background-color: #F5F5F5;
+    }
