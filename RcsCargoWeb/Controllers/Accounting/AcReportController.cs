@@ -13,7 +13,7 @@ namespace RcsCargoWeb.Controllers.Accounting
 {
 
     [RoutePrefix("Accounting/Report")]
-    public class ReportController : Controller
+    public class AcReportController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         DbUtils.Accounting accounting = new DbUtils.Accounting();
@@ -39,6 +39,7 @@ namespace RcsCargoWeb.Controllers.Accounting
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
+        //For re-calculation purpose
         [Route("CalcLedgerAccountSummary")]
         public ActionResult CalcLedgerAccountSummary(int year, int period)
         {

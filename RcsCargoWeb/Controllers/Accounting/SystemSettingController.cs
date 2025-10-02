@@ -128,5 +128,25 @@ namespace RcsCargoWeb.Controllers.Accounting
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetCustomerMappings")]
+        public ActionResult GetCustomerMappings(string searchValue = "")
+        {
+            var results = accounting.GetCustomerMappings(searchValue.Trim().ToUpper());
+            return Json(results.Take(50).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetVendorMappings")]
+        public ActionResult GetVendorMappings(string searchValue = "")
+        {
+            var results = accounting.GetVendorMappings(searchValue.Trim().ToUpper());
+            return Json(results.Take(50).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetPersonMappings")]
+        public ActionResult GetPersonMappings()
+        {
+            return Json(accounting.GetPersonMappings(), JsonRequestBehavior.AllowGet);
+        }
+
     }
 }

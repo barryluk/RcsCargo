@@ -1113,6 +1113,24 @@
                                 skip: options.data.skip,
                                 sort: options.data.sort,
                             };
+                        } else if (pageSetting.pageName == "acReceivable") {
+                            searchData = {
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                vouchType: "AR",
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
+                        } else if (pageSetting.pageName == "acPayable") {
+                            searchData = {
+                                dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
+                                dateTo: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().end.toISOString(),
+                                vouchType: "AP",
+                                take: data.indexGridPageSize,
+                                skip: options.data.skip,
+                                sort: options.data.sort,
+                            };
                         } else if (pageSetting.pageName == "acVoucher") {
                             searchData = {
                                 dateFrom: $(`#${pageSetting.id} div.search-control [name$=DateRange]`).data("kendoDateRangePicker").range().start.toISOString(),
@@ -1193,13 +1211,23 @@
                 });
 
                 //Toolbar new button events
-                //Special case for accounting voucher
+                //Special case for accounting voucher / receivable / payable
                 $(`#${formId} .k-grid button:contains("New")`).unbind("click");
                 if (grid.element.attr("name") == "gridVoucherIndex") {
                     $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                         let popupWin = utils.alertMessage(`New Voucher`, `New Voucher`, "acVoucher", null, true, "controllers.accounting.saveVoucher");
                         controllers.accounting.newVoucher(popupWin);
-                        console.log("new Voucher");
+                    });
+                } else if (grid.element.attr("name") == "gridReceivableIndex" || grid.element.attr("name") == "gridPayableIndex") {
+                    let vouchType = grid.element.attr("name") == "gridReceivableIndex" ? "AR" : "AP";
+                    $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
+                        let popupWin;
+                        if (vouchType == "AR")
+                            popupWin = utils.alertMessage(`New Invoice`, `New Invoice`, "acReceivable", null, true, "controllers.accounting.saveArApInvoice");
+                        else
+                            popupWin = utils.alertMessage(`New Vendor Invoice`, `New Vendor Invoice`, "acPayable", null, true, "controllers.accounting.saveArApInvoice");
+
+                        controllers.accounting.newArApInvoice(vouchType, popupWin);
                     });
                 } else {
                     if (pageSetting.gridConfig.linkIdPrefix != null) {
@@ -1258,8 +1286,9 @@
                 });
             },
             change: function (e) {
-                var grid = this;
-                var selectedCell = this.select()[0];
+                let grid = this;
+                let selectedCell = this.select()[0];
+                let dataItem = grid.dataItem(grid.select().eq(0).parent());
                 if ($(selectedCell).hasClass("link-cell")) {
                     //var data = this.dataItem(selectedCell.parentNode);
                     var id = $(selectedCell).text().replace("VOIDED", "").replace("POSTED", "");
@@ -1288,6 +1317,18 @@
                             let voucherNo = $(selectedCell).text().substr(4, 4);
                             let popupWin = utils.alertMessage(`${year}-${period}-${voucherNo}`, `Voucher# ${$(selectedCell).text()}`, "acVoucher", null, true, "controllers.accounting.saveVoucher");
                             controllers.accounting.loadVoucher(`${year}-${period}-${voucherNo}`, popupWin);
+                        } else if (grid.element.attr("name") == "gridReceivableIndex" || grid.element.attr("name") == "gridPayableIndex") {
+                            //special case for accounting receivable / payable
+                            let vouchType = grid.element.attr("name") == "gridReceivableIndex" ? "AR" : "AP";
+                            let invNo = $(selectedCell).text();
+                            let id = dataItem.ID;
+                            let popupWin;
+                            if (vouchType == "AR") {
+                                popupWin = utils.alertMessage(`${invNo}|${vouchType}`, `发票号: ${$(selectedCell).text()}`, "acReceivable", null, true, "controllers.accounting.saveArApInvoice");
+                            } else {
+                                popupWin = utils.alertMessage(`${invNo}|${vouchType}`, `发票号: ${$(selectedCell).text()}`, "acPayable", null, true, "controllers.accounting.saveArApInvoice");
+                            }
+                            controllers.accounting.loadArApInvoice(id, popupWin);
                         }
                         else
                             controls.append_tabStripMain(`${pageSetting.gridConfig.linkTabTitle}${$(selectedCell).text().replace("VOIDED", "").replace("POSTED", "")}`, id, pageSetting.pageName);

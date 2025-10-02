@@ -109,6 +109,10 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Accounting.Vendor> AcVendors { get; set; }
         public DbSet<DbUtils.Models.Accounting.VendorRegion> AcVendorRegions { get; set; }
         public DbSet<DbUtils.Models.Accounting.LedgerAccount> LedgerAccounts { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcArApInvoice> AcArApInvoices { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcCustomerMapping> AcCustomerMappings { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcVendorMapping> AcVendorMappings { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcPersonMapping> AcPersonMappings { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLAccass> GLAccasses { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLAccsum> GLAccsums { get; set; }
         public DbSet<DbUtils.Models.Accounting.GLAccsumTest> GLAccsumTests { get; set; }

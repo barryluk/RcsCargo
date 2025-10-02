@@ -113,6 +113,9 @@
                     type: "post",
                     dataType: "json",
                     data: { userId: userId, password: password },
+                    beforeSend: function () {
+                        $("button[action='signIn']").prop("disabled", true);
+                    },
                     success: function (result) {
                         //console.log(result);
                         if (result.result == "success") {
@@ -122,18 +125,26 @@
                         } else if (result.result == "user_not_found") {
                             //kendo.alert("User ID / Email incorrect!");
                             $("#modal-default .modal-body p").html("User ID / Email incorrect!");
-                            $("#modal-default").modal("show"); 
+                            $("#modal-default").modal("show");
                         } else if (result.result == "password_incorrect") {
                             //kendo.alert("Password incorrect!");
                             $("#modal-default .modal-body p").html("Password incorrect!");
-                            $("#modal-default").modal("show"); 
+                            $("#modal-default").modal("show");
                         }
+                    },
+                    error: function (xhr, status, error) {
+                        //kendo.alert("An error occurred while processing your request. Please try again later.");
+                        $("#modal-default .modal-body p").html("An error occurred while processing your request. Please try again later.");
+                        $("#modal-default").modal("show");
+                    },
+                    complete: function () {
+                        $("button[action='signIn']").prop("disabled", false);
                     }
                 });
             });
 
             $("button[data-dismiss='modal']").bind("click", function () {
-                $("#modal-default").modal("hide"); 
+                $("#modal-default").modal("hide");
             });
         });
     </script>

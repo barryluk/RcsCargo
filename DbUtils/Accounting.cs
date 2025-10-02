@@ -76,6 +76,21 @@ namespace DbUtils
             return result.ToList();
         }
 
+        public List<AcCustomerMapping> GetCustomerMappings(string searchValue)
+        {
+            return db.AcCustomerMappings.Where(a => a.CUSTOMER_CODE.Contains(searchValue) || a.CUSTOMER_NAME.Contains(searchValue)).ToList();
+        }
+
+        public List<AcVendorMapping> GetVendorMappings(string searchValue)
+        {
+            return db.AcVendorMappings.Where(a => a.VENDOR_CODE.Contains(searchValue) || a.VENDOR_NAME.Contains(searchValue)).ToList();
+        }
+
+        public List<AcPersonMapping> GetPersonMappings()
+        {
+            return db.AcPersonMappings.ToList();
+        }
+
         public List<AcCustomerRegion> GetCustomerRegions()
         {
             var result = Utils.GetSqlQueryResult<AcCustomerRegion>("ac_customer_region", "*", new List<DbParameter>());
@@ -120,6 +135,10 @@ namespace DbUtils
                 {
                     var amtDr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.DR_AMT);
                     var amtCr = vouchers.Where(a => a.AC_CODE.StartsWith(lastPeriod.AC_CODE.ToString()) && a.PERIOD == currentPeriod).Sum(a => a.CR_AMT);
+                    var amtEnd = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr);
+                    //special case for profit & loss account 3131
+                    if (account.AC_CODE == "3131")
+                        amtEnd = amt + (amtDr - amtCr);
 
                     results.Add(new GLAccsum
                     {
@@ -131,15 +150,15 @@ namespace DbUtils
                         AMT_BEG = amt,
                         AMT_DR = amtDr,
                         AMT_CR = amtCr,
-                        AMT_END = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr),
+                        AMT_END = amtEnd,
                         AMT_BEG_F = 0,
                         AMT_DR_F = 0,
                         AMT_CR_F = 0,
                         AMT_END_F = 0,
-                        BEG_IND = amt == 0 ? "-" : account.CRDR_BALANCE,
-                        END_IND = (account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr)) == 0 ? "-" : account.CRDR_BALANCE,
+                        END_IND = amtEnd == 0 ? "-" : amtEnd > 0 ? "Dr" : "Cr",
+                        BEG_IND = amt == 0 ? "-" : amt > 0 ? "Dr" : "Cr",
                     });
-                    amt = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr);
+                    amt = amtEnd;
                     id++;
                     currentPeriod++;
                 }
@@ -165,6 +184,78 @@ namespace DbUtils
 
         #endregion
 
+        #region Receivable / Payable
+
+        public List<AcArApInvoice> GetInvoices(DateTime dateFrom, DateTime dateTo, string vouchType)
+        {
+            var invoices = db.AcArApInvoices.Where(a => a.VOUCH_DATE >= dateFrom && a.VOUCH_DATE <= dateTo && a.VOUCH_TYPE == vouchType).ToList();
+            var customers = db.AcCustomerMappings.ToList();
+            var vendors = db.AcVendorMappings.ToList();
+            var persons = db.AcPersonMappings.ToList();
+            foreach (var invoice in invoices)
+            {
+                if (vouchType == "AR")
+                {
+                    var customer = customers.Where(a => a.CUSTOMER_CODE == invoice.CUSTOMER_CODE).FirstOrDefault();
+                    if (customer != null)
+                    {
+                        invoice.CUSTOMER_NAME = customer.CUSTOMER_NAME;
+                        invoice.CUSTOMER_CODE_MAPPING = customer.CODE;
+                    }
+                }
+                else if (vouchType == "AP")
+                {
+                    var vendor = vendors.Where(a => a.VENDOR_CODE == invoice.CUSTOMER_CODE).FirstOrDefault();
+                    if (vendor != null)
+                    {
+                        invoice.CUSTOMER_NAME = vendor.VENDOR_NAME;
+                        invoice.CUSTOMER_CODE_MAPPING = vendor.CODE;
+                    }
+                }
+                var person = persons.Where(a => a.PERSON_CODE == invoice.PERSON_CODE).FirstOrDefault();
+                if (person != null)
+                    invoice.PERSON_NAME = person.PERSON_NAME;
+            }
+
+            return invoices;
+        }
+
+        public AcArApInvoice GetArApInvoice(string id)
+        {
+            return db.AcArApInvoices.Find(id);
+        }
+
+        public void SaveArApInvoice(AcArApInvoice model)
+        {
+            if (db.AcArApInvoices.Count(a => a.ID == model.ID) > 0)
+            {
+                model.MODIFY_DATE = DateTime.Now;
+                db.Entry(model).State = EntityState.Modified;
+            }
+            else
+            {
+                model.CREATE_DATE = DateTime.Now;
+                model.MODIFY_DATE = DateTime.Now;
+                db.AcArApInvoices.Add(model);
+            }
+
+            db.SaveChanges();
+        }
+
+        public void DeleteArApInvoice(string id)
+        {
+            var record = db.AcArApInvoices.Find(id);
+            db.AcArApInvoices.Remove(record);
+            db.SaveChanges();
+        }
+
+        public bool IsExistingArApInvoiceNo(string invNo, string vouchType)
+        {
+            return db.AcArApInvoices.Count(a => a.INV_NO == invNo && a.VOUCH_TYPE == vouchType) > 0;
+        }
+
+        #endregion
+
         #region Voucher
 
         public List<int> GetVoucherAccountYears()
@@ -174,7 +265,7 @@ namespace DbUtils
 
         public List<VoucherView> GetVouchers(DateTime dateFrom, DateTime dateTo)
         {
-            var vouchers = db.GLVouchers.Where(a => a.VOUCHER_DATE >= dateFrom && a.VOUCHER_DATE <= dateTo).ToList();
+            var vouchers = db.GLVouchers.Where(a => a.VOUCHER_DATE >= dateFrom && a.VOUCHER_DATE <= dateTo && a.PERIOD >= 1 && a.PERIOD <= 12).ToList();
             var results = new List<VoucherView>();
 
             foreach (var year in vouchers.Select(a => a.YEAR).Distinct())
@@ -207,7 +298,7 @@ namespace DbUtils
         public List<GLVoucher> GetVoucher(int year, int period, int voucherNo)
         {
             var accounts = db.LedgerAccounts.ToList();
-            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.VOUCHER_NO == voucherNo);
+            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.VOUCHER_NO == voucherNo).ToList();
             foreach (var voucher in vouchers)
                 voucher.AC_NAME = accounts.Where(a => a.AC_CODE == voucher.AC_CODE).FirstOrDefault().AC_NAME;
 
@@ -353,11 +444,11 @@ namespace DbUtils
                     if (item.END_IND == "Cr")
                         item.AMT_END = item.AMT_END * -1;
 
-                    if (accounts.Where(a => a.AC_CODE == item.AC_CODE.ToString()).FirstOrDefault().CRDR_BALANCE == "Cr")
-                    {
-                        item.AMT_BEG = item.AMT_BEG * -1;
-                        item.AMT_END = item.AMT_END * -1;
-                    }
+                    //if (accounts.Where(a => a.AC_CODE == item.AC_CODE.ToString()).FirstOrDefault().CRDR_BALANCE == "Cr")
+                    //{
+                    //    item.AMT_BEG = item.AMT_BEG * -1;
+                    //    item.AMT_END = item.AMT_END * -1;
+                    //}
                 }
                 return begResult;
             }
@@ -411,7 +502,7 @@ namespace DbUtils
                     BALANCE = openBalance
                 });
 
-                foreach (var voucher in vouchers)
+                foreach (var voucher in vouchers.OrderBy(a => a.VOUCHER_DATE))
                 {
                     openBalance = voucher.DR_AMT - voucher.CR_AMT + openBalance;
 

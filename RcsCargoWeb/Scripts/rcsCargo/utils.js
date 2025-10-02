@@ -822,7 +822,9 @@
                 cancelButton = `<button type="button" class="customButton button-icon-x-outline" style="width: 80px; margin: 4px;">Cancel</button>`;
             }
             closeButtons = `<div style="text-align: center;">
-                    <button type="button" class="customButton button-icon-${type == "acVoucher" ? "save" : "check-outline"}" style="width: 80px; margin: 4px;">${type == "acVoucher" ? "Save" : "Ok"}</button>
+                    <button type="button" class="customButton
+                    button-icon-${type == "acVoucher" || type == "acReceivable" || type == "acPayable" ? "save" : "check-outline"}" style="width: 80px; margin: 4px;">
+                    ${type == "acVoucher" || type == "acReceivable" || type == "acPayable" ? "Save" : "Ok"}</button>
                     ${cancelButton}
                 </div>`;
         }

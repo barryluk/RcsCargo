@@ -301,7 +301,7 @@
             { index: 59, text: "  资本公积", code: "3111" },
             { index: 60, text: "  盈余公积", code: "3121" },
             { index: 61, text: "    其中：法定公益金", code: "" },
-            { index: 62, text: "  未分配利润", code: "3141,3131", calcType: "+" },
+            { index: 62, text: "  未分配利润", code: "3141,3131", calcType: "-" },
             { index: 63, text: "  所有者权益（或股东权益)合计", code: "", formulaBeg: "G36+G37+G38+G40", formulaEnd: "H36+H37+H38+H40" },
             { index: 64, text: "负债和所有者权益(或股东权益)总计", code: "", formulaBeg: "G31+G41", formulaEnd: "H31+H41" },
         ];
@@ -665,8 +665,13 @@
                 row.code.split(',').forEach(function (code) {
                     if (results.filter(a => a.AC_CODE == code).length > 0) {
                         let data = results.filter(a => a.AC_CODE == code)[0];
-                        amtBeg = eval(amtBeg + row.calcType + data.AMT_BEG);
-                        amtEnd = eval(amtEnd + row.calcType + data.AMT_END);
+                        if (row.code.indexOf(code) == 0 && row.calcType == "-") {
+                            amtBeg = amtBeg + data.AMT_BEG;
+                            amtEnd = amtEnd + data.AMT_END;
+                        } else {
+                            amtBeg = eval(amtBeg + row.calcType + data.AMT_BEG);
+                            amtEnd = eval(amtEnd + row.calcType + data.AMT_END);
+                        }
                     }
                 });
             }
@@ -730,7 +735,7 @@
     initVoucher = function () {
         let formId = utils.getFormId();
         $(`#${formId} [name="voucherDateRange"]`).append(`<span class="k-icon k-i-refresh" name="reloadData" style="cursor: pointer; margin-bottom: 6px"></span>`);
-        $(`#${formId} [name="voucherDateRange"]`).click(function () {
+        $(`#${formId} [name="reloadData"]`).click(function () {
             let ds = $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").dataSource;
             $(`#${formId} [name="gridVoucherIndex"]`).data("kendoGrid").setDataSource(ds);
         });
@@ -794,40 +799,31 @@
     }
 
     newVoucher = function (popupWin) {
-        $.ajax({
-            url: "../Accounting/Voucher/GetVoucherNo",
-            data: { voucherDate: (new Date()).toISOString() },
-            dataType: "text",
-            type: "post",
-            success: function (voucherNo) {
-                let result = [{
-                    VOUCHER_TYPE: "记",
-                    VOUCHER_NO: voucherNo,
-                    LINE_NO: 1,
-                    AC_CODE: "",
-                    DESC_TEXT: "",
-                    DR_AMT: 0,
-                    CR_AMT: 0,
-                    INV_NO: "",
-                    INV_DATE: null,
-                    CUSTOMER_CODE: "",
-                    VENDOR_CODE: "",
-                    DEP_CODE: "",
-                    PERSON_CODE: "",
-                    RELATED_AC: "",
-                    VOUCHER_DATE: new Date(),
-                    CBILL: data.user.USER_ID,
-                    CCHECK: "",
-                    CCASHIER: "",
-                    IBOOK: 0
-                }];
+        let result = [{
+            VOUCHER_TYPE: "记",
+            VOUCHER_NO: "",
+            LINE_NO: 1,
+            AC_CODE: "",
+            DESC_TEXT: "",
+            DR_AMT: 0,
+            CR_AMT: 0,
+            INV_NO: "",
+            INV_DATE: null,
+            CUSTOMER_CODE: "",
+            VENDOR_CODE: "",
+            DEP_CODE: "",
+            PERSON_CODE: "",
+            RELATED_AC: "",
+            VOUCHER_DATE: new Date(),
+            CBILL: data.user.USER_ID,
+            CCHECK: "",
+            CCASHIER: "",
+            IBOOK: 0
+        }];
 
-                controllers.accounting.initVoucherControls(result, popupWin);
-                if (popupWin != null)
-                    popupWin.center();
-            }
-        });
-
+        controllers.accounting.initVoucherControls(result, popupWin);
+        if (popupWin != null)
+            popupWin.center();
     }
 
     copyVoucher = function (popupWin) {
@@ -887,8 +883,20 @@
         $("[name='kendo-window-alertMessage-content'] [name='voucherDate']").kendoDatePicker({
             value: result[0].VOUCHER_DATE,
             change: function () {
+                let value = this.value();
+                let dateFrom = new Date(Number(value) - (1000 * 60 * 60 * 24 * 90)).toISOString();
+                let dateTo = new Date(Number(value) + (1000 * 60 * 60 * 24 * 30)).toISOString();
+
+                $.ajax({
+                    url: "../Accounting/ReceivablePayable/GetArApInvoices",
+                    data: { dateFrom: dateFrom, dateTo: dateTo, vouchType: "AR" },
+                    type: "post",
+                    success: function (invoices) {
+                        data.masterRecords.arInvoices = invoices;
+                    }
+                });
+
                 if ($(".k-window-title b").first().text() == "New Voucher") {
-                    let value = this.value();
                     $.ajax({
                         url: "../Accounting/Voucher/GetVoucherNo",
                         data: { voucherDate: value.toISOString() },
@@ -1000,7 +1008,7 @@
                     } else if (ledgerAccount.ADD_INFO == "VENDOR") {
                         ddlCtrl = `供应商: <input name="VENDOR_CODE" />`;
                     }
-                    let detailHtml = `票号: <input name="invNo" style="width: 220px" />
+                    let detailHtml = `票号: <input name="invNo" style="width: 220px" /><i class="k-icon k-i-search hidden showInvDetail" style="margin: 4px"/>
                             <br>日期: <input name="invDate" style="width: 170px" />
                             <br>${ddlCtrl} &nbsp;&nbsp;
                             <button type="button" class="hidden customButton button-icon-check-outline k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
@@ -1008,10 +1016,11 @@
                             <span class="k-icon k-i-check-outline k-button-icon"></span><span class="k-button-text">Update Details</span></button>`;
 
                     $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"]`).html(detailHtml);
-                    $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).kendoTextBox({ value: dataItem.INV_NO });
+                    //$(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).kendoTextBox({ value: dataItem.INV_NO });
+                    $(".k-i-search.showInvDetail").kendoTooltip({ content: "" });
                     $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).kendoDatePicker({ value: dataItem.INV_DATE });
                     $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).kendoDropDownList({
-                        filter: "startswith",
+                        filter: "contains",
                         dataTextField: "CUSTOMER_NAME",
                         dataValueField: "CUSTOMER_CODE",
                         optionLabel: `Select for Customer...`,
@@ -1041,7 +1050,7 @@
                         },
                     });
                     $(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).kendoDropDownList({
-                        filter: "startswith",
+                        filter: "contains",
                         dataTextField: "VENDOR_NAME",
                         dataValueField: "VENDOR_CODE",
                         optionLabel: `Select for Vendor...`,
@@ -1070,6 +1079,43 @@
                             }
                         },
                     });
+                    if (ledgerAccount.ADD_INFO == "CUSTOMER") {
+                        $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).kendoComboBox({
+                            value: dataItem.INV_NO,
+                            filter: "contains",
+                            optionLabel: " ",
+                            dataTextField: "INV_NO",
+                            dataValueField: "INV_NO",
+                            dataSource: data.masterRecords.arInvoices,
+                            cascade: function () {
+                                let invNo = this.value();
+                                let invoice = data.masterRecords.arInvoices.filter(a => a.INV_NO == invNo)[0];
+                                if (invoice != null) {
+                                    this.text(invNo);
+                                    $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).data("kendoDatePicker").value(utils.convertJsonToDate(invoice.VOUCH_DATE));
+                                    $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList").search(invoice.CUSTOMER_CODE_MAPPING);
+
+                                    $(".k-i-search.showInvDetail").removeClass("hidden");
+                                    let html = `Invoice#: ${invNo}<br>
+                                            Date: ${kendo.toString(utils.convertJsonToDate(invoice.VOUCH_DATE), data.dateFormat)}<br>
+                                            Customer: ${invoice.CUSTOMER_NAME}<br>
+                                            MAWB#: ${invoice.MAWB_NO}<br>
+                                            Flight#: ${invoice.FLIGHT_NO}<br>
+                                            HAWB#: ${invoice.HAWB_NO}<br>
+                                            Origin: ${invoice.ORIGIN} Destination: ${invoice.DEST}<br>
+                                            Amount: ${kendo.toString(invoice.AMOUNT, "n")}`;
+
+                                    if ($(".k-i-search.showInvDetail").data("kendoTooltip").content != null)
+                                        $($(".k-i-search.showInvDetail").data("kendoTooltip").content[0]).html(html);
+                                    else
+                                        $(".k-i-search.showInvDetail").data("kendoTooltip").options.content = html;
+                                } else {
+                                    if (!$(".k-i-search.showInvDetail").hasClass("hidden"))
+                                        $(".k-i-search.showInvDetail").addClass("hidden");
+                                }
+                            }
+                        });
+                    }
                     $(`[name="kendo-window-alertMessage-content"] [name="updateDetails"]`).click(function () {
                         if (grid.select().length > 0) {
                             grid.dataItem(grid.select()[0]).INV_NO = $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).val();
@@ -1092,6 +1138,8 @@
                     $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"]`).html("");
             }
         });
+
+        $("[name='kendo-window-alertMessage-content'] [name='voucherDate']").data("kendoDatePicker").trigger("change");
     }
 
     saveVoucher = function (ctrl) {
@@ -1385,6 +1433,209 @@
                         popupWin.destroy();
                     }
                 });
+            }
+        });
+    }
+
+    initReceivable = function () {
+        let formId = utils.getFormId();
+        $(`#${formId} [name="invoiceDateRange"]`).append(`<span class="k-icon k-i-refresh" name="reloadData" style="cursor: pointer; margin-bottom: 6px"></span>`);
+        $(`#${formId} [name="reloadData"]`).click(function () {
+            let ds = $(`#${formId} [name="gridReceivableIndex"]`).data("kendoGrid").dataSource;
+            $(`#${formId} [name="gridReceivableIndex"]`).data("kendoGrid").setDataSource(ds);
+        });
+        $(`#${formId} [name="gridReceivableIndex"]`).data("kendoGrid").setOptions({ filterable: true });
+    }
+
+    initPayable = function () {
+        let formId = utils.getFormId();
+        $(`#${formId} [name="invoiceDateRange"]`).append(`<span class="k-icon k-i-refresh" name="reloadData" style="cursor: pointer; margin-bottom: 6px"></span>`);
+        $(`#${formId} [name="reloadData"]`).click(function () {
+            let ds = $(`#${formId} [name="gridPayableIndex"]`).data("kendoGrid").dataSource;
+            $(`#${formId} [name="gridPayableIndex"]`).data("kendoGrid").setDataSource(ds);
+        });
+        $(`#${formId} [name="gridPayableIndex"]`).data("kendoGrid").setOptions({ filterable: true });
+    }
+
+    newArApInvoice = function (vouchType, popupWin) {
+        let model = {
+            ID: "",
+            VOUCH_TYPE: vouchType,
+            PERSON_CODE: "8",      //8: PVG
+            VOUCH_DATE: new Date(),
+            CREATE_USER: data.user.USER_ID,
+            CREATE_DATE: new Date().toISOString(),
+            MODIFY_USER: data.user.USER_ID,
+            MODIFY_DATE: new Date().toISOString(),
+        };
+        controllers.accounting.initArApInvoiceControls(model, popupWin);
+    }
+
+    loadArApInvoice = function (id, popupWin) {
+        $.ajax({
+            url: "../Accounting/ReceivablePayable/GetArApInvoice",
+            data: { id: id },
+            dataType: "json",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($(".kendo-window-alertMessage"), true); },
+            complete: function () { kendo.ui.progress($(".kendo-window-alertMessage"), false); },
+            success: function (result) {
+                controllers.accounting.initArApInvoiceControls(result, popupWin);
+            }
+        });
+    }
+
+    initArApInvoiceControls = function (result, popupWin) {
+        let contentName = "[name=kendo-window-alertMessage-content]";
+        let html = `<input type="hidden" name="id" value="${result.ID}" />
+            <input type="hidden" name="vouchType" value="${result.VOUCH_TYPE}" />
+            <input type="hidden" name="personCode" value="${result.PERSON_CODE}" />
+            <input type="hidden" name="createUser" value="${result.CREATE_USER}" />
+            <input type="hidden" name="createDate" value="${result.CREATE_DATE}" />
+            <table style="width: 700px;" class="dataTable">
+            <tr><td colspan="4"><h4>${result.VOUCH_TYPE == "AR" ? "Sales" : "Vendor"} Invoice</h4></td></tr>
+            <tr><td>Invoice Date</td><td><input name="invDate" /></td><td>Invoice #</td><td><input name="invNo" /></td></tr>
+            <tr><td>${result.VOUCH_TYPE == "AR" ? "Customer" : "Vendor"}</td><td colspan="3"><input name="${result.VOUCH_TYPE == "AR" ? "customer" : "vendor"}" /></td></tr>
+            <tr><td>MAWB #</td><td><input name="mawbNo" /></td><td>HAWB #</td><td><input name="hawbNo" /></td></tr>
+            <tr><td>Flight #</td><td><input name="flightNo" /></td><td>ETD</td><td><input name="flightDate" /></td></tr>
+            <tr><td>Origin</td><td><input name="origin" /></td><td>Destination</td><td><input name="destination" /></td></tr>
+            <tr><td>Department</td><td><input name="department" /></td></tr>
+            <tr><td>Amount</td><td><input name="amount" /></td></tr>
+            <tr><td>Create</td><td>${kendo.toString(utils.convertJsonToDate(result.CREATE_DATE), data.dateFormat)}</td>
+            <td>Modify</td><td>${kendo.toString(utils.convertJsonToDate(result.MODIFY_DATE), data.dateFormat)}</td></tr>
+        `;
+
+        $(contentName).html(html);
+
+        $(`${contentName} input[name='invDate']`).kendoDatePicker({ value: result.VOUCH_DATE });
+        $(`${contentName} input[name='invNo']`).kendoTextBox({ value: result.INV_NO });
+        $(`${contentName} input[name='${result.VOUCH_TYPE == "AR" ? "customer" : "vendor"}']`).kendoDropDownList({
+            filter: "contains",
+            dataTextField: result.VOUCH_TYPE == "AR" ? "CUSTOMER_NAME" : "VENDOR_NAME",
+            dataValueField: result.VOUCH_TYPE == "AR" ? "CUSTOMER_CODE" : "VENDOR_CODE",
+            optionLabel: `Select for ${result.VOUCH_TYPE == "AR" ? "Customer" : "Vendor"}...`,
+            dataSource: {
+                type: "json",
+                serverFiltering: true,
+                transport: {
+                    read: function (options) {
+                        let filterValue = result.VOUCH_TYPE == "AR" ? result.CUSTOMER_CODE : result.VENDOR_CODE;
+                        if (options.data.filter != null) {
+                            try { filterValue = options.data.filter.filters[0].value; } catch { }
+                        }
+                        $.ajax({
+                            url: `../Accounting/SystemSetting/${result.VOUCH_TYPE == "AR" ? "GetCustomerMappings" : "GetVendorMappings"}`,
+                            data: { searchValue: filterValue },
+                            dataType: "json",
+                            type: "post",
+                            success: function (searchResult) {
+                                options.success(searchResult);
+                                if ($(`${contentName} input[name="${result.VOUCH_TYPE == "AR" ? "customer" : "vendor"}"]`).data("kendoDropDownList") != null) {
+                                    $(`${contentName} input[name="${result.VOUCH_TYPE == "AR" ? "customer" : "vendor"}"]`).data("kendoDropDownList").select(1);
+                                }
+                            }
+                        });
+                    },
+                }
+            },
+        });
+        $(`${contentName} input[name='mawbNo']`).kendoTextBox({ value: result.MAWB_NO });
+        $(`${contentName} input[name='hawbNo']`).kendoTextBox({ value: result.HAWB_NO });
+        $(`${contentName} input[name='flightNo']`).kendoTextBox({ value: result.FLIGHT_NO });
+        $(`${contentName} input[name='flightDate']`).kendoDatePicker({ value: result.FLIGHT_DATE });
+        $(`${contentName} input[name='origin']`).kendoTextBox({ value: result.ORIGIN });
+        $(`${contentName} input[name='destination']`).kendoTextBox({ value: result.DEST });
+        $(`${contentName} input[name='department']`).kendoDropDownList({
+            value: result.DEPT_CODE,
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: data.masterRecords.acDepartment
+        });
+        $(`${contentName} input[name='amount']`).kendoNumericTextBox({ value: result.AMOUNT });
+        $(`${contentName} input[name='hawbNo']`).after('<i class="k-icon k-i-search" style="margin: 4px"/>')
+
+        $(`${contentName} .k-i-search`).click(function () {
+            let hawbNo = $(`${contentName} input[name='hawbNo']`).data("kendoTextBox").value();
+            if (!utils.isEmptyString(hawbNo)) {
+                console.log(hawbNo);
+
+                $.ajax({
+                    url: "../Air/Hawb/GetHawbsAllOrigin",
+                    data: { searchValue: hawbNo, frtMode: "AE", dateFrom: new Date((new Date().getFullYear() - 5), 1, 1).toISOString() },
+                    dataType: "json",
+                    type: "post",
+                    success: function (result) {
+                        if (result.length > 0) {
+                            let hawb = result[0];
+                            $(`${contentName} input[name='mawbNo']`).data("kendoTextBox").value(hawb.MAWB_NO);
+                            $(`${contentName} input[name='hawbNo']`).data("kendoTextBox").value(hawb.HAWB_NO);
+                            $(`${contentName} input[name='flightNo']`).data("kendoTextBox").value(hawb.FLIGHT_NO);
+                            $(`${contentName} input[name='flightDate']`).data("kendoDatePicker").value(hawb.FLIGHT_DATE);
+                            $(`${contentName} input[name='origin']`).data("kendoTextBox").value(hawb.ORIGIN_CODE);
+                            $(`${contentName} input[name='destination']`).data("kendoTextBox").value(hawb.DEST_CODE);
+                            $(`${contentName} input[name='department']`).data("kendoDropDownList").value("01");     //01: Air Freight
+                        } else {
+                            utils.showNotification("No related HAWB found in the system.", "warning", ".k-window .k-i-close");
+                        }
+                    }
+                });
+            }
+        });
+
+        popupWin.center();
+    }
+
+    saveArApInvoice = function (popupWin) {
+        let contentName = "[name=kendo-window-alertMessage-content]";
+        let vouchType = $(`${contentName} input[name='vouchType']`).val();
+        let flightDate = null;
+        if ($(`${contentName} input[name='flightDate']`).data("kendoDatePicker").value() != null)
+            flightDate = $(`${contentName} input[name='flightDate']`).data("kendoDatePicker").value().toISOString();
+
+        let model = {
+            ID: $(`${contentName} input[name='id']`).val(),
+            INV_NO: $(`${contentName} input[name='invNo']`).data("kendoTextBox").value(),
+            VOUCH_TYPE: vouchType,
+            VOUCH_DATE: $(`${contentName} input[name='invDate']`).data("kendoDatePicker").value().toISOString(),
+            DEPT_CODE: $(`${contentName} input[name='department']`).data("kendoDropDownList").value(),
+            PERSON_CODE: $(`${contentName} input[name='personCode']`).val(),
+            CUSTOMER_CODE: $(`${contentName} input[name='${vouchType == "AR" ? "customer" : "vendor"}']`).data("kendoDropDownList").value(),
+            MAWB_NO: $(`${contentName} input[name='mawbNo']`).data("kendoTextBox").value(),
+            FLIGHT_NO: $(`${contentName} input[name='flightNo']`).data("kendoTextBox").value(),
+            FLIGHT_DATE: flightDate,
+            HAWB_NO: $(`${contentName} input[name='hawbNo']`).data("kendoTextBox").value(),
+            ORIGIN: $(`${contentName} input[name='origin']`).data("kendoTextBox").value(),
+            DEST: $(`${contentName} input[name='destination']`).data("kendoTextBox").value(),
+            AMOUNT: $(`${contentName} input[name='amount']`).data("kendoNumericTextBox").value(),
+            CREATE_USER: $(`${contentName} input[name='createUser']`).val(),
+            CREATE_DATE: utils.convertJsonToDate($(`${contentName} input[name='createDate']`).val()).toISOString(),
+        };
+
+        if (utils.isEmptyString(model.ID))
+            model.CREATE_DATE = new Date().toISOString();
+
+        model.MODIFY_DATE = new Date().toISOString();
+        model.MODIFY_USER = data.user.USER_ID;
+
+        for (let i in model) {
+            model[i] = utils.formatText(model[i]);
+        }
+        console.log(model);
+
+        $.ajax({
+            url: "../Accounting/ReceivablePayable/SaveArApInvoice",
+            data: { model: model },
+            dataType: "json",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), true); },
+            complete: function () { kendo.ui.progress($("[name='kendo-window-alertMessage-content']"), false); },
+            success: function (resultModel) {
+                console.log("success", resultModel);
+                let formId = utils.getFormId();
+                let ds = $(`#${formId} [name="grid${resultModel.VOUCH_TYPE == "AR" ? "Receivable" : "Payable"}Index"]`).data("kendoGrid").dataSource;
+                $(`#${formId} [name="grid${resultModel.VOUCH_TYPE == "AR" ? "Receivable" : "Payable"}Index"]`).data("kendoGrid").setDataSource(ds);
+                utils.showNotification(`${resultModel.VOUCH_TYPE == "AR" ? "Sales" : "Vendor"} invoice saved.`, "success", ".k-window .k-i-close");
+                popupWin.destroy();
             }
         });
     }
