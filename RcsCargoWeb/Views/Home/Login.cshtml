@@ -13,6 +13,7 @@
     <link href="@Url.Content("~/Content/plugins/fontawesome-free/css/all.min.css")" rel="stylesheet">
     <link href="@Url.Content("~/Content/plugins/icheck-bootstrap/icheck-bootstrap.min.css")" rel="stylesheet">
     <link href="@Url.Content("~/Content/adminlte.min.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/kendo.default-ocean-blue.min.css")" rel="stylesheet" />
 </head>
 <body class="hold-transition login-page">
     <div class="modal fade" id="modal-default">
@@ -115,6 +116,7 @@
                     data: { userId: userId, password: password },
                     beforeSend: function () {
                         $("button[action='signIn']").prop("disabled", true);
+                        kendo.ui.progress($("body"), true);
                     },
                     success: function (result) {
                         //console.log(result);
@@ -139,6 +141,7 @@
                     },
                     complete: function () {
                         $("button[action='signIn']").prop("disabled", false);
+                        kendo.ui.progress($("body"), false);
                     }
                 });
             });

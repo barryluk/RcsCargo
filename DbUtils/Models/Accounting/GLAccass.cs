@@ -9,7 +9,7 @@ namespace DbUtils.Models.Accounting
     public class GLAccass
     {
         [Key]
-        public int ID { get; set; }
+        public decimal ID { get; set; }
         public int YEAR { get; set; }
         public int PERIOD { get; set; }
         public int AC_CODE { get; set; }

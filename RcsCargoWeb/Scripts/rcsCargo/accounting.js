@@ -19,7 +19,7 @@
 
         $(`#${utils.getFormId()} .spreadSheetReport [name="reportType"]`).kendoDropDownList({
             optionLabel: "--- Select Report ---",
-            dataSource: ["Ledger Accounts Summary", "Balance Sheet", "Profit and Loss", "Bank Transactions", "Accounts Receivable"],
+            dataSource: ["Ledger Accounts Summary", "Balance Sheet", "Profit and Loss", "Bank Transactions", "Accounts Receivable Aging Report"],
             cascade: function (e) {
                 controllers.accounting.getAccountingReport(spreadsheet);
             }
@@ -77,6 +77,8 @@
                 controllers.accounting.getProfitLoss(spreadsheet, year, period);
             else if (reportType == "Bank Transactions")
                 controllers.accounting.getBankTransaction(spreadsheet, year, period);
+            else if (reportType == "Accounts Receivable Aging Report")
+                controllers.accounting.getArAgingReport(spreadsheet, year, period);
             else
                 utils.alertMessage("The selected report is not available at this moment, will be available soon...");
         }
@@ -629,6 +631,158 @@
                     controllers.accounting.cellDisplayFormat(sheet, "#,##0.00", "right", 4, 4, null, 5);
                     controllers.accounting.cellDisplayFormat(sheet, "#,##0.00", "right", 4, 7, null, 7);
                     reportData.sheets.push(sheet);
+                });
+
+                spreadsheet.fromJSON(reportData);
+            }
+        });
+    }
+
+    getYearPeriodWord = function (year, period, addPeriod) {
+        let newYear = Number(year);
+        let newPeriod = Number(period) + addPeriod;
+        if (newPeriod > 12) {
+            newYear += Math.floor((newPeriod - 1) / 12);
+            newPeriod = ((newPeriod - 1) % 12) + 1;
+        } else if (newPeriod < 1) {
+            newYear -= Math.ceil((1 - newPeriod) / 12);
+            newPeriod = 12 - ((-newPeriod) % 12);
+        }
+        return `${newYear}年${newPeriod}月`;
+    }
+
+    getArAgingReport = function (spreadsheet, year, period) {
+        let reportData = {
+            sheets: [{
+                name: "应收帐款帐龄",
+                showGridLines: true,
+                columns: [
+                    { index: 0, width: 60 },
+                    { index: 1, width: 160 },
+                    { index: 2, width: 80 },
+                    { index: 3, width: 80 },
+                    { index: 4, width: 80 },
+                    { index: 5, width: 80 },
+                    { index: 6, width: 90 },
+                ],
+                mergedCells: ["A1:G1"],
+                rows: [
+                    { cells: [{ value: `${year}年${period}月`, textAlign: "center", bold: true }] },
+                    {
+                        cells: [
+                            { value: "客户编号", bold: true },
+                            { value: "客户名称", bold: true },
+                            { value: "余额", bold: true },
+                            { value: controllers.accounting.getYearPeriodWord(year, period, 0), textAlign: "center", bold: true },
+                            { value: controllers.accounting.getYearPeriodWord(year, period, -1), textAlign: "center", textAlign: "center", bold: true },
+                            { value: controllers.accounting.getYearPeriodWord(year, period, -2), textAlign: "center", textAlign: "center", bold: true },
+                            { value: controllers.accounting.getYearPeriodWord(year, period, -2) + "之前", textAlign: "center", textAlign: "center", bold: true }
+                        ]
+                    },
+                ]
+            }]
+        };
+
+        $.ajax({
+            url: "../Accounting/Report/GetAgingReport",
+            data: { year: year, period: period },
+            dataType: "json",
+            type: "post",
+            beforeSend: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), true); },
+            complete: function () { kendo.ui.progress($(`#${utils.getFormId()} [name=main]`), false); },
+            success: function (results) {
+                if (results.length > 0) {
+                    let currentCustomer = "";
+                    let endInd = results[0].END_IND;
+                    let rowIndex = 3;
+                    let rowIndex2 = 3;
+                    results.forEach(function (record) {
+                        if (endInd != record.END_IND) {
+                            reportData.sheets[0].rows.push({
+                                cells: [
+                                    { value: "金额总计:" },
+                                    { value: "——" },
+                                    { formula: `sum(C3:C${rowIndex - 1})` },
+                                    { formula: `sum(D3:D${rowIndex - 1})` },
+                                    { formula: `sum(E3:E${rowIndex - 1})` },
+                                    { formula: `sum(F3:F${rowIndex - 1})` },
+                                    { formula: `sum(G3:F${rowIndex - 1})` }]
+                            });
+                            endInd = record.END_IND;
+                            rowIndex++;
+                            rowIndex2 = rowIndex;
+                        }
+                        if (currentCustomer != record.CUSTOMER_CODE) {
+                            currentCustomer = record.CUSTOMER_CODE;
+                            let cols = 4;
+                            let currentPeriod = period;
+                            let cells = [
+                                { value: record.CUSTOMER_CODE },
+                                { value: record.CUSTOMER_NAME },
+                                { formula: `sum(D${rowIndex}:G${rowIndex})` }];
+                            while (cols > 0) {
+                                if (cols == 1) {
+                                    let lastRecord = results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0];
+                                    cells.push({ value: lastRecord.END_IND == "Cr" ? lastRecord.AMT_END * -1 : lastRecord.AMT_END });
+                                } else {
+                                    cells.push({
+                                        value: results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0].AMT_DR
+                                            - results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0].AMT_CR });
+                                }
+
+                                currentPeriod--;
+                                if (currentPeriod < 1)
+                                    currentPeriod = 12;
+                                cols--;
+                            }
+                            rowIndex++;
+                            reportData.sheets[0].rows.push({ cells: cells });
+                        }
+                    });
+
+                    reportData.sheets[0].rows.push({
+                        cells: [
+                            { value: "金额总计:" },
+                            { value: "——" },
+                            { formula: `sum(C${rowIndex2}:C${rowIndex - 1})` },
+                            { formula: `sum(D${rowIndex2}:D${rowIndex - 1})` },
+                            { formula: `sum(E${rowIndex2}:E${rowIndex - 1})` },
+                            { formula: `sum(F${rowIndex2}:F${rowIndex - 1})` },
+                            { formula: `sum(G${rowIndex2}:F${rowIndex - 1})` }]
+                    });
+
+                    reportData.sheets[0].rows.push({ cells: [] });
+                    reportData.sheets[0].rows.push({
+                        cells: [
+                            { value: `应收账款${controllers.accounting.getYearPeriodWord(year, period, 0)}`, textAlign: "center", bold: true },
+                            { value: "" },
+                            { formula: `(C${rowIndex2 - 1}+C${rowIndex})`, textAlign: "center", bold: true },
+                            { value: "" },
+                            { value: "" },
+                            { value: "" },
+                            { value: "" },
+                        ]
+                    });
+
+                    reportData.sheets[0].mergedCells.push(`A${rowIndex + 2}:B${rowIndex + 2}`);
+                    reportData.sheets[0].mergedCells.push(`C${rowIndex + 2}:G${rowIndex + 2}`);
+                }
+
+                reportData.sheets[0].rows.forEach(function (row) {
+                    let rowIndex = reportData.sheets[0].rows.indexOf(row);
+                    row.cells.forEach(function (cell) {
+                        let cellIndex = row.cells.indexOf(cell);
+                        let numCol = [2, 3, 4, 5, 6];
+                        if (rowIndex >= 1) {
+                            cell.borderTop = { size: "0.5px" };
+                            cell.borderBottom = { size: "0.5px" };
+                            cell.borderLeft = { size: "0.5px" };
+                            cell.borderRight = { size: "0.5px" };
+                            if (rowIndex >= 2 && numCol.indexOf(cellIndex) != -1) {
+                                cell.format = "#,##0.00";
+                            }
+                        }
+                    });
                 });
 
                 spreadsheet.fromJSON(reportData);

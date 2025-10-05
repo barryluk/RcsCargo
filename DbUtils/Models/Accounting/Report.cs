@@ -28,4 +28,18 @@ namespace DbUtils.Models.Accounting
         public decimal CR_AMT { get; set; }
         public decimal BALANCE { get; set; }
     }
+
+    public class AgingReport
+    {
+        public string CUSTOMER_CODE { get; set; }
+        public string CUSTOMER_NAME { get; set; }
+        public int YEAR { get; set; }
+        public int PERIOD { get; set; }
+        public string BEG_IND { get; set; }
+        public string END_IND { get; set; }
+        public decimal AMT_BEG { get; set; }
+        public decimal AMT_END { get; set; }
+        public decimal AMT_DR { get; set; }
+        public decimal AMT_CR { get; set; }
+    }
 }

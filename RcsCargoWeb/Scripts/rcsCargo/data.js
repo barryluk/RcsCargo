@@ -1548,7 +1548,9 @@ var indexPages = [
         title: "Ledger Accounts",
         initScript: "controllers.accounting.initLedgerAccount",
         targetContainer: {},
-        searchControls: [],
+        searchControls: [
+            { label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Account# / Name" },
+        ],
         gridConfig: {
             gridName: "gridLedgerAccountIndex",
             dataSourceUrl: "../Accounting/Ledger/GridLedgerAccount_Read",

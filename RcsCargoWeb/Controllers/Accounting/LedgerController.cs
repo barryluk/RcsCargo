@@ -26,8 +26,9 @@ namespace RcsCargoWeb.Controllers.Accounting
         }
 
         [Route("GridLedgerAccount_Read")]
-        public ActionResult GridLedgerAccount_Read([Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
+        public ActionResult GridLedgerAccount_Read(string searchValue, [Bind(Prefix = "sort")] IEnumerable<Dictionary<string, string>> sortings, int take = 25, int skip = 0)
         {
+            searchValue = searchValue.Trim().ToUpper() + "%";
             var sortField = "AC_CODE";
             var sortDir = "asc";
 
@@ -37,7 +38,7 @@ namespace RcsCargoWeb.Controllers.Accounting
                 sortDir = sortings.First().Single(a => a.Key == "dir").Value;
             }
 
-            var results = accounting.GetLedgerAccounts();
+            var results = accounting.GetLedgerAccounts(searchValue);
 
             if (!string.IsNullOrEmpty(sortField) && !string.IsNullOrEmpty(sortDir))
             {

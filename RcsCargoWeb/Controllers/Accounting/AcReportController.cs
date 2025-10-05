@@ -40,10 +40,18 @@ namespace RcsCargoWeb.Controllers.Accounting
         }
 
         //For re-calculation purpose
-        [Route("CalcLedgerAccountSummary")]
-        public ActionResult CalcLedgerAccountSummary(int year, int period)
+        [Route("CalcAccountSummary")]
+        public ActionResult CalcAccountSummary(int year, int period)
         {
             accounting.CalcAccountSummary(year, period);
+            return Content("success");
+        }
+
+        //For re-calculation purpose
+        [Route("CalcAccountAssist")]
+        public ActionResult CalcAccountAssist(int year, int period)
+        {
+            accounting.CalcAccountAssist(year, period);
             return Content("success");
         }
 
@@ -51,6 +59,13 @@ namespace RcsCargoWeb.Controllers.Accounting
         public ActionResult GetBankTransaction(int year, int period)
         {
             var results = accounting.GetBankTransaction(year, period);
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [Route("GetAgingReport")]
+        public ActionResult GetAgingReport(int year, int period)
+        {
+            var results = accounting.GetAgingReport(year, period, 3, "AR");
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 

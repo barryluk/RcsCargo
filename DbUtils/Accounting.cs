@@ -1,6 +1,7 @@
 ﻿using DbUtils.Models.Accounting;
 using DbUtils.Models.Admin;
 using DbUtils.Models.Air;
+using DbUtils.Models.MasterRecords;
 using Newtonsoft.Json;
 using Oracle.ManagedDataAccess.Client;
 using System;
@@ -13,6 +14,7 @@ using System.Data.SqlTypes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Configuration;
@@ -23,6 +25,8 @@ namespace DbUtils
     public class Accounting
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private string[] assAccounts = { "212101", "550207", "550210", "113305", "550231", "550218", "550201", "550205", "550209", "550225", "550227", "550206", "113102", "212102", "550202", "113101", "550208" };
+
         RcsFreightDBContext db;
         public Accounting()
         {
@@ -105,11 +109,21 @@ namespace DbUtils
 
         #endregion
 
-        #region Ledger Account / GL_ACCSUM
+        #region Ledger Account / GL_ACCSUM / GL_ACCASSS
 
         public List<LedgerAccount> GetLedgerAccounts()
         {
             var result = Utils.GetSqlQueryResult<LedgerAccount>("ac_ledger_account", "*", new List<DbParameter>());
+            return result.OrderBy(a => a.AC_CODE).ToList();
+        }
+
+        public List<LedgerAccount> GetLedgerAccounts(string searchValue)
+        {
+            var result = Utils.GetSqlQueryResult<LedgerAccount>("ac_ledger_account", "*", new List<DbParameter>
+            {
+                new DbParameter { FieldName = "ac_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "ac_name", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            });
             return result.OrderBy(a => a.AC_CODE).ToList();
         }
 
@@ -179,6 +193,206 @@ namespace DbUtils
             }
             db.Database.ExecuteSqlCommand($"delete from ac_gl_accsum where year = {year} and period >= {period}");
             db.GLAccsums.AddRange(results);
+            db.SaveChanges();
+        }
+
+        //assistType: person / customer / vendor
+        private GLAccass GetAccountAssist(List<GLVoucher> vouchers, string crDrBalance, decimal amtEnd, string assistId, string assistType)
+        {
+            var result = new GLAccass();
+            if (assistType == "customer" || assistType == "vendor")
+            {
+                decimal amtDr = 0;
+                decimal amtCr = 0;
+                if (assistType == "customer")
+                {
+                    amtDr = vouchers.Where(a => a.CUSTOMER_CODE == assistId).Sum(a => a.DR_AMT);
+                    amtCr = vouchers.Where(a => a.CUSTOMER_CODE == assistId).Sum(a => a.CR_AMT);
+                }
+                else if (assistType == "vendor")
+                {
+                    amtDr = vouchers.Where(a => a.VENDOR_CODE == assistId).Sum(a => a.DR_AMT);
+                    amtCr = vouchers.Where(a => a.VENDOR_CODE == assistId).Sum(a => a.CR_AMT);
+                }
+                else
+                {
+                    amtDr = vouchers.Sum(a => a.DR_AMT);
+                    amtCr = vouchers.Sum(a => a.CR_AMT);
+                }
+                var amtEnd2 = crDrBalance == "Dr" ? amtEnd + (amtDr - amtCr) : amtEnd + (amtCr - amtDr);
+
+                result.VENDOR_ID = assistType == "vendor" ? assistId : "";
+                result.CUSTOMER_ID = assistType == "customer" ? assistId : "";
+                result.AMT_BEG = amtEnd;
+                result.AMT_DR = amtDr;
+                result.AMT_CR = amtCr;
+                result.AMT_END = amtEnd2;
+                result.BEG_IND = amtEnd == 0 ? "-" : amtEnd > 0 ? "Dr" : "Cr";
+                result.END_IND = amtEnd2 == 0 ? "-" : amtEnd2 > 0 ? "Dr" : "Cr";
+            }
+            return result;
+        }
+
+        private class AccountAssist
+        {
+            public string AC_CODE { get; set; }
+            public string PERSON_CODE { get; set; }
+            public string CUSTOMER_CODE { get; set; }
+            public string VENDOR_CODE { get; set; }
+        }
+
+        private void AddNewAccountAssist(int year)
+        {
+            var selectCmd = @"distinct ac_code, person_code, customer_code, vendor_code";
+            var fromCmd = $@"ac_gl_voucher where year = {year} and ac_code not like '1002%' and
+                (person_code is not null or customer_code is not null or vendor_code is not null)";
+            var vouchers = Utils.GetSqlQueryResult<AccountAssist>(fromCmd, selectCmd, new List<DbParameter>());
+            var records = new List<GLAccass>();
+            var id = db.GLAccasses.Where(a => a.YEAR == year).Select(a => a.ID).Max() + 1;
+
+            foreach (var voucher in vouchers)
+            {
+                selectCmd = "ac_code";
+                fromCmd = $@"ac_gl_accass where year = {year} and ac_code = '{voucher.AC_CODE}' and 
+                    (person_id = '{voucher.PERSON_CODE}' or customer_id = '{voucher.CUSTOMER_CODE}' or vendor_id = '{voucher.VENDOR_CODE}')";
+                if (Utils.GetSqlQueryResult<string>(fromCmd, selectCmd, new List<DbParameter>()).Count() == 0)
+                {
+                    var period = 1;
+                    while (period <= 12)
+                    {
+                        records.Add(new GLAccass
+                        {
+                            ID = id,
+                            YEAR = year,
+                            PERIOD = period,
+                            AC_CODE = int.Parse(voucher.AC_CODE),
+                            CURRENCY = "",
+                            DEPT_ID = "",
+                            PERSON_ID = voucher.PERSON_CODE,
+                            CUSTOMER_ID = voucher.CUSTOMER_CODE,
+                            VENDOR_ID = voucher.VENDOR_CODE,
+                            AMT_BEG = 0,
+                            AMT_DR = 0,
+                            AMT_CR = 0,
+                            AMT_END = 0,
+                            BEG_IND = "-",
+                            END_IND = "-",
+                        });
+                        id++; period++;
+                    }
+                }
+            }
+
+            if (records.Count > 0)
+            {
+                db.GLAccasses.AddRange(records);
+                db.SaveChanges();
+            }
+        }
+
+        public void CalcAccountAssist(int year, int period)
+        {
+            //Add records to table AC_GL_ACCASS if not exist
+            AddNewAccountAssist(year);
+            var accounts = db.LedgerAccounts.ToList();
+            var lastPeriods = new List<GLAccass>();
+            var results = new List<GLAccass>();
+            if (period == 1)
+                lastPeriods = db.GLAccasses.Where(a => a.YEAR == year - 1 && a.PERIOD == 12).ToList();
+            else
+                lastPeriods = db.GLAccasses.Where(a => a.YEAR == year && a.PERIOD == period - 1).ToList();
+
+            var id = db.GLAccasses.Where(a => a.YEAR == year).Select(a => a.ID).Max() + 1;
+            var fromCmd = $@"ac_gl_voucher where year = {year} and period >= {period} and ibook = 1 and ac_code not like '1002%' and
+                (person_code is not null or customer_code is not null or vendor_code is not null)";
+            var vouchers = Utils.GetSqlQueryResult<GLVoucher>(fromCmd, "*", new List<DbParameter>());
+
+            var customerIds = vouchers.Where(a => !string.IsNullOrEmpty(a.CUSTOMER_CODE)).Select(a => a.CUSTOMER_CODE).Distinct().ToList();
+            var vendorIds = vouchers.Where(a => !string.IsNullOrEmpty(a.VENDOR_CODE)).Select(a => a.VENDOR_CODE).Distinct().ToList();
+
+            foreach (var lastPeriod in lastPeriods)
+            {
+                var account = accounts.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString()).FirstOrDefault();
+                int currentPeriod = period;
+                decimal amt = lastPeriod.AMT_END;
+                var perviousPeriod = lastPeriod;
+                while (currentPeriod <= 12)
+                {
+                    var record = new GLAccass();
+                    decimal amtDr = 0;
+                    decimal amtCr = 0;
+                    if (!string.IsNullOrEmpty(lastPeriod.CUSTOMER_ID))
+                    {
+                        amtDr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.CUSTOMER_CODE == lastPeriod.CUSTOMER_ID).Sum(a => a.DR_AMT);
+                        amtCr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.CUSTOMER_CODE == lastPeriod.CUSTOMER_ID).Sum(a => a.CR_AMT);
+                    }
+                    else if (!string.IsNullOrEmpty(lastPeriod.VENDOR_ID))
+                    {
+                        amtDr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.VENDOR_CODE == lastPeriod.VENDOR_ID).Sum(a => a.DR_AMT);
+                        amtCr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.VENDOR_CODE == lastPeriod.VENDOR_ID).Sum(a => a.CR_AMT);
+                    }
+                    else
+                    {
+                        amtDr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.PERSON_CODE == lastPeriod.PERSON_ID).Sum(a => a.DR_AMT);
+                        amtCr = vouchers.Where(a => a.AC_CODE == lastPeriod.AC_CODE.ToString() && a.PERIOD == currentPeriod && a.PERSON_CODE == lastPeriod.PERSON_ID).Sum(a => a.CR_AMT);
+                    }
+                    //decimal amtEnd = account.CRDR_BALANCE == "Dr" ? amt + (amtDr - amtCr) : amt + (amtCr - amtDr);
+
+                    //log.Debug($"ID: {id}, {currentPeriod}, {lastPeriod.AC_CODE}, {lastPeriod.PERSON_ID}, {lastPeriod.CUSTOMER_ID}, {lastPeriod.VENDOR_ID}, DR: {amtDr} CR: {amtCr} END: {amtEnd}");
+
+                    record.ID = id;
+                    record.YEAR = year;
+                    record.PERIOD = currentPeriod;
+                    record.AC_CODE = lastPeriod.AC_CODE;
+                    record.CURRENCY = lastPeriod.CURRENCY;
+                    record.DEPT_ID = lastPeriod.DEPT_ID;
+                    record.PERSON_ID = lastPeriod.PERSON_ID;
+                    record.CUSTOMER_ID = lastPeriod.CUSTOMER_ID;
+                    record.VENDOR_ID = lastPeriod.VENDOR_ID;
+                    record.AMT_BEG = perviousPeriod.END_IND == "Cr" ? amt * -1 : amt;
+                    record.AMT_DR = amtDr;
+                    record.AMT_CR = amtCr;
+                    record.AMT_END = record.AMT_BEG + (amtDr - amtCr);
+                    //record.BEG_IND = amt == 0 ? "-" : amt > 0 ? "Dr" : "Cr";
+                    //record.END_IND = amtEnd == 0 ? "-" : amtEnd > 0 ? "Dr" : "Cr";
+                    results.Add(record);
+
+                    amt = record.AMT_END;
+                    id++; currentPeriod++;
+                    perviousPeriod = record;
+                }
+            }
+
+            foreach (var record in results)
+            {
+                if (record.AMT_BEG < 0)
+                {
+                    record.AMT_BEG = record.AMT_BEG * -1;
+                    record.BEG_IND = "Cr";
+                }
+                else
+                {
+                    if (record.AMT_BEG == 0)
+                        record.BEG_IND = "-";
+                    else
+                        record.BEG_IND = "Dr";
+                }
+
+                if (record.AMT_END < 0)
+                {
+                    record.AMT_END = record.AMT_END * -1;
+                    record.END_IND = "Cr";
+                }
+                else
+                {
+                    if (record.AMT_BEG == 0)
+                        record.END_IND = "-";
+                    else
+                        record.END_IND = "Dr";
+                }
+            }
+            db.Database.ExecuteSqlCommand($"delete from ac_gl_accass where year = {year} and period >= {period}");
+            db.GLAccasses.AddRange(results);
             db.SaveChanges();
         }
 
@@ -346,7 +560,7 @@ namespace DbUtils
             foreach (var voucher in vouchers)
             {
                 var records = db.GLVouchers.Where(a => a.YEAR == voucher.YEAR && a.PERIOD == voucher.PERIOD && a.VOUCHER_NO == voucher.VOUCHER_NO);
-                foreach(var record in records)
+                foreach (var record in records)
                 {
                     record.CCHECK = voucher.CCHECK;
                     record.IBOOK = 1;
@@ -375,7 +589,7 @@ namespace DbUtils
                     PERIOD = period,
                     DR_AMT = voucher.Sum(a => a.CR_AMT),
                     CR_AMT = voucher.Sum(a => a.DR_AMT),
-                    DEP_CODE =  voucher.FirstOrDefault().DEP_CODE,
+                    DEP_CODE = voucher.FirstOrDefault().DEP_CODE,
                     PERSON_CODE = voucher.FirstOrDefault().PERSON_CODE,
                     CUSTOMER_CODE = voucher.FirstOrDefault().CUSTOMER_CODE,
                     VENDOR_CODE = voucher.FirstOrDefault().VENDOR_CODE,
@@ -533,6 +747,27 @@ namespace DbUtils
                     BALANCE = closeBalance
                 });
             }
+            return results;
+        }
+
+        public List<AgingReport> GetAgingReport(int year, int period, int periodCount, string reportType)
+        {
+            int fromYear = year;
+            int fromPeriod = period - periodCount;
+            if (fromPeriod < 1)
+            {
+                fromYear = year - 1;
+                fromPeriod = 12 + fromPeriod;
+            }
+
+            string sqlQuery = $@"select YEAR, period, c.customer_code, c.customer_name, beg_ind, amt_beg, amt_dr, amt_cr, 
+                case when end_ind in ('Dr', '-') then 'Dr' else 'Cr' end end_ind, amt_end
+                from ac_gl_accass a join ac_customer c on a.customer_id = c.customer_code
+                where (to_char(year) || lpad(to_char(period), 2, '0')) >= '{fromYear.ToString()}{fromPeriod.ToString().PadLeft(2, '0')}' 
+                and (to_char(year) || lpad(to_char(period), 2, '0')) <= '{year.ToString()}{period.ToString().PadLeft(2, '0')}'
+                and customer_id in (select customer_id from ac_gl_accass where year = {year} and period = {period} and amt_end <> 0)
+                order by end_ind desc, customer_id, year desc, period desc";
+            var results = db.Database.SqlQuery<AgingReport>(sqlQuery).ToList();
             return results;
         }
 
