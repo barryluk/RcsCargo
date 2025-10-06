@@ -1170,10 +1170,10 @@
                             <span class="k-icon k-i-check-outline k-button-icon"></span><span class="k-button-text">Update Details</span></button>`;
 
                     $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"]`).html(detailHtml);
-                    //$(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).kendoTextBox({ value: dataItem.INV_NO });
                     $(".k-i-search.showInvDetail").kendoTooltip({ content: "" });
                     $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).kendoDatePicker({ value: dataItem.INV_DATE });
                     $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).kendoDropDownList({
+                        value: dataItem.CUSTOMER_CODE,
                         filter: "contains",
                         dataTextField: "CUSTOMER_NAME",
                         dataValueField: "CUSTOMER_CODE",
@@ -1194,7 +1194,7 @@
                                         type: "post",
                                         success: function (result) {
                                             options.success(result);
-                                            if ($(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList") != null) {
+                                            if ($(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList") != null && !utils.isEmptyString(filterValue)) {
                                                 $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList").select(1);
                                             }
                                         }
@@ -1204,6 +1204,7 @@
                         },
                     });
                     $(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).kendoDropDownList({
+                        value: dataItem.VENDOR_CODE,
                         filter: "contains",
                         dataTextField: "VENDOR_NAME",
                         dataValueField: "VENDOR_CODE",
@@ -1224,7 +1225,7 @@
                                         type: "post",
                                         success: function (result) {
                                             options.success(result);
-                                            if ($(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).data("kendoDropDownList") != null) {
+                                            if ($(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).data("kendoDropDownList") != null && !utils.isEmptyString(filterValue)) {
                                                 $(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).data("kendoDropDownList").select(1);
                                             }
                                         }
@@ -1269,27 +1270,53 @@
                                 }
                             }
                         });
+                    } else if (ledgerAccount.ADD_INFO == "VENDOR") {
+                        $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).kendoTextBox({ value: dataItem.INV_NO });
                     }
-                    $(`[name="kendo-window-alertMessage-content"] [name="updateDetails"]`).click(function () {
-                        if (grid.select().length > 0) {
-                            grid.dataItem(grid.select()[0]).INV_NO = $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).val();
-                            grid.dataItem(grid.select()[0]).INV_DATE = $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).data("kendoDatePicker").value();
-                            if ($(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).length == 1)
-                                grid.dataItem(grid.select()[0]).CUSTOMER_CODE = $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList").value();
-                            if ($(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).length == 1)
-                                grid.dataItem(grid.select()[0]).VENDOR_CODE = $(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).data("kendoDropDownList").value();
-                        }
-                    });
+                }
+                else if (ledgerAccount.ADD_INFO == "PERSON") {
+                    let detailHtml = `日期: <input name="invDate" style="width: 170px" /><input name="invNo" class="hidden" />
+                            <br>个人: <input name="PERSON_CODE" /> &nbsp;&nbsp;
+                            <button type="button" class="hidden customButton button-icon-check-outline k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
+                            style="margin: 4px;" data-role="button" role="button" aria-disabled="false" tabindex="0" name="updateDetails">
+                            <span class="k-icon k-i-check-outline k-button-icon"></span><span class="k-button-text">Update Details</span></button>`;
 
-                    //Auto save the changes when focus out
-                    $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"] input`).each(function () {
-                        $(this).blur(function () {
-                            $(`[name="kendo-window-alertMessage-content"] [name="updateDetails"]`).trigger("click");
-                        });
-                    })
+                    $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"]`).html(detailHtml);
+                    $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).kendoDatePicker({ value: dataItem.INV_DATE });
+                    $(`[name="kendo-window-alertMessage-content"] [name="PERSON_CODE"]`).kendoDropDownList({
+                        value: dataItem.PERSON_CODE,
+                        filter: "contains",
+                        dataTextField: "PERSON_NAME",
+                        dataValueField: "PERSON_CODE",
+                        optionLabel: `Select for Person...`,
+                        dataSource: data.masterRecords.acPersons,
+                    });
                 }
                 else
                     $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"]`).html("");
+
+                //Auto save the changes when focus out
+                $(`[name="kendo-window-alertMessage-content"] [name="updateDetails"]`).click(function () {
+                    if (grid.select().length > 0) {
+                        grid.dataItem(grid.select()[0]).INV_NO = $(`[name="kendo-window-alertMessage-content"] [name="invNo"]`).val();
+                        grid.dataItem(grid.select()[0]).INV_DATE = $(`[name="kendo-window-alertMessage-content"] [name="invDate"]`).data("kendoDatePicker").value();
+                        if ($(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).length == 1)
+                            grid.dataItem(grid.select()[0]).CUSTOMER_CODE = $(`[name="kendo-window-alertMessage-content"] [name="CUSTOMER_CODE"]`).data("kendoDropDownList").value();
+                        if ($(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).length == 1)
+                            grid.dataItem(grid.select()[0]).VENDOR_CODE = $(`[name="kendo-window-alertMessage-content"] [name="VENDOR_CODE"]`).data("kendoDropDownList").value();
+                        if ($(`[name="kendo-window-alertMessage-content"] [name="PERSON_CODE"]`).length == 1)
+                            grid.dataItem(grid.select()[0]).PERSON_CODE = $(`[name="kendo-window-alertMessage-content"] [name="PERSON_CODE"]`).data("kendoDropDownList").value();
+
+
+                        console.log(grid.dataItem(grid.select()[0]));
+                    }
+                });
+
+                $(`[name="kendo-window-alertMessage-content"] [name="voucherDetail"] input`).each(function () {
+                    $(this).blur(function () {
+                        $(`[name="kendo-window-alertMessage-content"] [name="updateDetails"]`).trigger("click");
+                    });
+                })
             }
         });
 
@@ -1325,6 +1352,7 @@
                 INV_DATE: dataItem.INV_DATE,
                 CUSTOMER_CODE: dataItem.CUSTOMER_CODE,
                 VENDOR_CODE: dataItem.VENDOR_CODE,
+                PERSON_CODE: dataItem.PERSON_CODE,
             });
         }
 
@@ -1351,6 +1379,29 @@
             valid = false;
         }
 
+        let errorMsg = "";
+        vouchers.forEach(function (voucher) {
+            let ledgerAccount = data.masterRecords.ledgerAccounts.filter(a => a.AC_CODE == voucher.AC_CODE)[0];
+            if (ledgerAccount.ADD_INFO == "CUSTOMER") {
+                if (utils.isEmptyString(voucher.CUSTOMER_CODE)) {
+                    errorMsg += `Customer must select for ${ledgerAccount.AC_CODE} - ${ledgerAccount.AC_NAME}<br>`;
+                    valid = false;
+                }
+            } else if (ledgerAccount.ADD_INFO == "VENDOR") {
+                if (utils.isEmptyString(voucher.VENDOR_CODE)) {
+                    errorMsg += `Vendor must select for ${ledgerAccount.AC_CODE} - ${ledgerAccount.AC_NAME}<br>`;
+                    valid = false;
+                }
+            } else if (ledgerAccount.ADD_INFO == "PERSON") {
+                if (utils.isEmptyString(voucher.PERSON_CODE)) {
+                    errorMsg += `Person must select for ${ledgerAccount.AC_CODE} - ${ledgerAccount.AC_NAME}<br>`;
+                    valid = false;
+                }
+            }
+        });
+        if (!utils.isEmptyString(errorMsg) && !valid)
+            utils.showNotification(errorMsg, "error", ".k-window .k-i-close");
+            
         //valid = false;
         console.log(drAmt, crAmt, model, valid);
 

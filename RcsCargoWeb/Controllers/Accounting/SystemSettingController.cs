@@ -121,6 +121,12 @@ namespace RcsCargoWeb.Controllers.Accounting
             return Json(results.Take(50).ToList(), JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetPersons")]
+        public ActionResult GetPersons()
+        {
+            return Json(accounting.GetPersons(), JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetVoucherDesc")]
         public ActionResult GetVoucherDesc()
         {

@@ -41,7 +41,7 @@ var masterRecords = {
     acDepartment: [{ text: "", value: "" }, { text: "空运", value: "01" }, { text: "海运", value: "02" }, { text: "香港代开", value: "03" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
-    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, accountingYears: {}, ledgerAccounts: {}, voucherDesc: {}, arInvoices: [],
+    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, accountingYears: {}, ledgerAccounts: {}, voucherDesc: {}, acPersons: {}, arInvoices: [],
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
@@ -5623,6 +5623,13 @@ export default class {
             url: "../Accounting/SystemSetting/GetVoucherDesc",
             success: function (result) {
                 masterRecords.voucherDesc = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Accounting/SystemSetting/GetPersons",
+            success: function (result) {
+                masterRecords.acPersons = result;
             }
         });
 
