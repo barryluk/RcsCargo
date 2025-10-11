@@ -8,18 +8,17 @@
 
     initGridControls = function (pageSetting) {
         var grid = $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"]`).data("kendoGrid");
-
-        //Create
-        $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] .k-grid-new`).click(function () {
-            utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "create"),
-                `Create`, null, null, true, "controllers.masterRecords.editSaveClick");
-            controls.renderFormControl_kendoUI({
-                id: `${utils.getFormId()}`,
-                schema: pageSetting.schema,
-            }, true);
-        });
-
+        
         grid.bind("dataBound", function (e) {
+            //Create
+            $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] .k-grid-new`).click(function () {
+                utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "create"),
+                    `Create`, null, null, true, "controllers.masterRecords.editSaveClick");
+                controls.renderFormControl_kendoUI({
+                    id: `${utils.getFormId()}`,
+                    schema: pageSetting.schema,
+                }, true);
+            });
 
             //Edit
             $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] i.k-icon.k-i-pencil`).each(function () {

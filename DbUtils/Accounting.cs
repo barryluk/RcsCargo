@@ -33,7 +33,12 @@ namespace DbUtils
             db = new RcsFreightDBContext();
         }
 
-        #region System Settings
+        public List<VoucherDesc> GetVoucherDesc()
+        {
+            return db.VoucherDesc.ToList();
+        }
+
+        #region Person
 
         public List<PersonView> GetPersons()
         {
@@ -49,10 +54,71 @@ namespace DbUtils
             return result.ToList();
         }
 
-        public List<VoucherDesc> GetVoucherDesc()
+        public List<AcPersonMapping> GetPersonMappings()
         {
-            return db.VoucherDesc.ToList();
+            return db.AcPersonMappings.ToList();
         }
+
+        public Person GetPerson(string personCode)
+        {
+            var person = db.Persons.FirstOrDefault(a => a.PERSON_CODE == personCode);
+            if (person == null)
+                return new Person();
+            else
+                return person;
+        }
+
+        public void AddPerson(Person person)
+        {
+            try
+            {
+                db.Persons.Add(person);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdatePerson(Person person)
+        {
+            try
+            {
+                db.Entry(person).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeletePerson(string personCode)
+        {
+            try
+            {
+                var person = db.Persons.FirstOrDefault(a => a.PERSON_CODE.Equals(personCode));
+                if (person != null)
+                {
+                    db.Persons.Remove(person);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingPersonCode(string personCode)
+        {
+            return db.Persons.Count(a => a.PERSON_CODE == personCode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Customer
 
         public List<AcCustomerView> GetCustomers(string searchValue)
         {
@@ -67,32 +133,9 @@ namespace DbUtils
             return result.ToList();
         }
 
-        public List<VendorView> GetVendors(string searchValue)
-        {
-            var dbParas = new List<DbParameter>
-            {
-                new DbParameter { FieldName = "v.vendor_name", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "v.vendor_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-            };
-            var selectCmd = @"v.*, r.region_name";
-            var fromCmd = $@"ac_vendor v left outer join ac_vendor_region r on v.region_code = r.region_code";
-            var result = Utils.GetSqlQueryResult<VendorView>(fromCmd, selectCmd, dbParas);
-            return result.ToList();
-        }
-
         public List<AcCustomerMapping> GetCustomerMappings(string searchValue)
         {
             return db.AcCustomerMappings.Where(a => a.CUSTOMER_CODE.Contains(searchValue) || a.CUSTOMER_NAME.Contains(searchValue)).ToList();
-        }
-
-        public List<AcVendorMapping> GetVendorMappings(string searchValue)
-        {
-            return db.AcVendorMappings.Where(a => a.VENDOR_CODE.Contains(searchValue) || a.VENDOR_NAME.Contains(searchValue)).ToList();
-        }
-
-        public List<AcPersonMapping> GetPersonMappings()
-        {
-            return db.AcPersonMappings.ToList();
         }
 
         public List<AcCustomerRegion> GetCustomerRegions()
@@ -101,10 +144,146 @@ namespace DbUtils
             return result.ToList();
         }
 
-        public List<AcCustomerRegion> GetVendorRegions()
+        public AcCustomer GetCustomer(string customerCode)
         {
-            var result = Utils.GetSqlQueryResult<AcCustomerRegion>("ac_vendor_region", "*", new List<DbParameter>());
+            var customer = db.AcCustomers.FirstOrDefault(a => a.CUSTOMER_CODE == customerCode);
+            if (customer == null)
+                return new AcCustomer();
+            else
+                return customer;
+        }
+
+        public void AddCustomer(AcCustomer customer)
+        {
+            try
+            {
+                db.AcCustomers.Add(customer);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateCustomer(AcCustomer customer)
+        {
+            try
+            {
+                db.Entry(customer).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteCustomer(string customerCode)
+        {
+            try
+            {
+                var customer = db.AcCustomers.FirstOrDefault(a => a.CUSTOMER_CODE.Equals(customerCode));
+                if (customer != null)
+                {
+                    db.AcCustomers.Remove(customer);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingCustomerCode(string customerCode)
+        {
+            return db.AcCustomers.Count(a => a.CUSTOMER_CODE == customerCode) == 1 ? true : false;
+        }
+
+        #endregion
+
+        #region Vendor
+
+        public List<AcVendorView> GetVendors(string searchValue)
+        {
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "v.vendor_name", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "v.vendor_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+            };
+            var selectCmd = @"v.*, r.region_name";
+            var fromCmd = $@"ac_vendor v left outer join ac_vendor_region r on v.region_code = r.region_code";
+            var result = Utils.GetSqlQueryResult<AcVendorView>(fromCmd, selectCmd, dbParas);
             return result.ToList();
+        }
+
+        public List<AcVendorMapping> GetVendorMappings(string searchValue)
+        {
+            return db.AcVendorMappings.Where(a => a.VENDOR_CODE.Contains(searchValue) || a.VENDOR_NAME.Contains(searchValue)).ToList();
+        }
+
+        public List<AcVendorRegion> GetVendorRegions()
+        {
+            var result = Utils.GetSqlQueryResult<AcVendorRegion>("ac_vendor_region", "*", new List<DbParameter>());
+            return result.ToList();
+        }
+
+        public AcVendor GetVendor(string vendorCode)
+        {
+            var vendor = db.AcVendors.FirstOrDefault(a => a.VENDOR_CODE == vendorCode);
+            if (vendor == null)
+                return new AcVendor();
+            else
+                return vendor;
+        }
+
+        public void AddVendor(AcVendor vendor)
+        {
+            try
+            {
+                db.AcVendors.Add(vendor);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void UpdateVendor(AcVendor vendor)
+        {
+            try
+            {
+                db.Entry(vendor).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public void DeleteVendor(string vendorCode)
+        {
+            try
+            {
+                var vendor = db.AcVendors.FirstOrDefault(a => a.VENDOR_CODE.Equals(vendorCode));
+                if (vendor != null)
+                {
+                    db.AcVendors.Remove(vendor);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+            }
+        }
+
+        public bool IsExistingVendorCode(string vendorCode)
+        {
+            return db.AcVendors.Count(a => a.VENDOR_CODE == vendorCode) == 1 ? true : false;
         }
 
         #endregion

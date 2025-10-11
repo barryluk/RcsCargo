@@ -106,8 +106,8 @@ namespace DbUtils
         public DbSet<DbUtils.Models.Accounting.VoucherDesc> VoucherDesc { get; set; }
         public DbSet<DbUtils.Models.Accounting.AcCustomer> AcCustomers { get; set; }
         public DbSet<DbUtils.Models.Accounting.AcCustomerRegion> AcCustomerRegions { get; set; }
-        public DbSet<DbUtils.Models.Accounting.Vendor> AcVendors { get; set; }
-        public DbSet<DbUtils.Models.Accounting.VendorRegion> AcVendorRegions { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcVendor> AcVendors { get; set; }
+        public DbSet<DbUtils.Models.Accounting.AcVendorRegion> AcVendorRegions { get; set; }
         public DbSet<DbUtils.Models.Accounting.LedgerAccount> LedgerAccounts { get; set; }
         public DbSet<DbUtils.Models.Accounting.AcArApInvoice> AcArApInvoices { get; set; }
         public DbSet<DbUtils.Models.Accounting.AcCustomerMapping> AcCustomerMappings { get; set; }

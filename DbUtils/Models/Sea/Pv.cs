@@ -112,6 +112,7 @@ namespace DbUtils.Models.Sea
         public string PV_TYPE { get; set; }
         public string PV_CATEGORY { get; set; }
         public string JOB_NO { get; set; }
+        public string HBL_NO { get; set; }
         public string VES_CODE { get; set; }
         public string VES_DESC { get; set; }
         public string VOYAGE { get; set; }

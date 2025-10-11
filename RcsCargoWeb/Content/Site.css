@@ -301,6 +301,12 @@ div[data-role="buttongroup"] {
     margin-left: 1.5em;
 }
 
+.nav-item .fa-dot-circle.nav-icon {
+    font-size: 0.7rem !important;
+    color: coral;
+    margin-left: 3em;
+}
+
 .nav-item p {
     font-size: 0.95rem;
 }

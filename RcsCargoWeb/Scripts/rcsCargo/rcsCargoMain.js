@@ -30,39 +30,36 @@ async function loadScripts() {
     //$("div.wrapper .content-wrapper").html("");
 
     //Disable cache for script files
-    let version = kendo.toString(new Date(), "yyyyMMddHHmmss");
-    data = new ((await import(`../../Scripts/rcsCargo/data.js`)).default);
-    utils = new ((await import(`../../Scripts/rcsCargo/utils.js`)).default);
-    controls = new ((await import(`../../Scripts/rcsCargo/controls.js`)).default);
+    let version = localStorage.scriptVersion;
+    data = new ((await import(`../../Scripts/rcsCargo/data.js?v=${version}`)).default);
+    utils = new ((await import(`../../Scripts/rcsCargo/utils.js?v=${version}`)).default);
+    controls = new ((await import(`../../Scripts/rcsCargo/controls.js?v=${version}`)).default);
 
-    controllers.masterRecords = new ((await import(`../../Scripts/rcsCargo/masterRecords.js`)).default);
-    controllers.fileStation = new ((await import(`../../Scripts/rcsCargo/fileStation.js`)).default);
-    controllers.customer = new ((await import(`../../Scripts/rcsCargo/customer.js`)).default);
-    controllers.chargeTemplate = new ((await import(`../../Scripts/rcsCargo/chargeTemplate.js`)).default);
-    controllers.airMawb = new ((await import(`../../Scripts/rcsCargo/airMawb.js`)).default);
-    controllers.airBooking = new ((await import(`../../Scripts/rcsCargo/airBooking.js`)).default);
-    controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js`)).default);
-    controllers.airInvoice = new ((await import(`../../Scripts/rcsCargo/airInvoice.js`)).default);
-    controllers.airPv = new ((await import(`../../Scripts/rcsCargo/airPv.js`)).default);
+    controllers.masterRecords = new ((await import(`../../Scripts/rcsCargo/masterRecords.js?v=${version}`)).default);
+    controllers.fileStation = new ((await import(`../../Scripts/rcsCargo/fileStation.js?v=${version}`)).default);
+    controllers.customer = new ((await import(`../../Scripts/rcsCargo/customer.js?v=${version}`)).default);
+    controllers.chargeTemplate = new ((await import(`../../Scripts/rcsCargo/chargeTemplate.js?v=${version}`)).default);
+    controllers.airMawb = new ((await import(`../../Scripts/rcsCargo/airMawb.js?v=${version}`)).default);
+    controllers.airBooking = new ((await import(`../../Scripts/rcsCargo/airBooking.js?v=${version}`)).default);
+    controllers.airHawb = new ((await import(`../../Scripts/rcsCargo/airHawb.js?v=${version}`)).default);
+    controllers.airInvoice = new ((await import(`../../Scripts/rcsCargo/airInvoice.js?v=${version}`)).default);
+    controllers.airPv = new ((await import(`../../Scripts/rcsCargo/airPv.js?v=${version}`)).default);
     controllers.airBatchPv = controllers.airPv;
-    controllers.airOtherJob = new ((await import(`../../Scripts/rcsCargo/airOtherJob.js`)).default);
-    controllers.airReport = new ((await import(`../../Scripts/rcsCargo/airReport.js`)).default);
-    controllers.airTransfer = new ((await import(`../../Scripts/rcsCargo/airTransfer.js`)).default);
-    controllers.seaBooking = new ((await import(`../../Scripts/rcsCargo/seaBooking.js`)).default);
-    controllers.seaHbl = new ((await import(`../../Scripts/rcsCargo/seaHbl.js`)).default);
-    controllers.seaSob = new ((await import(`../../Scripts/rcsCargo/seaSob.js`)).default);
-    controllers.seaInvoice = new ((await import(`../../Scripts/rcsCargo/seaInvoice.js`)).default);
-    controllers.seaPv = new ((await import(`../../Scripts/rcsCargo/seaPv.js`)).default);
-    controllers.seaReport = new ((await import(`../../Scripts/rcsCargo/seaReport.js`)).default);
-    controllers.seaTransfer = new ((await import(`../../Scripts/rcsCargo/seaTransfer.js`)).default);
-    controllers.accounting = new ((await import(`../../Scripts/rcsCargo/accounting.js`)).default);
-    controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js`)).default);
+    controllers.airOtherJob = new ((await import(`../../Scripts/rcsCargo/airOtherJob.js?v=${version}`)).default);
+    controllers.airReport = new ((await import(`../../Scripts/rcsCargo/airReport.js?v=${version}`)).default);
+    controllers.airTransfer = new ((await import(`../../Scripts/rcsCargo/airTransfer.js?v=${version}`)).default);
+    controllers.seaBooking = new ((await import(`../../Scripts/rcsCargo/seaBooking.js?v=${version}`)).default);
+    controllers.seaHbl = new ((await import(`../../Scripts/rcsCargo/seaHbl.js?v=${version}`)).default);
+    controllers.seaSob = new ((await import(`../../Scripts/rcsCargo/seaSob.js?v=${version}`)).default);
+    controllers.seaInvoice = new ((await import(`../../Scripts/rcsCargo/seaInvoice.js?v=${version}`)).default);
+    controllers.seaPv = new ((await import(`../../Scripts/rcsCargo/seaPv.js?v=${version}`)).default);
+    controllers.seaReport = new ((await import(`../../Scripts/rcsCargo/seaReport.js?v=${version}`)).default);
+    controllers.seaTransfer = new ((await import(`../../Scripts/rcsCargo/seaTransfer.js?v=${version}`)).default);
+    controllers.accounting = new ((await import(`../../Scripts/rcsCargo/accounting.js?v=${version}`)).default);
+    controllers.sysConsole = new ((await import(`../../Scripts/rcsCargo/sysConsole.js?v=${version}`)).default);
 
-    $.ajax({
-        url: "../Home/GetScriptVersion",
-        dataType: "text",
-        success: function (result) { data.scriptVersion = result },
-    });
+    data.scriptVersion = await $.ajax({ url: "../Home/GetScriptVersion", dataType: "text" });
+    localStorage.scriptVersion = data.scriptVersion;
 }
 
 function setTimer() {
@@ -95,8 +92,8 @@ function setTimer() {
             }
         });
 
-        //run the prefetchGlobalVariables every 10 minutes
-        if (Math.floor((new Date - data.masterRecords.lastUpdateTime) / 60000) >= 10) {
+        //run the prefetchGlobalVariables every 60 minutes
+        if (Math.floor((new Date - data.masterRecords.lastUpdateTime) / 60000) >= 60) {
             data.prefetchGlobalVariables();
         }
 

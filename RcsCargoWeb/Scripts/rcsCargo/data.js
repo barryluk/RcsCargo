@@ -38,15 +38,17 @@ var masterRecords = {
     toOrder: ["TO ORDER", "TO THE ORDER", "TO THIS ORDER"],
     printOnHbl: ["THIS SHIPMENT CONTAINS NO SOLID WOOD PACKING MATERIALS", "THIS SHIPMENT CONTAINS HEAT TREATED WOODEN PALLETS WHICH ARE COMPLIED THE STANDARD OF ISPM 15", "SHIPMENT CONTAINS REGULATED WOOD PACKAGING MATERIALS WITH IPPC LOGO MARKED", "PALLETS THAT HAVE TREATED AND MARKED IN COMPLIANCE WITH IPPC 15 STANDARD (WITH IPPC LOGO)"],
     asCarrier: ["RCS LOGISTICS INC. AS CARRIER"],
-    acDepartment: [{ text: "", value: "" }, { text: "空运", value: "01" }, { text: "海运", value: "02" }, { text: "香港代开", value: "03" }],
     equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
-    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {}, accountingYears: {}, ledgerAccounts: {}, voucherDesc: {}, acPersons: {}, arInvoices: [],
+    vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {},
+    acDepartment: [{ text: "", value: "" }, { text: "空运", value: "01" }, { text: "海运", value: "02" }, { text: "香港代开", value: "03" }],
+    acPersonDept: {}, acCustomerRegion: {}, acVendorRegion: {}, accountingYears: {}, ledgerAccounts: {}, voucherDesc: {}, acPersons: {}, arInvoices: [],
 };
 var dropdownlistControls = ["airline", "ediTerminal", "region", "port", "seaPort", "country", "groupCode", "customer", "customerAddr", "customerAddrEditable", "pkgUnit", "charge", "chargeQtyUnit", "currency",
     "chargeTemplate", "vwtsFactor", "incoterm", "paymentTerms", "showCharges", "invoiceType", "invoiceCategory", "pvType", "fltServiceType", "carrierContract", "commodity",
     "unUsedBooking", "selectMawb", "selectHawb", "selectJob", "selectLot", "logFolders", "logFiles", "seqType", "sysCompany", "carrier", "vessel", "seaServiceType", "toOrder",
-    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "selectContainer", "transferSysCompany", "seaInvoiceCategory", "seaInvoiceFormat" ];
+    "printOnHbl", "unUsedSeaBooking", "selectSeaJob", "selectHbl", "selectVoyage", "selectContainer", "transferSysCompany", "seaInvoiceCategory", "seaInvoiceFormat",
+    "acPersonDept", "acCustomerRegion", "acVendorRegion" ];
 
 var frameworkHtmlElements = {
     sidebar: function (menuItems) {
@@ -89,11 +91,11 @@ var frameworkHtmlElements = {
                                 </a>
                             </li>`;
 
-        var defaultIcon = "fa-circle";
-        menuItems.forEach(function (folder) {
-            if (folder.TYPE == "folder") {
-                let newBadge = `<span class="badge badge-danger">New</span>`;
-                html += `
+        let defaultIcon = "fa-circle";
+        let defaultIcon2 = "fa-dot-circle";
+        menuItems.filter(a => a.TYPE == "folder" && a.FOLDER_LEVEL == 1).forEach(function (folder) {
+            let newBadge = `<span class="badge badge-danger">New</span>`;
+            html += `
                     <li class="nav-item">
                         <a href="#" class="nav-link" data-controller="${folder.CONTROLLER}" data-action="${folder.ACTION}" data-id="${folder.DATA_ID}" data-userType="${folder.USER_TYPE}">
                             <i class="nav-icon fa ${folder.ICON}"></i>
@@ -103,23 +105,48 @@ var frameworkHtmlElements = {
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">`;
-                        
-                menuItems.forEach(function (item) {
-                    if (item.TYPE == "menu" && item.PARENT_ID == folder.MODULE_ID && !data.isEmptyString(item.CONTROLLER) && item.ENABLE == "Y") {
-                        html += `
+
+            //Subfolder FOLDER_LEVEL = 2
+            menuItems.filter(a => a.TYPE == "folder" && a.PARENT_ID == folder.MODULE_ID && a.FOLDER_LEVEL == 2).forEach(function (subfolder) {
+                html += `
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fa ${subfolder.ICON}" style="margin-left: 1.5em;"></i>
+                                    <p>
+                                        ${subfolder.DISPLAY_NAME}
+                                        <i class="fas fa-angle-left right"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview" style="display: none;">`;
+
+                menuItems.filter(a => a.TYPE == "menu" && a.PARENT_ID == subfolder.MODULE_ID && !data.isEmptyString(a.CONTROLLER) && a.ENABLE == "Y").forEach(function (item) {
+                    html += `
+                                    <li class="nav-item">
+                                        <a href="javascript:void(0)" data-controller="${item.CONTROLLER}" data-action="${item.ACTION}" data-id="${item.DATA_ID}" data-userType="${folder.USER_TYPE}" class="nav-link">
+                                            <i class="far ${(data.isEmptyString(item.ICON) ? defaultIcon2 : item.ICON)} nav-icon"></i>
+                                            <p>${item.DISPLAY_NAME}</p>
+                                        </a>
+                                    </li>`;
+                });
+
+                html += `
+                                </ul>
+                            </li>`;
+            });
+
+            menuItems.filter(a => a.TYPE == "menu" && a.PARENT_ID == folder.MODULE_ID && !data.isEmptyString(a.CONTROLLER) && a.ENABLE == "Y").forEach(function (item) {
+                html += `
                             <li class="nav-item">
                                 <a href="javascript:void(0)" data-controller="${item.CONTROLLER}" data-action="${item.ACTION}" data-id="${item.DATA_ID}" data-userType="${folder.USER_TYPE}" class="nav-link">
                                     <i class="far ${(data.isEmptyString(item.ICON) ? defaultIcon : item.ICON)} nav-icon"></i>
                                     <p>${item.DISPLAY_NAME}</p>
                                 </a>
                             </li>`;
-                    }
-                });
+            });
 
-                html += `
+            html += `
                         </ul>
                     </li>`;
-            }
         });
 
         html += `
@@ -289,7 +316,7 @@ var frameworkHtmlElements = {
     },
     controlSidebar: function () {
         return
-            `<aside class="control-sidebar control-sidebar-dark">
+        `<aside class="control-sidebar control-sidebar-dark">
                 <div class="p-3">
                     <h5>Title</h5>
                     <p>Sidebar content</p>
@@ -1397,6 +1424,7 @@ var indexPages = [
                         }
                     }
                 },
+                { field: "HBL_NO", title: "HB/L#" },
                 { title: "Vessel Voyage", template: ({ VES_CODE, VOYAGE }) => `${VES_CODE} / ${VOYAGE}` },
                 { title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE, "date") },
                 { field: "CUSTOMER_DESC", title: "Customer" },
@@ -1441,6 +1469,7 @@ var indexPages = [
                         }
                     }
                 },
+                { field: "HBL_NO", title: "HB/L#" },
                 { title: "Vessel Voyage", template: ({ VES_CODE, VOYAGE }) => `${VES_CODE} / ${VOYAGE}` },
                 { title: "Departure Date", template: ({ LOADING_PORT_DATE }) => data.formatDateTime(LOADING_PORT_DATE, "date") },
                 { field: "CUSTOMER_DESC", title: "Customer" },
@@ -1540,6 +1569,158 @@ var indexPages = [
                 { field: "CONSIGNEE_DESC", title: "Consignee" },
                 { field: "IS_TRANSFERRED", title: "Transferred?" },
             ],
+        },
+    },
+    {
+        pageName: "acPerson",
+        id: "",
+        title: "Persons",
+        additionalScript: "initSettingGridControls",
+        updateUrl: "../Accounting/SystemSetting/UpdatePerson",
+        deleteUrl: "../Accounting/SystemSetting/DeletePerson",
+        targetContainer: {},
+        searchControls: [],
+        gridConfig: {
+            gridName: "gridPersonIndex",
+            dataSourceUrl: "../Accounting/SystemSetting/GridPerson_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "PERSON_CODE", title: "ID" },
+                { field: "PERSON_NAME", title: "Name" },
+                { field: "DEP_NAME", title: "Department" },
+                { field: "EMAIL", title: "Email" },
+                { field: "PHONE", title: "Phone" },
+                { template: ({ PERSON_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${PERSON_CODE}"></i>`, width: 30 },
+                { template: ({ PERSON_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${PERSON_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "PERSON_CODE",
+            fields: [
+                { name: "PERSON_CODE", label: "ID", readonly: "edit", required: "true" },
+                { name: "PERSON_NAME", label: "Name", required: "true" },
+                { name: "DEP_CODE", label: "Department", type: "acPersonDept", required: "true" },
+                { name: "EMAIL", label: "Email" },
+                { name: "PHONE", label: "Phone" },
+            ],
+            validation: {
+                rules: {
+                    personCodeExistsRule: function (input) {
+                        if (input.is("[name=PERSON_CODE]")) {
+                            return !utils.isExistingAcPersonCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { personCodeExistsRule: "Person code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "acCustomer",
+        id: "",
+        title: "Customers",
+        additionalScript: "initSettingGridControls",
+        updateUrl: "../Accounting/SystemSetting/UpdateCustomer",
+        deleteUrl: "../Accounting/SystemSetting/DeleteCustomer",
+        targetContainer: {},
+        searchControls: [{ label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Customer Name" }],
+        gridConfig: {
+            gridName: "gridCustomerIndex",
+            dataSourceUrl: "../Accounting/SystemSetting/GridCustomer_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "CUSTOMER_CODE", title: "ID" },
+                { field: "CUSTOMER_NAME", title: "Customer name" },
+                { field: "SHORT_NAME", title: "Short name" },
+                { field: "REGION_NAME", title: "Region" },
+                { template: ({ CUSTOMER_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${CUSTOMER_CODE}"></i>`, width: 30 },
+                { template: ({ CUSTOMER_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${CUSTOMER_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "CUSTOMER_CODE",
+            fields: [
+                { name: "CUSTOMER_CODE", label: "ID", readonly: "edit", required: "true" },
+                { name: "CUSTOMER_NAME", label: "Customer name", required: "true" },
+                { name: "SHORT_NAME", label: "Short name", required: "true" },
+                { name: "REGION_CODE", label: "Region", type: "acCustomerRegion", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    customerCodeExistsRule: function (input) {
+                        if (input.is("[name=CUSTOMER_CODE]")) {
+                            return !utils.isExistingAcCustomerCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { customerCodeExistsRule: "Customer code already exists in the database!", },
+            },
+        },
+    },
+    {
+        pageName: "acVendor",
+        id: "",
+        title: "Vendors",
+        additionalScript: "initSettingGridControls",
+        updateUrl: "../Accounting/SystemSetting/UpdateVendor",
+        deleteUrl: "../Accounting/SystemSetting/DeleteVendor",
+        targetContainer: {},
+        searchControls: [{ label: "Search for", type: "searchInput", name: "searchInput", searchLabel: "Vendor Name" }],
+        gridConfig: {
+            gridName: "gridVendorIndex",
+            dataSourceUrl: "../Accounting/SystemSetting/GridVendor_Read",
+            linkIdPrefix: "",
+            linkTabTitle: "",
+            toolbar: [
+                { name: "new", text: "New", iconClass: "k-icon k-i-file-add" },
+                { name: "excel", text: "Export Excel" },
+                { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
+            ],
+            columns: [
+                { field: "VENDOR_CODE", title: "ID" },
+                { field: "VENDOR_NAME", title: "Vendor name" },
+                { field: "SHORT_NAME", title: "Short name" },
+                { field: "REGION_NAME", title: "Region" },
+                { template: ({ VENDOR_CODE }) => `<i class="k-icon k-i-pencil handCursor" data-attr="${VENDOR_CODE}"></i>`, width: 30 },
+                { template: ({ VENDOR_CODE }) => `<i class="k-icon k-i-trash handCursor" data-attr="${VENDOR_CODE}"></i>`, width: 30 },
+            ],
+        },
+        schema: {
+            keyField: "VENDOR_CODE",
+            fields: [
+                { name: "VENDOR_CODE", label: "ID", readonly: "edit", required: "true" },
+                { name: "VENDOR_NAME", label: "Vendor name", required: "true" },
+                { name: "SHORT_NAME", label: "Short name", required: "true" },
+                { name: "REGION_CODE", label: "Region", type: "acVendorRegion", required: "true" },
+            ],
+            validation: {
+                rules: {
+                    vendorCodeExistsRule: function (input) {
+                        if (input.is("[name=VENDOR_CODE]")) {
+                            return !utils.isExistingAcVendorCode(input.val());
+                        } else {
+                            return true;
+                        }
+                    }
+                },
+                messages: { vendorCodeExistsRule: "Vendor code already exists in the database!", },
+            },
         },
     },
     {
@@ -4149,7 +4330,7 @@ var masterForms = [
                     { label: "Departure Date", type: "date", name: "LOADING_PORT_DATE", colWidth: 3 },
                     { label: "Place of Discharge", type: "seaPort", name: "DISCHARGE_PORT", colWidth: 6 },
                     { label: "Arrival Date", type: "date", name: "DISCHARGE_PORT_DATE", colWidth: 3 },
-                    { label: "Place of Delivery", type: "seaPort", name: "DELIVERY_PORT", colWidth: 6},
+                    { label: "Place of Delivery", type: "seaPort", name: "DELIVERY_PORT", colWidth: 6 },
                     { label: "Arrival Date", type: "date", name: "DELIVERY_PORT_DATE", colWidth: 3 },
                     { label: "Final Destination", type: "seaPort", name: "DEST_PORT", colWidth: 6 },
                     { label: "Cargo Ready Date", type: "date", name: "CARGO_READY_DATE", colWidth: 3 },
@@ -4353,7 +4534,7 @@ var masterForms = [
                 formControls: [
                     { label: "HB/L #", type: "text", name: "HBL_NO", colWidth: 6 },
                     { label: "", type: "emptyBlock", colWidth: 6 },
-                    { label: "Booking #", type: "unUsedSeaBooking", name: "BOOKING_NO", colWidth: 6 },                    
+                    { label: "Booking #", type: "unUsedSeaBooking", name: "BOOKING_NO", colWidth: 6 },
                     { label: "MB/L #", type: "text", name: "MASTER_HBL_NO", colWidth: 6 },
                     { label: "Job #", type: "selectSeaJob", name: "JOB_NO", colWidth: 6 },
                     { label: "AMS MB/L #", type: "text", name: "AMS_MASTER_HBL_NO", colWidth: 6 },
@@ -4775,7 +4956,7 @@ var masterForms = [
             {
                 title: "Container / Cargo",
                 name: "cargoPo",
-                formGroups: ["container", "cargo" ]
+                formGroups: ["container", "cargo"]
             },
         ],
         formGroups: [
@@ -5243,7 +5424,7 @@ export default class {
                             if (data.user.UserCompanies.filter(a => a.COMPANY_ID == localStorage.companyId).length == 0)
                                 localStorage.companyId = "";
                         }
-                        
+
                         if (!data.isEmptyString(localStorage.companyId)) {
                             companyId = localStorage.companyId;
                         } else {
@@ -5422,7 +5603,7 @@ export default class {
             success: function (result) {
                 user = result;
             },
-            
+
         });
 
         await $.ajax({
@@ -5609,35 +5790,19 @@ export default class {
             }
         });
 
-        $.ajax({
+        masterRecords.ledgerAccounts = await $.ajax({
             url: "../Accounting/Ledger/GetLedgerAccounts",
             success: function (result) {
                 for (var i in result) {
                     result[i].AC_NAME_DISPLAY = result[i].AC_CODE + " - " + result[i].AC_NAME;
                 }
-                masterRecords.ledgerAccounts = result;
             }
         });
-
-        $.ajax({
-            url: "../Accounting/SystemSetting/GetVoucherDesc",
-            success: function (result) {
-                masterRecords.voucherDesc = result;
-            }
-        });
-
-        $.ajax({
-            url: "../Accounting/SystemSetting/GetPersons",
-            success: function (result) {
-                masterRecords.acPersons = result;
-            }
-        });
-
-        $.ajax({
-            url: "../Accounting/SystemSetting/GetAccountingYears",
-            success: function (result) {
-                masterRecords.accountingYears = result;
-            }
-        });
+        masterRecords.accountingYears = await $.ajax({ url: "../Accounting/SystemSetting/GetAccountingYears" });
+        masterRecords.acPersons = await $.ajax({ url: "../Accounting/SystemSetting/GetPersons" });
+        masterRecords.voucherDesc = await $.ajax({ url: "../Accounting/SystemSetting/GetVoucherDesc" });
+        masterRecords.acPersonDept = await $.ajax({ url: "../Accounting/SystemSetting/GetPersonDepartments" });
+        masterRecords.acCustomerRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetCustomerRegions" });
+        masterRecords.acVendorRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetVendorRegions" });
     }
 }

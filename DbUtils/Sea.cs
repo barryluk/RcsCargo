@@ -575,19 +575,45 @@ namespace DbUtils
         {
             var dbParas = new List<DbParameter>
             {
-                new DbParameter { FieldName = "inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "voyage", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
-                new DbParameter { FieldName = "inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
-                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
-                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                new DbParameter { FieldName = "i.inv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "ir.ref_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.voyage", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "i.inv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "i.inv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "i.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "i.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<SeaInvoiceView>("s_invoice", "*", dbParas);
+            var result = Utils.GetSqlQueryResult<SeaInvoiceView>(
+                "s_invoice i left outer join s_invoice_ref_no ir on i.inv_no = ir.inv_no and i.company_id = ir.company_id ", "i.*, ir.ref_no hbl_no", dbParas);
 
+            var filteredResults = result.Select(a => new SeaInvoiceView
+            {
+                INV_NO = a.INV_NO,
+                JOB_NO = a.JOB_NO,
+                COMPANY_ID = a.COMPANY_ID,
+                FRT_MODE = a.FRT_MODE,
+                INV_TYPE = a.INV_TYPE,
+                INV_CATEGORY = a.INV_CATEGORY,
+                CUSTOMER_CODE = a.CUSTOMER_CODE,
+                CUSTOMER_DESC = a.CUSTOMER_DESC,
+                VES_CODE = a.VES_CODE,
+                VES_DESC = a.VES_DESC,
+                VOYAGE = a.VOYAGE,
+                INV_DATE = a.INV_DATE,
+                LOADING_PORT_DATE = a.LOADING_PORT_DATE,
+                CURR_CODE = a.CURR_CODE,
+                EX_RATE = a.EX_RATE,
+                AMOUNT = a.AMOUNT,
+                AMOUNT_HOME = a.AMOUNT_HOME,
+                IS_VOIDED = a.IS_VOIDED,
+                CREATE_USER = a.CREATE_USER,
+                CREATE_DATE = a.CREATE_DATE,
+                HBL_NO = string.Join(",", result.Where(r => r.INV_NO == a.INV_NO).Select(r => r.HBL_NO).Distinct().ToList())
+            }).Distinct().ToList();
             return result;
         }
 
@@ -680,20 +706,46 @@ namespace DbUtils
         {
             var dbParas = new List<DbParameter>
             {
-                new DbParameter { FieldName = "pv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "voyage", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
-                new DbParameter { FieldName = "pv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
-                new DbParameter { FieldName = "pv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
-                new DbParameter { FieldName = "company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
-                new DbParameter { FieldName = "frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+                new DbParameter { FieldName = "p.pv_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "pr.ref_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.job_no", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.ves_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.voyage", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.customer_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.customer_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "p.pv_date", ParaName = "startDate", ParaCompareType = DbParameter.CompareType.greaterEquals, Value = startDate },
+                new DbParameter { FieldName = "p.pv_date", ParaName = "endDate", ParaCompareType = DbParameter.CompareType.lessEquals, Value = endDate },
+                new DbParameter { FieldName = "p.company_id", ParaName = "company_id", ParaCompareType = DbParameter.CompareType.equals, Value = companyId },
+                new DbParameter { FieldName = "p.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
             };
-            var result = Utils.GetSqlQueryResult<SeaPvView>("s_pv", "*", dbParas);
+            var result = Utils.GetSqlQueryResult<SeaPvView>(
+                "s_pv p left outer join s_pv_ref_no pr on p.pv_no = pr.pv_no and p.company_id = pr.company_id ", "p.*, pr.ref_no hbl_no", dbParas);
 
-            return result;
+            var filteredResults = result.Select(a => new SeaPvView {
+                PV_NO = a.PV_NO,
+                JOB_NO = a.JOB_NO,
+                COMPANY_ID = a.COMPANY_ID,
+                FRT_MODE = a.FRT_MODE,
+                PV_TYPE = a.PV_TYPE,
+                PV_CATEGORY = a.PV_CATEGORY,
+                CUSTOMER_CODE = a.CUSTOMER_CODE,
+                CUSTOMER_DESC = a.CUSTOMER_DESC,
+                VES_CODE = a.VES_CODE,
+                VES_DESC = a.VES_DESC,
+                VOYAGE = a.VOYAGE,
+                PV_DATE = a.PV_DATE,
+                LOADING_PORT_DATE = a.LOADING_PORT_DATE,
+                CURR_CODE = a.CURR_CODE,
+                EX_RATE = a.EX_RATE,
+                AMOUNT = a.AMOUNT,
+                AMOUNT_HOME = a.AMOUNT_HOME,
+                IS_VOIDED = a.IS_VOIDED,
+                CREATE_USER = a.CREATE_USER,
+                CREATE_DATE = a.CREATE_DATE,
+                HBL_NO = string.Join(",", result.Where(r => r.PV_NO == a.PV_NO).Select(r => r.HBL_NO).Distinct().ToList())
+            }).Distinct().ToList();
+
+            return filteredResults;
         }
 
         public SeaPv GetPv(string pvNo, string companyId, string frtMode)

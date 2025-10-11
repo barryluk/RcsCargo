@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DbUtils.Models.Accounting
 {
     [Table("AC_VENDOR")]
-    public class Vendor
+    public class AcVendor
     {
         [Key]
         public string VENDOR_CODE { get; set; }
@@ -19,7 +19,7 @@ namespace DbUtils.Models.Accounting
         public string MODIFY_PERSON { get; set; }
     }
 
-    public class VendorView
+    public class AcVendorView
     {
         [Key]
         public string VENDOR_CODE { get; set; }
@@ -34,7 +34,7 @@ namespace DbUtils.Models.Accounting
     }
 
     [Table("AC_VENDOR_REGION")]
-    public class VendorRegion
+    public class AcVendorRegion
     {
         [Key]
         public string REGION_CODE { get; set; }

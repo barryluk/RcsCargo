@@ -1322,10 +1322,14 @@ namespace DbUtils
                             from {tableName} p left outer join a_other_job j on p.job_no = j.job_no and p.company_id = j.company_id and p.frt_mode = j.frt_mode
                             where j.{setting.SEARCH_FIELD} like '{searchValue}' and p.company_id = '{companyId}' and p.modify_date > sysdate - {days} union ";
                     }
-                    //else if (tableName == "A_PV" && setting.SEARCH_FIELD == "CONTAINER_NO")
-                    //{
-
-                    //}
+                    else if ((tableName == "S_INVOICE" || tableName == "S_PV") && (setting.SEARCH_FIELD == "HBL_NO"))
+                    {
+                        sqlCmd += $@"select p.modify_date RESULT_DATE, p.frt_mode, p.{(tableName == "S_INVOICE" ? "INV_NO" : "PV_NO")} ID, j.REF_NO RESULT_VALUE, 
+                            '{tableName}' TABLE_NAME, '{setting.ID_FIELD}' ID_FIELD
+                            from {tableName} p left outer join {(tableName == "S_INVOICE" ? "S_INVOICE_REF_NO" : "S_PV_REF_NO")} j 
+                            on p.{(tableName == "S_INVOICE" ? "INV_NO" : "PV_NO")} = j.{(tableName == "S_INVOICE" ? "INV_NO" : "PV_NO")} and p.company_id = j.company_id and p.frt_mode = j.frt_mode
+                            where j.REF_NO like '{searchValue}' and p.company_id = '{companyId}' and p.modify_date > sysdate - {days} union ";
+                    }
                     else
                     {
                         sqlCmd += $"select {resultDateField} RESULT_DATE, {frtModeField}, {setting.ID_FIELD} ID, {setting.SEARCH_FIELD} RESULT_VALUE, " +
@@ -1335,7 +1339,7 @@ namespace DbUtils
                 sqlCmd = sqlCmd.Substring(0, sqlCmd.LastIndexOf("union"));
                 sqlCmd += $") result order by result_date desc) where rownum <= {take}";
 
-                //log.Debug(sqlCmd);
+                log.Debug(sqlCmd);
                 var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
                 if (result.Count > 0)
                     results.AddRange(result);

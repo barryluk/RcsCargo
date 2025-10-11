@@ -2,6 +2,48 @@
     constructor() {
     }
 
+    initSettingGridControls = function (pageSetting) {
+        var grid = $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"]`).data("kendoGrid");
+
+        grid.bind("dataBound", function (e) {
+            //Create
+            $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] .k-grid-new`).click(function () {
+                console.log("new", pageSetting);
+                utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "create"),
+                    `Create`, null, null, true, "controllers.masterRecords.editSaveClick");
+                controls.renderFormControl_kendoUI({
+                    id: `${utils.getFormId()}`,
+                    schema: pageSetting.schema,
+                }, true);
+            });
+
+            //Edit
+            $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] i.k-icon.k-i-pencil`).each(function () {
+                $(this).unbind("click");
+                $(this).click(function () {
+                    var key = $(this).attr("data-attr");
+                    utils.alertMessage(controllers.masterRecords.renderControls(pageSetting, "edit"),
+                        `Edit: ${key}`, null, null, true, "controllers.masterRecords.editSaveClick");
+                    controls.renderFormControl_kendoUI({
+                        id: `${utils.getFormId()}`,
+                        schema: pageSetting.schema,
+                    }, true);
+                    controllers.masterRecords.setValuesToControls(pageSetting, key);
+                });
+            });
+
+            //Delete
+            $(`#${pageSetting.id} [name="${pageSetting.gridConfig.gridName}"] i.k-icon.k-i-trash`).each(function () {
+                $(this).unbind("click");
+                $(this).click(function () {
+                    var key = $(this).attr("data-attr");
+                    utils.confirmMessage(`Are you sure to delete this record: ${key}?`,
+                        { pageSetting: pageSetting, key: key }, "controllers.masterRecords.deleteConfirmClick");
+                });
+            });
+        });
+    }
+
     initReport = function (pageSetting) {
         $(`#${utils.getFormId()} [name=main]`).html(`<div class="spreadSheetReport" style="width: 100%; height: 800px"></div>`);
         let spreadsheet = $(`#${utils.getFormId()} .spreadSheetReport`).kendoSpreadsheet({
@@ -727,7 +769,8 @@
                                 } else {
                                     cells.push({
                                         value: results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0].AMT_DR
-                                            - results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0].AMT_CR });
+                                            - results.filter(a => a.CUSTOMER_CODE == record.CUSTOMER_CODE && a.PERIOD == currentPeriod)[0].AMT_CR
+                                    });
                                 }
 
                                 currentPeriod--;
@@ -1401,7 +1444,7 @@
         });
         if (!utils.isEmptyString(errorMsg) && !valid)
             utils.showNotification(errorMsg, "error", ".k-window .k-i-close");
-            
+
         //valid = false;
         console.log(drAmt, crAmt, model, valid);
 

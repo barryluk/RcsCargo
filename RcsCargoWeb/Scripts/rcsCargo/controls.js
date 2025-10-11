@@ -38,7 +38,7 @@
         $("button.btn.btn-sidebar").click(function () {
             let html = `
                 <div class="row col-sm-12" id="dialog_powerSearch" style="width: 650px">
-                    <div class="col-sm-8">
+                    <div class="col-sm-7">
                         <span class="k-input k-textbox k-input-solid k-input-md k-rounded-md" style="max-width: 340px; margin: 2px; padding: 0px">
                             <input class="k-input-inner" id="powerSearch_searchValue" placeholder="Search" style="max-width: 100%" />
                             <span class="k-input-separator k-input-separator-vertical"></span>
@@ -47,7 +47,7 @@
                             </span>
                         </span>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-5">
                         <label class="col-form-label">Days from now:</label>
                         <input class="form-control-dropdownlist" id="powerSearch_days" style="width: 100px" />
                     </div>
@@ -848,17 +848,6 @@
             return false;
     }
 
-    //isEmptyString = function (str) {
-    //    if (str == null)
-    //        return true;
-    //    if (typeof str != "string")
-    //        return true;
-    //    if (str.trim().length == 0)
-    //        return true;
-
-    //    return (!str || 0 === str.length);
-    //}
-
     initIndexPage = function (pageSetting) {
         if (pageSetting.gridConfig != null) {
             $(`#${pageSetting.id}`).html(data.htmlElements.indexPage(pageSetting.title, pageSetting.gridConfig.gridName));
@@ -874,10 +863,12 @@
             eval(`${pageSetting.initScript}(pageSetting)`);
 
         if (pageSetting.additionalScript != null) {
-            if (["country", "port", "seaPort", "airline", "carrier", "vessel", "currency", "charge", "chargeTemplate"].indexOf(pageSetting.pageName) == -1)
-                eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
-            else
+            if (["country", "port", "seaPort", "airline", "carrier", "vessel", "currency", "charge", "chargeTemplate"].indexOf(pageSetting.pageName) >= 0)
                 eval(`controllers.masterRecords.${pageSetting.additionalScript}(pageSetting)`);
+            else if (["acPerson", "acCustomer", "acVendor"].indexOf(pageSetting.pageName) >= 0)
+                eval(`controllers.accounting.${pageSetting.additionalScript}(pageSetting)`);
+            else
+                eval(`controllers.${pageSetting.pageName}.${pageSetting.additionalScript}(pageSetting)`);
         }
 
         //kendo.ui.progress($(".container-fluid"), false);
@@ -1230,7 +1221,7 @@
                         controllers.accounting.newArApInvoice(vouchType, popupWin);
                     });
                 } else {
-                    if (pageSetting.gridConfig.linkIdPrefix != null) {
+                    if (!utils.isEmptyString(pageSetting.gridConfig.linkIdPrefix)) {
                         $(`#${formId} .k-grid button:contains("New")`).bind("click", function (e) {
                             var id = `${pageSetting.gridConfig.linkIdPrefix}_NEW_${data.companyId}_${utils.getFrtMode()}`;
                             controls.append_tabStripMain(`${pageSetting.title}# NEW`, id, pageSetting.pageName);
@@ -1628,7 +1619,7 @@
     //Render form controls (KendoUI)
     renderFormControl_kendoUI = function (masterForm, enableValidation = false) {
         masterForm.id = utils.getFormId();
-        //console.log(masterForm);
+        console.log(masterForm);
         //kendoValidator
         var validator = $(`#${masterForm.id}`).data("kendoValidator");
         if (validator == null && enableValidation) {
@@ -3146,6 +3137,33 @@
                 optionLabel: " ",
                 filter: "startswith",
                 dataSource: data.masterRecords.groupCodes
+            });
+        });
+
+        //kendoDropDownList for accounting person dept
+        $(`#${masterForm.id} input[type=acPersonDept]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "DEP_NAME",
+                dataValueField: "DEP_CODE",
+                dataSource: data.masterRecords.acPersonDept,
+            });
+        });
+
+        //kendoDropDownList for accounting customer region
+        $(`#${masterForm.id} input[type=acCustomerRegion]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "REGION_NAME",
+                dataValueField: "REGION_CODE",
+                dataSource: data.masterRecords.acCustomerRegion,
+            });
+        });
+
+        //kendoDropDownList for accounting vendor region
+        $(`#${masterForm.id} input[type=acVendorRegion]`).each(function () {
+            $(this).kendoDropDownList({
+                dataTextField: "REGION_NAME",
+                dataValueField: "REGION_CODE",
+                dataSource: data.masterRecords.acVendorRegion,
             });
         });
 

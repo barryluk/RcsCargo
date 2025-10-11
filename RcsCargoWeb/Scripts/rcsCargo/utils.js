@@ -147,16 +147,16 @@
         let formId = utils.getFormId(selector);
         if (formId.indexOf("Index") == -1) {
             let masterForm = data.masterForms.filter(a => a.formName == formId.split("_")[0])[0];
-            masterForm.id = formId;
-            masterForm.mode = utils.getEditMode(selector);
+            try {
+                masterForm.id = formId;
+                masterForm.mode = utils.getEditMode(selector);
 
-            if (masterForm.formName == "airHawb" && utils.getFrtMode() == "AI") {
-                masterForm.schema.fields.filter(a => a.name == "HAWB_NO")[0].required = true;
-                masterForm.schema.fields.filter(a => a.name == "BOOKING_NO")[0].readonly = "always";
-
-                //let bookingNoCtrl = masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.filter(a => a.name == "BOOKING_NO")[0];
-                //let bookingNoCtrolIndex = masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.indexOf(bookingNoCtrl);
-                //masterForm.formGroups.filter(a => a.name == "mainInfo")[0].formControls.splice(bookingNoCtrolIndex, 1);
+                if (masterForm.formName == "airHawb" && utils.getFrtMode() == "AI") {
+                    masterForm.schema.fields.filter(a => a.name == "HAWB_NO")[0].required = true;
+                    masterForm.schema.fields.filter(a => a.name == "BOOKING_NO")[0].readonly = "always";
+                }
+            } catch (err) {
+                console.log(err, masterForm);
             }
             return masterForm;
         } else {
@@ -421,7 +421,7 @@
     }
 
     isExistingCustomerCode = function (customerCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Customer/IsExistingCustomerCode",
             dataType: "text",
@@ -436,7 +436,7 @@
     }
 
     isExisitingChargeTemplateName = function (templateName) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/ChargeTemplate/IsExistingChargeTemplateName",
             dataType: "text",
@@ -451,7 +451,7 @@
     }
 
     isExistingChargeCode = function (chargeCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Charge/IsExistingChargeCode",
             dataType: "text",
@@ -466,7 +466,7 @@
     }
 
     isExistingCountryCode = function (countryCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Country/IsExistingCountryCode",
             dataType: "text",
@@ -481,7 +481,7 @@
     }
 
     isExistingPortCode = function (portCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Port/IsExistingPortCode",
             dataType: "text",
@@ -496,7 +496,7 @@
     }
 
     isExistingSeaPortCode = function (portCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/SeaPort/IsExistingSeaPortCode",
             dataType: "text",
@@ -511,7 +511,7 @@
     }
 
     isExistingAirlineCode = function (airlineCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Airline/IsExistingAirlineCode",
             dataType: "text",
@@ -526,7 +526,7 @@
     }
 
     isExistingCarrierCode = function (carrierCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Carrier/IsExistingCarrierCode",
             dataType: "text",
@@ -541,7 +541,7 @@
     }
 
     isExistingVesselCode = function (vesCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Vessel/IsExistingVesselCode",
             dataType: "text",
@@ -556,7 +556,7 @@
     }
 
     isExistingCurrencyCode = function (currencyCode) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../MasterRecord/Currency/IsExistingCurrencyCode",
             dataType: "text",
@@ -571,7 +571,7 @@
     }
 
     isExistingBookingNo = function (bookingNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Air/Booking/IsExistingBookingNo",
             dataType: "text",
@@ -586,7 +586,7 @@
     }
 
     isExistingHawbNo = function (hawbNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Air/Hawb/IsExistingHawbNo",
             dataType: "text",
@@ -601,7 +601,7 @@
     }
 
     isExistingMawbNo = function (mawbNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Air/Mawb/IsExistingMawbNo",
             dataType: "text",
@@ -639,7 +639,7 @@
     }
 
     isValidJobNo = function (jobNo, mawbNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Air/Mawb/IsValidJobNo",
             dataType: "text",
@@ -659,7 +659,7 @@
     }
 
     isExistingOtherJobNo = function (jobNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Air/OtherJob/IsExistingOtherJobNo",
             dataType: "text",
@@ -678,7 +678,7 @@
     }
 
     isExistingSeaBookingNo = function (bookingNo) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Sea/Booking/IsExistingBookingNo",
             dataType: "text",
@@ -693,7 +693,7 @@
     }
 
     isExistingUserId = function (userId) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Admin/System/IsExistingUserId",
             dataType: "text",
@@ -708,11 +708,56 @@
     }
 
     isExistingUserEmail = function (email) {
-        var serverResult = "";
+        let serverResult = "";
         $.ajax({
             url: "../Admin/System/IsExistingUserEmail",
             dataType: "text",
             data: { email: email },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingAcPersonCode = function (personCode) {
+        let serverResult = "";
+        $.ajax({
+            url: "../Accounting/SystemSetting/IsExistingPersonCode",
+            dataType: "text",
+            data: { id: personCode },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingAcCustomerCode = function (customerCode) {
+        let serverResult = "";
+        $.ajax({
+            url: "../Accounting/SystemSetting/IsExistingCustomerCode",
+            dataType: "text",
+            data: { id: customerCode },
+            async: false,
+            success: function (result) {
+                serverResult = result;
+            }
+        });
+
+        return serverResult == "True" ? true : false;
+    }
+
+    isExistingAcVendorCode = function (vendorCode) {
+        let serverResult = "";
+        $.ajax({
+            url: "../Accounting/SystemSetting/IsExistingVendorCode",
+            dataType: "text",
+            data: { id: vendorCode },
             async: false,
             success: function (result) {
                 serverResult = result;
@@ -733,7 +778,10 @@
 
     formatText = function (value) {
         try {
-            return value.toUpperCase().trim();
+            if (value.indexOf('@') != -1 && value.indexOf('.') != -1)   //email do not convert to upper case
+                return value.trim();
+            else
+                return value.toUpperCase().trim();
         } catch {
             return value;
         }
