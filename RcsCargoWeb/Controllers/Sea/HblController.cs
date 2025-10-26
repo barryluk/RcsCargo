@@ -15,7 +15,7 @@ using System.Web.UI;
 
 namespace RcsCargoWeb.Sea.Controllers
 {
-
+    [CheckToken]
     [RoutePrefix("Sea/Hbl")]
     public class HblController : Controller
     {

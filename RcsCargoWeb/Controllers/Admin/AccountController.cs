@@ -55,6 +55,7 @@ namespace RcsCargoWeb.Controllers.Admin
             return Content(jsonResult, "application/json");
         }
 
+        [CheckToken]
         [Route("GetSessionStatus")]
         public ActionResult GetSessionStatus(string userId, string companyId)
         {
@@ -96,6 +97,7 @@ namespace RcsCargoWeb.Controllers.Admin
             return Content(jsonResult, "application/json");
         }
 
+        [CheckToken]
         [Route("GetUser")]
         public ActionResult GetUser(string userId)
         {

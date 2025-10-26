@@ -15,6 +15,7 @@ using DbUtils.Models.Admin;
 namespace RcsCargoWeb.Air.Controllers
 {
 
+    [CheckToken]
     [RoutePrefix("Air/Transfer")]
     public class TransferController : Controller
     {

@@ -859,8 +859,9 @@
             this.renderControls(pageSetting);
         }
 
-        if (pageSetting.initScript != null)
-            eval(`${pageSetting.initScript}(pageSetting)`);
+        if (pageSetting.initScript != null) {
+            try { eval(`${pageSetting.initScript}(pageSetting)`); } catch { }
+        }
 
         if (pageSetting.additionalScript != null) {
             if (["country", "port", "seaPort", "airline", "carrier", "vessel", "currency", "charge", "chargeTemplate"].indexOf(pageSetting.pageName) >= 0)

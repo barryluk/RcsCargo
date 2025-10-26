@@ -310,7 +310,15 @@ namespace DbUtils
 
         public bool IsValidToken(string token)
         {
-            return db.UsersLogs.Count(a => a.SESSION_ID.Equals(token)) == 1 ? true : false;
+            try
+            {
+                return db.UsersLogs.Count(a => a.SESSION_ID.Equals(token)) == 1 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                log.Error(Utils.FormatErrorMessage(ex));
+                return false;
+            }
         }
 
         public bool IsUserLogExist(string userId)

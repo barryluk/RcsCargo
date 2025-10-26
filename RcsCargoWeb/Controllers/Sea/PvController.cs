@@ -12,7 +12,7 @@ using System.Web.Configuration;
 
 namespace RcsCargoWeb.Sea.Controllers
 {
-
+    [CheckToken]
     [RoutePrefix("Sea/Pv")]
     public class PvController : Controller
     {

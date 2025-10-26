@@ -12,7 +12,7 @@ using System.Web.Configuration;
 
 namespace RcsCargoWeb.MasterRecord.Controllers
 {
-
+    [CheckToken]
     [RoutePrefix("MasterRecord/Customer")]
     public class CustomerController : Controller
     {

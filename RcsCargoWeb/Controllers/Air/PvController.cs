@@ -32,6 +32,7 @@ namespace RcsCargoWeb.Air.Controllers
         public string QtyUnit { get; set; }
     }
 
+    [CheckToken]
     [RoutePrefix("Air/Pv")]
     public class PvController : Controller
     {

@@ -688,12 +688,19 @@ namespace DbUtils
             return results.OrderByDescending(a => a.VOUCHER_DATE).ThenByDescending(a => a.VOUCHER_NO).ToList();
         }
 
-        public List<GLVoucher> GetVoucher(int year, int period, int voucherNo)
+        public List<Voucher> GetVoucher(int year, int period, int voucherNo)
         {
-            var accounts = db.LedgerAccounts.ToList();
-            var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.VOUCHER_NO == voucherNo).ToList();
-            foreach (var voucher in vouchers)
-                voucher.AC_NAME = accounts.Where(a => a.AC_CODE == voucher.AC_CODE).FirstOrDefault().AC_NAME;
+            var selectCmd = "ac.ac_name, ac.ac_code, v.id, v.year, v.period, v.voucher_no, v.voucher_type, v.line_no, v.desc_text," +
+                "v.dr_amt, v.cr_amt, v.inv_no, v.inv_date, v.customer_code, v.vendor_code, v.dep_code, v.person_code, v.voucher_date," +
+                "v.related_ac, v.cbill, v.ccheck, v.ccashier, v.ibook";
+            var fromCmd = $"ac_gl_voucher v left outer join ac_ledger_account ac on v.ac_code = ac.ac_code " +
+                $"where v.year = {year} and v.period = {period} and v.voucher_no = {voucherNo}";
+
+            var vouchers = Utils.GetSqlQueryResult<Voucher>(fromCmd, selectCmd, new List<DbParameter>());
+            //var accounts = db.LedgerAccounts.ToList();
+            //var vouchers = db.GLVouchers.Where(a => a.YEAR == year && a.PERIOD == period && a.VOUCHER_NO == voucherNo).ToList();
+            //foreach (var voucher in vouchers)
+            //    voucher.AC_NAME = accounts.Where(a => a.AC_CODE == voucher.AC_CODE).FirstOrDefault().AC_NAME;
 
             return vouchers.OrderBy(a => a.LINE_NO).ToList();
         }
@@ -786,8 +793,8 @@ namespace DbUtils
         public List<LedgerAccountView> GetLedgerAccountSummary(int year, int period)
         {
             var selectCmd = @"ac.*,
-                case sum.beg_ind when 'Dr' then sum.amt_beg else 0 end as open_dr,
-                case sum.beg_ind when 'Cr' then sum.amt_beg else 0 end as open_cr,
+                case ac.crdr_balance when 'Dr' then nvl(sum.amt_beg, 0) else 0 end as open_dr,
+                case ac.crdr_balance when 'Cr' then nvl(sum.amt_beg, 0) else 0 end as open_cr,
                 nvl(sum.amt_dr, 0) current_dr, nvl(sum.amt_cr, 0) current_cr,
                 0 as close_dr, 0 as close_cr";
             var fromCmd = $@"ac_ledger_account ac left outer join ac_gl_accsum sum on ac.ac_code = sum.ac_code and sum.year = {year} and sum.period = {period}";
@@ -797,6 +804,16 @@ namespace DbUtils
                 a.CURRENT_DR != 0 || a.CURRENT_CR != 0 ||
                 a.CLOSE_DR != 0 || a.CLOSE_CR != 0)
                 .OrderBy(a => a.AC_CODE).ToList();
+
+            //special case for 3131 本年利润
+            if (result.Count(a => a.AC_CODE == "3131") > 0)
+            {
+                var ac3131 = result.Where(a => a.AC_CODE == "3131").FirstOrDefault();
+                var amtDr = ac3131.OPEN_DR;
+                var amtCr = ac3131.OPEN_CR;
+                ac3131.OPEN_DR = amtCr;
+                ac3131.OPEN_CR = amtDr;
+            }
 
             foreach (var item in result)
             {

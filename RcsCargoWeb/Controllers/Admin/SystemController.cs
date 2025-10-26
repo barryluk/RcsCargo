@@ -17,6 +17,7 @@ namespace RcsCargoWeb.Controllers.Admin
         public string LogFilePath { get; set; }
     }
 
+    [CheckToken]
     [RoutePrefix("Admin/System")]
     public class SystemController : Controller
     {

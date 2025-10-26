@@ -25,6 +25,7 @@ using System.Xml.Linq;
 
 namespace RcsCargoWeb.Controllers
 {
+    //[CheckToken]
     public class ReportController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

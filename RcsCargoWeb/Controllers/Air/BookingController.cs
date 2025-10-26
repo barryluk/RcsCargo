@@ -13,6 +13,7 @@ using System.Web.Configuration;
 namespace RcsCargoWeb.Air.Controllers
 {
 
+    [CheckToken]
     [RoutePrefix("Air/Booking")]
     public class BookingController : Controller
     {

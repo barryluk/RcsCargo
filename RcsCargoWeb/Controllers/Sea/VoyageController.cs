@@ -13,7 +13,7 @@ using System.Web.UI;
 
 namespace RcsCargoWeb.Sea.Controllers
 {
-
+    [CheckToken]
     [RoutePrefix("Sea/Voyage")]
     public class VoyageController : Controller
     {

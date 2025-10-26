@@ -49,6 +49,7 @@ namespace RcsCargoWeb.Controllers
         public DateTime CreateDate { get; set; }
     }
 
+    [CheckToken]
     public class FileStationController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

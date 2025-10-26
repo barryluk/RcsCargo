@@ -17,7 +17,7 @@ using DbUtils.Models.Air;
 
 namespace RcsCargoWeb.Sea.Controllers
 {
-
+    [CheckToken]
     [RoutePrefix("Sea/Transfer")]
     public class TransferController : Controller
     {

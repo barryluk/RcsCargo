@@ -14,15 +14,16 @@ namespace RcsCargoWeb
     public class CheckTokenAttribute : AuthorizeAttribute
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static string[] bypassUrls = { "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login",
-            "/FileStation/TestUpload", "/FileStation/GetShaFileTransferList", "/FileStation/UploadShaFile", 
+        private static string[] bypassUrls = { "/", "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login",
+            "/FileStation/TestUpload", "/FileStation/GetShaFileTransferList", "/FileStation/UploadShaFile",
             "/FileStation/UploadShaFileFailed", "/FileStationAddShaFileTransfer", "/FileStation/Test" };
         private static DbUtils.Admin admin = new Admin();
 
         protected override bool AuthorizeCore(HttpContextBase context)
         {
-            return true;
+            //return true;
             var filePath = HttpContext.Current.Request.FilePath;    //e.g. /Home/Test
+            //log.Debug(filePath);
             if (bypassUrls.Contains(filePath))
                 return true;
 

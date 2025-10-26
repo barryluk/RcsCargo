@@ -11,7 +11,7 @@ using DbUtils.Models.Accounting;
 
 namespace RcsCargoWeb.Controllers.Accounting
 {
-
+    [CheckToken]
     [RoutePrefix("Accounting/SystemSetting")]
     public class SystemSettingController : Controller
     {

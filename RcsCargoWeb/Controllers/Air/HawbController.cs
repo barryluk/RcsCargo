@@ -15,6 +15,7 @@ using System.Web.Services;
 namespace RcsCargoWeb.Air.Controllers
 {
 
+    [CheckToken]
     [RoutePrefix("Air/Hawb")]
     public class HawbController : Controller
     {

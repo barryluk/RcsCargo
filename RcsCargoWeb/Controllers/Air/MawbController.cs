@@ -15,6 +15,7 @@ using Kendo.Mvc.Infrastructure;
 namespace RcsCargoWeb.Air.Controllers
 {
 
+    [CheckToken]
     [RoutePrefix("Air/Mawb")]
     public class MawbController : Controller
     {
