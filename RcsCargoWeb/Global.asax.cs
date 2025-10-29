@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DbUtils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -29,6 +30,7 @@ namespace RcsCargoWeb
             timer.Start();
 
             UpdateScriptVersion();
+            UpdateUserLogs();
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -49,11 +51,18 @@ namespace RcsCargoWeb
                 admin.RunScheduledReports(reportSchedules);
 
                 UpdateScriptVersion();
+                UpdateUserLogs();
             }
             catch (Exception ex)
             {
                 log.Error(ex.ToString());
             }
+        }
+
+        private void UpdateUserLogs()
+        {
+            var admin = new DbUtils.Admin();
+            AppUtils.userLogs = admin.GetUserLogs();
         }
 
         private void UpdateScriptVersion()

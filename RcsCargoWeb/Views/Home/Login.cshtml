@@ -121,7 +121,7 @@
                     success: function (result) {
                         //console.log(result);
                         if (result.result == "success") {
-                            localStorage.sessionId = result.sessionId;
+                            localStorage.token = result.token;
                             localStorage.user = JSON.stringify(result.user);
                             window.open("../", "_self");
                         } else if (result.result == "user_not_found") {

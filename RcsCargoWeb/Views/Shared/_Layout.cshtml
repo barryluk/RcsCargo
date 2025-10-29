@@ -13,8 +13,8 @@
     <link href="@Url.Content("~/Content/adminlte.min.css")" rel="stylesheet">
     <link href="@Url.Content("~/Content/main.css")" rel="stylesheet">
     <script src="@Url.Content("~/Scripts/jquery.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/angular.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/jszip.min.js")"></script>
+    @*<script src="@Url.Content("~/Scripts/angular.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jszip.min.js")"></script>*@
     <script src="@Url.Content("~/Scripts/kendo.all.min.js")"></script>
     <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
     <script src="@Url.Content("~/Scripts/index.global.min.js")"></script>
@@ -24,9 +24,14 @@
 <body class="hold-transition sidebar-mini">
     <div class="loadingOverlay" style="z-index: 10000; position: absolute; width: 100%; height: 100%; background-color: rgb(128, 128, 128, 0.6);">
         <div class="k-loading-image"></div>
-        <span style="position: absolute; top: calc(50% + 20px); left: calc(50% - 87px); font-size: 32pt; font-family: Arial">
+        <div style="position: absolute; top: calc(50% + 20px); left: calc(50% - 87px); font-size: 32pt; font-family: Arial">
             Loading...
-        </span>
+            <div>
+                <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: 5px">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="wrapper">
         <div class="content-wrapper">

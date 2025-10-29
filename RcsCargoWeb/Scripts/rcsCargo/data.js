@@ -1,6 +1,6 @@
 ﻿//Global variables
 var user;
-var sessionId;
+var token;
 var scriptVersion;
 var intervalId;
 var take = 40;
@@ -5396,9 +5396,11 @@ export default class {
             window.open("../Home/Login", "_self");
         else {
             user = JSON.parse(localStorage.user);
-            sessionId = localStorage.sessionId;
+            token = localStorage.token;
             this.prefetchGlobalVariables().then(function () {
                 console.log("Prefetch completed: ", new Date());
+                loadingProgress();
+
                 $.ajax({
                     url: "/Admin/Account/GetSessionStatus",
                     type: "post",
@@ -5409,13 +5411,13 @@ export default class {
                     },
                     success: function (result) {
                         if (result.result == "success") {
-                            //get the latest sessionId from server
-                            localStorage.sessionId = result.sessionId;
-                            data.sessionId = result.sessionId;
+                            //get the latest token from server
+                            localStorage.token = result.token;
+                            data.token = result.token;
                         } else if (result.result == "error") {
                             //if userlog has removed this session, clear localStorage and redirect to login
                             localStorage.removeItem("user");
-                            localStorage.removeItem("sessionId");
+                            localStorage.removeItem("token");
                             window.open("../Home/Login", "_self");
                         }
 
@@ -5470,7 +5472,7 @@ export default class {
                                             data: { userId: data.user.USER_ID },
                                             success: function (result) {
                                                 localStorage.removeItem("user");
-                                                localStorage.removeItem("sessionId");
+                                                localStorage.removeItem("token");
                                                 localStorage.removeItem("tabStrips");
                                                 window.open("../Home/Login", "_self");
                                             }
@@ -5488,7 +5490,7 @@ export default class {
                                 tabStrips.forEach(function (id) { loadTabPage(id); });
                                 $("[data-widget='control-sidebar']").trigger("click");
                                 //try { calendar.updateSize(); } catch { }
-                                $(".loadingOverlay").addClass("hidden");
+                                //$(".loadingOverlay").addClass("hidden");
                             }, 500);
 
                             //Simulate the loading open effects
@@ -5512,7 +5514,7 @@ export default class {
                                     }
                                 }, 500 * (tabStrips.indexOf(id) + 1));
                             }
-                        } else { $(".loadingOverlay").addClass("hidden"); }
+                        } // else { $(".loadingOverlay").addClass("hidden"); }
                     }
                 });
             });
@@ -5521,7 +5523,7 @@ export default class {
 
     //getters
     get user() { return user; }
-    get sessionId() { return sessionId; }
+    get token() { return token; }
     get intervalId() { return intervalId; }
     get take() { return take; }
     get indexGridPageSize() { return indexGridPageSize; }
@@ -5543,7 +5545,7 @@ export default class {
 
     //setters
     set user(val) { user = val; }
-    set sessionId(val) { sessionId = val; }
+    set token(val) { token = val; }
     set intervalId(val) { intervalId = val; }
     set take(val) { take = val; }
     set indexGridPageSize(val) { indexGridPageSize = val; }
@@ -5596,7 +5598,7 @@ export default class {
             statusCode: {
                 500: function () {
                     localStorage.removeItem("user");
-                    localStorage.removeItem("sessionId");
+                    localStorage.removeItem("token");
                     window.open("../Home/Login", "_self");
                 }
             },
@@ -5798,11 +5800,11 @@ export default class {
                 }
             }
         });
-        masterRecords.accountingYears = await $.ajax({ url: "../Accounting/SystemSetting/GetAccountingYears" });
-        masterRecords.acPersons = await $.ajax({ url: "../Accounting/SystemSetting/GetPersons" });
-        masterRecords.voucherDesc = await $.ajax({ url: "../Accounting/SystemSetting/GetVoucherDesc" });
-        masterRecords.acPersonDept = await $.ajax({ url: "../Accounting/SystemSetting/GetPersonDepartments" });
-        masterRecords.acCustomerRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetCustomerRegions" });
-        masterRecords.acVendorRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetVendorRegions" });
+        masterRecords.accountingYears = await $.ajax({ url: "../Accounting/SystemSetting/GetAccountingYears" }); loadingProgress();
+        masterRecords.acPersons = await $.ajax({ url: "../Accounting/SystemSetting/GetPersons" }); loadingProgress();
+        masterRecords.voucherDesc = await $.ajax({ url: "../Accounting/SystemSetting/GetVoucherDesc" }); loadingProgress();
+        masterRecords.acPersonDept = await $.ajax({ url: "../Accounting/SystemSetting/GetPersonDepartments" }); loadingProgress();
+        masterRecords.acCustomerRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetCustomerRegions" }); loadingProgress();
+        masterRecords.acVendorRegion = await $.ajax({ url: "../Accounting/SystemSetting/GetVendorRegions" }); loadingProgress();
     }
 }

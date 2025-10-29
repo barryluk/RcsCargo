@@ -49,7 +49,7 @@ namespace RcsCargoWeb.Controllers
         public DateTime CreateDate { get; set; }
     }
 
-    [CheckToken]
+    //[CheckToken]
     public class FileStationController : Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -57,6 +57,7 @@ namespace RcsCargoWeb.Controllers
         DbUtils.Admin admin = new DbUtils.Admin();
         DbUtils.MasterRecords masterRecord = new DbUtils.MasterRecords();
 
+        [CheckToken]
         public ActionResult GetDirectories(string target, string userId)
         {
             var fsData = new List<FileManagerData>();
@@ -108,11 +109,13 @@ namespace RcsCargoWeb.Controllers
             return Json(fsData, JsonRequestBehavior.AllowGet);
         }
 
+        [CheckToken]
         public ActionResult GetAccessRight(string path, string accessType)
         {
             return Json(masterRecord.GetFileStationAccessRight(path, accessType), JsonRequestBehavior.AllowGet);
         }
 
+        //[CheckToken]
         public bool HasAccessRight(string path, string accessType, string userId)
         {
             var accessRight = masterRecord.GetFileStationAccessRight(path, accessType);
@@ -125,6 +128,7 @@ namespace RcsCargoWeb.Controllers
                 return accessRight.USERS.Split(',').Contains(userId) ? true : false;
         }
 
+        [CheckToken]
         public ActionResult GetRecentFiles(string userId)
         {
             var serverPath = new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString();
@@ -176,6 +180,7 @@ namespace RcsCargoWeb.Controllers
             return Json(fmData, JsonRequestBehavior.AllowGet);
         }
 
+        [CheckToken]
         public ActionResult Create(string name, string extension, bool isDirectory, string path, string target)
         {
             var userId = HttpContext.Request.QueryString["userId"].Trim();
@@ -203,6 +208,7 @@ namespace RcsCargoWeb.Controllers
             return null;
         }
 
+        [CheckToken]
         public ActionResult Rename(string name, string path, string extension, bool isDirectory)
         {
             var userId = HttpContext.Request.QueryString["userId"].Trim();
@@ -212,7 +218,10 @@ namespace RcsCargoWeb.Controllers
                 {
                     var dir = new DirectoryInfo(path);
                     if (isDirectory)
-                        Directory.Move(path, path.Replace(dir.Name, name));
+                    {
+                        var oldFolder = path.Substring(path.LastIndexOf('\\') + 1);
+                        Directory.Move(path, $"{path.Substring(0, path.LastIndexOf('\\'))}\\{name}");
+                    }
                     else
                         System.IO.File.Move(path, path.Replace(dir.Name, name) + extension);
 
@@ -240,6 +249,7 @@ namespace RcsCargoWeb.Controllers
             return null;
         }
 
+        [CheckToken]
         public ActionResult Delete(string name, string path, bool isDirectory)
         {
             var userId = HttpContext.Request.QueryString["userId"].Trim();
@@ -309,6 +319,7 @@ namespace RcsCargoWeb.Controllers
             return File(fileByte, $"application/{name.Substring(name.LastIndexOf(".") + 1)}");
         }
 
+        [CheckToken]
         public ActionResult GetRecentCamRecords()
         {
             var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords");
@@ -327,6 +338,7 @@ namespace RcsCargoWeb.Controllers
             return Content(camRecords.Length > 0 ? camRecords.Substring(0, camRecords.Length - 1) : string.Empty, "text/plain");
         }
 
+        [CheckToken]
         public ActionResult GetCamRecordDateFolders(string camId)
         {
             var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId);
@@ -338,6 +350,7 @@ namespace RcsCargoWeb.Controllers
             return Json(folderName.OrderByDescending(a => a), JsonRequestBehavior.AllowGet);
         }
 
+        [CheckToken]
         public ActionResult GetCamRecordFiles(string camId, string dateFolder)
         {
             var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId, dateFolder);

@@ -183,6 +183,8 @@
                     AIRLINE_CODE: result.AIRLINE_CODE,
                     FLIGHT_NO: result.FLIGHT_NO,
                     FLIGHT_DATE: result.FLIGHT_DATE,
+                    ORIGIN_CODE: result.ORIGIN_CODE,
+                    DEST_CODE: result.DEST_CODE,
                 };
                 controls.setValuesToFormControls(data.masterForms.filter(a => a.formName == "airHawb")[0], mawbResult, true);
             }

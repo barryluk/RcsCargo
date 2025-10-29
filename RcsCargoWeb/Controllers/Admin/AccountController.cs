@@ -33,21 +33,26 @@ namespace RcsCargoWeb.Controllers.Admin
                 //Add record to USER_LOG table
                 var userLog = new DbUtils.Models.Admin.UserLog
                 {
-                    SESSION_ID = Session.SessionID,
+                    SESSION_ID = DbUtils.Utils.NewGuid(),
                     USER_ID = user.USER_ID,
                     COMPANY_ID = user.DEFAULT_COMPANY,
                     LOGIN_TIME = DateTime.Now,
                     LAST_REQUEST = DateTime.Now,
                     USER_HOST_ADDRESS = Request.UserHostAddress,
                     BROWSER_INFO = HttpContext.Request.UserAgent,
-                    APP_NAME = "RCS Cargo"
+                    APP_NAME = "RCS Cargo",
+                    //DETAIL_INFO = $"{user.USER_ID},{Request.UserHostAddress}"
                 };
-                try { admin.AddUserLog(userLog); }
+                try 
+                { 
+                    admin.AddUserLog(userLog);
+                    AppUtils.userLogs = admin.GetUserLogs();
+                }
                 catch (Exception ex) { log.Error(DbUtils.Utils.FormatErrorMessage(ex)); }
 
                 //for security issue, should not expose the password to client side
                 user.PASSWORD = string.Empty;
-                jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\", \"user\": " + JsonConvert.SerializeObject(user) + " }";
+                jsonResult = "{ \"result\": \"success\", \"token\": \"" + userLog.SESSION_ID + "\", \"user\": " + JsonConvert.SerializeObject(user) + " }";
             }
             else
                 jsonResult = "{ \"result\": \"" + resultMsg + "\" }";
@@ -67,8 +72,9 @@ namespace RcsCargoWeb.Controllers.Admin
             {
                 if (status)
                 {
-                    admin.UpdateLastRequestTime(userId, companyId, Session.SessionID, Request.UserHostAddress, HttpContext.Request.UserAgent);
-                    jsonResult = "{ \"result\": \"success\", \"sessionId\": \"" + Session.SessionID + "\" }";
+                    var token = HttpContext.Request.Headers["token"];
+                    admin.UpdateLastRequestTime(userId, companyId, token, Request.UserHostAddress, HttpContext.Request.UserAgent);
+                    jsonResult = "{ \"result\": \"success\", \"token\": \"" + token + "\" }";
                 }
                 else
                     jsonResult = "{ \"result\": \"error\" }";

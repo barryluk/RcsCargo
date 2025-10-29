@@ -8,13 +8,14 @@ using System.Web.Helpers;
 using System.Web.Mvc;
 using Reporting;
 using DbUtils;
+using DbUtils.Models.Admin;
 
 namespace RcsCargoWeb
 {
     public class CheckTokenAttribute : AuthorizeAttribute
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static string[] bypassUrls = { "/", "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login",
+        private static string[] bypassUrls = { "/", "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login", "/Home/GetScriptVersion",
             "/FileStation/TestUpload", "/FileStation/GetShaFileTransferList", "/FileStation/UploadShaFile",
             "/FileStation/UploadShaFileFailed", "/FileStationAddShaFileTransfer", "/FileStation/Test" };
         private static DbUtils.Admin admin = new Admin();
@@ -30,7 +31,7 @@ namespace RcsCargoWeb
             var token = HttpContext.Current.Request.Headers["token"];
             if (!string.IsNullOrEmpty(token))
             {
-                return admin.IsValidToken(token);
+                return AppUtils.userLogs.Count(a => a.SESSION_ID.Equals(token)) == 1 ? true : false;
             }
             else
                 return false;
@@ -47,6 +48,7 @@ namespace RcsCargoWeb
         public static readonly int takeRecords = 25;
         public static readonly string logPath = new System.Configuration.AppSettingsReader().GetValue("LogPath", typeof(string)).ToString();
         public static string scriptVersion = string.Empty;
+        public static List<UserLog> userLogs = new List<UserLog>();
 
         public static string FormatText(this string input)
         {

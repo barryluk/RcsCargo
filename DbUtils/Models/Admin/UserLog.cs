@@ -19,6 +19,7 @@ namespace DbUtils.Models.Admin
         public string COMPANY_ID { get; set; }
         public string BROWSER_INFO { get; set; }
         public string APP_NAME { get; set; }
+        public string DETAIL_INFO { get; set; }
         public DateTime? LAST_REQUEST { get; set; }
 
     }
