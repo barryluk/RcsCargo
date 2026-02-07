@@ -83,6 +83,31 @@ namespace DbUtils
             return result.OrderByDescending(a => a.FLIGHT_DATE).ToList();
         }
 
+        public List<MawbView> GetMawbsAllOrigin(DateTime startDate, DateTime endDate, string frtMode, string searchValue)
+        {
+            var selectCmd = @"m.mawb mawb_no, m.company_id, m.frt_mode, m.job job_no,
+                m.airline_code, m.flight_no, m.flight_date, m.origin_code, m.dest_code,
+                m.shipper_code, m.shipper_desc, m.consignee_code, m.consignee_desc, m.frt_payment_pc,
+                case when m.gwts > m.vwts then m.gwts else m.vwts end as cwts, m.package_unit,
+                m.ctns, m.gwts, m.vwts, m.create_user, m.create_date";
+            var fromCmd = $@"a_mawb m
+                where m.create_date >= to_date('{startDate.ToString("yyyyMMdd")}','YYYYMMDD') 
+                and m.create_date <= to_date('{endDate.ToString("yyyyMMdd")}','YYYYMMDD') ";
+            var dbParas = new List<DbParameter>
+            {
+                new DbParameter { FieldName = "m.mawb", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.job", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.shipper_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.shipper_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.consignee_code", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.consignee_desc", ParaName = "searchValue", ParaCompareType = DbParameter.CompareType.like, Value = searchValue, OrGroupIndex = 1 },
+                new DbParameter { FieldName = "m.frt_mode", ParaName = "frt_mode", ParaCompareType = DbParameter.CompareType.equals, Value = frtMode },
+            };
+            var result = Utils.GetSqlQueryResult<MawbView>(fromCmd, selectCmd, dbParas);
+
+            return result;
+        }
+
         public LotDetailView GetLotDetail(string lotNo, string companyId, string frtMode)
         {
             var selectCmd = @"distinct m.lot_no, m.company_id, m.frt_mode, m.origin_code, m.dest_code, m.flight_date, 

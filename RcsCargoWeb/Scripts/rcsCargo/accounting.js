@@ -1800,9 +1800,36 @@
             dataSource: data.masterRecords.acDepartment
         });
         $(`${contentName} input[name='amount']`).kendoNumericTextBox({ value: result.AMOUNT });
-        $(`${contentName} input[name='hawbNo']`).after('<i class="k-icon k-i-search" style="margin: 4px"/>')
+        $(`${contentName} input[name='mawbNo']`).after('<i class="k-icon k-i-search mawbNo" style="margin: 4px"/>')
+        $(`${contentName} input[name='hawbNo']`).after('<i class="k-icon k-i-search hawbNo" style="margin: 4px"/>')
 
-        $(`${contentName} .k-i-search`).click(function () {
+        $(`${contentName} .k-i-search.mawbNo`).click(function () {
+            let mawbNo = $(`${contentName} input[name='mawbNo']`).data("kendoTextBox").value();
+            if (!utils.isEmptyString(mawbNo)) {
+                //console.log(hawbNo);
+
+                $.ajax({
+                    url: "../Air/Mawb/GetMawbsAllOrigin",
+                    data: { searchValue: mawbNo, frtMode: "AE", dateFrom: new Date((new Date().getFullYear() - 5), 1, 1).toISOString() },
+                    dataType: "json",
+                    type: "post",
+                    success: function (result) {
+                        if (result.length > 0) {
+                            let hawb = result[0];
+                            $(`${contentName} input[name='mawbNo']`).data("kendoTextBox").value(hawb.MAWB_NO);
+                            $(`${contentName} input[name='flightNo']`).data("kendoTextBox").value(hawb.FLIGHT_NO);
+                            $(`${contentName} input[name='flightDate']`).data("kendoDatePicker").value(hawb.FLIGHT_DATE);
+                            $(`${contentName} input[name='origin']`).data("kendoTextBox").value(hawb.ORIGIN_CODE);
+                            $(`${contentName} input[name='destination']`).data("kendoTextBox").value(hawb.DEST_CODE);
+                            $(`${contentName} input[name='department']`).data("kendoDropDownList").value("01");     //01: Air Freight
+                        } else {
+                            utils.showNotification("No related MAWB found in the system.", "warning", ".k-window .k-i-close");
+                        }
+                    }
+                });
+            }
+        });
+        $(`${contentName} .k-i-search.hawbNo`).click(function () {
             let hawbNo = $(`${contentName} input[name='hawbNo']`).data("kendoTextBox").value();
             if (!utils.isEmptyString(hawbNo)) {
                 console.log(hawbNo);

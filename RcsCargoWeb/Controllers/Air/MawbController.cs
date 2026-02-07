@@ -74,6 +74,20 @@ namespace RcsCargoWeb.Air.Controllers
             return Json(mawb, JsonRequestBehavior.AllowGet);
         }
 
+        [Route("GetMawbsAllOrigin")]
+        public ActionResult GetMawbsAllOrigin(string searchValue, string frtMode, DateTime? dateFrom, DateTime? dateTo)
+        {
+            searchValue = searchValue.Trim().ToUpper() + "%";
+            if (!dateFrom.HasValue)
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+            if (!dateTo.HasValue)
+                dateTo = DateTime.Now.AddMonths(3);
+
+            log.Debug($"{searchValue} {frtMode} {dateFrom} {dateTo}");
+            var result = air.GetMawbsAllOrigin(dateFrom.Value, dateTo.Value, frtMode, searchValue).Take(AppUtils.takeRecords);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         [Route("GetJob")]
         public ActionResult GetJob(string id, string companyId, string frtMode)
         {

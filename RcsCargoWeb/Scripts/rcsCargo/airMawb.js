@@ -41,6 +41,8 @@
         if (masterForm.mode == "create") {
             $(`#${masterForm.id} [name="MAWB"]`).attr("class", "k-input k-input-solid k-input-md k-rounded-md");
             $(`#${masterForm.id} [name="MAWB"]`).after(`<button type="button" name="multipleMawbNo" style="margin: 4px;">Multiple MAWB#</button>`);
+            $(`#${masterForm.id} [name="JOB"]`).attr("style", "float: left");
+            $(`#${masterForm.id} [name="JOB"]`).after(`<button type="button" name="manualInputJobNo" style="margin: 4px;">Manual input Job#</button>`);
             $("[name='multipleMawbNo']").kendoButton({ icon: "ungroup" });
             $("[name='multipleMawbNo']").bind("click", function () {
                 var html = `
@@ -52,6 +54,11 @@
                 utils.alertMessage(html, "Multiple MAWB#", null, null, true, "controllers.airMawb.processMultipleMawbNo");
 
                 //$(`button[name="${masterForm.id}_processMultipleMawbNo"]`).bind("click", function () { });
+            });
+
+            $("[name='manualInputJobNo']").kendoButton({ icon: "edit" });
+            $("[name='manualInputJobNo']").bind("click", function () {
+                $(`#${masterForm.id} [name="JOB"]`).removeAttr("readonly");
             });
         }
     }

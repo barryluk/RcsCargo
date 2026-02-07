@@ -34,8 +34,9 @@ function loadingProgress() {
         return;
 
     loadingCount++;
-    console.log('Loading count: ' + loadingCount);
+    //console.log('Loading count: ' + loadingCount);
     $('.progress .progress-bar').attr('style', `width: ${loadingCount * (100 / maxCount)}%`);
+    $('.progress .progress-bar').text(`${(loadingCount * (100 / maxCount)).toFixed()}%`);
 
     if (loadingCount >= maxCount)
         $(".loadingOverlay").addClass("hidden");
