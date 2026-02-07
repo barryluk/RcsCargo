@@ -119,7 +119,8 @@
                                             templateHtml = templateHtml.replaceAll(`{${key}}`, value);
                                     });
                                     let contentHtml = templateHtml.substring(templateHtml.indexOf("<br>"));
-                                    contentHtml = contentHtml.replaceAll(utils.formatText(searchValue), `<span class="highlight">${utils.formatText(searchValue)}</span>`)
+                                    let highlightText = searchValue.replaceAll('%', '');
+                                    contentHtml = contentHtml.replaceAll(utils.formatText(highlightText), `<span class="highlight">${utils.formatText(highlightText)}</span>`)
                                         .replaceAll("T00:00:00", "");
 
                                     //console.log(`#powerSearch_result p[data-id="${tableName}-${frtMode}-${id}-${idFieldName}"]`);

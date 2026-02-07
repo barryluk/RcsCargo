@@ -28,6 +28,7 @@ namespace DbUtils.Models.MasterRecords
 
     public class PowerSearchResult
     {
+        public string COMPANY_ID { get; set; }
         public string TABLE_NAME { get; set; }
         public string ID { get; set; }
         public string ID_FIELD { get; set; }
@@ -35,4 +36,5 @@ namespace DbUtils.Models.MasterRecords
         public string RESULT_VALUE { get; set; }
         public DateTime RESULT_DATE { get; set; }
     }
+
 }

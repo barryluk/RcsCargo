@@ -1,19 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using Kendo.Mvc.UI;
-using DbUtils;
-using Newtonsoft.Json;
+﻿using DbUtils;
 using DbUtils.Models.Air;
-using System.ComponentModel.Design;
-using System.Web.Configuration;
-using Reporting.DataService.AirFreightReport;
-using Reporting.ReportReference.AirFreight;
-using System.IO;
+using Kendo.Mvc.UI;
+using Newtonsoft.Json;
+using NPOI.HSSF.Record;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using Reporting.DataService.AirFreightReport;
+using Reporting.ReportReference.AirFreight;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Configuration;
+using System.Web.Mvc;
+using static System.Data.Entity.Infrastructure.Design.Executor;
 
 namespace RcsCargoWeb.Air.Controllers
 {
@@ -172,6 +174,145 @@ namespace RcsCargoWeb.Air.Controllers
                 Session[requestId] = fileContent;
             }
             return Content("1");
+        }
+
+        [Route("GetImportExcelResultJoaug")]
+        public ActionResult GetImportExcelResultJoaug(string requestId, string companyId, string frtMode)
+        {
+            if (Session[requestId] != null)
+            {
+                var excelResults = new List<ImportExcelResult>();
+                var pvModels = new List<Pv>();
+                var startRowIndex = 0;
+                var pvDate = DateTime.Now;
+                var vendorInvNo = string.Empty;
+                byte[] fileContent = Session[requestId] as byte[];
+                XSSFWorkbook wb = new XSSFWorkbook(new MemoryStream(fileContent));
+                ISheet sheet = wb.GetSheetAt(0);
+                IRow row = sheet.GetRow(0);
+
+                for (int i = 1; i <= sheet.LastRowNum; i++)
+                {
+                    row = sheet.GetRow(i);
+                    if (row != null)
+                    {
+                        if (row.Cells.Count >= 6)
+                        {
+                            var lastCellIndex = row.Cells.Count - 1;
+
+                            //log.Debug($"{row.Cells.Count.ToString()} {row.Cells[lastCellIndex - 1].ToString()} {row.Cells[lastCellIndex].ToString()}");
+                            //if (row.Cells[lastCellIndex - 1].ToString().FormatText() == "DATE" && !string.IsNullOrEmpty(row.Cells[lastCellIndex].ToString()))
+                            //    pvDate = Utils.ParseDateTime(row.Cells[lastCellIndex].ToString().Trim(), "M/d/yyyy") ?? DateTime.Now;
+
+                            if (row.Cells[lastCellIndex - 1].ToString().FormatText() == "INVOICE #" && !string.IsNullOrEmpty(row.Cells[lastCellIndex].ToString()))
+                                vendorInvNo = row.Cells[lastCellIndex].ToString().FormatText();
+
+                            if (row.Cells[0].ToString().FormatText() == "LN" && row.Cells[1].ToString().FormatText() == "MAWB #")
+                            {
+                                startRowIndex = i;
+                                continue;
+                            }
+
+                            if (startRowIndex > 0)
+                            {
+                                if (string.IsNullOrEmpty(row.Cells[1].ToString()))
+                                {
+                                    startRowIndex = 0;
+                                    continue;
+                                }
+
+                                //log.Debug($"{pvDate} {vendorInvNo} {row.Cells[1].ToString().FormatText()}");
+                                excelResults.Add(new ImportExcelResult
+                                {
+                                    PvNo = row.Cells[0].ToString().FormatText(),
+                                    PvDate = pvDate,
+                                    VendorInvNo = vendorInvNo,
+                                    CustomerCode = "J00890",    // Joaug Trucking
+                                    LinkupField = row.Cells[1].ToString().FormatText(),
+                                    FrtChargePC = "P",
+                                    CurrCode = "USD",
+                                    ChargeCode = "DWHTR",
+                                    Price = Utils.ParseDecimal(row.Cells[6].ToString().Trim()) ?? 0,
+                                    Qty = 1,
+                                    QtyUnit = "SHP",
+                                });
+                            }
+                        }
+                    }
+                }
+
+                foreach (var pvNo in excelResults.Select(a => a.PvNo).Distinct())
+                {
+                    var pvRecords = excelResults.Where(a => a.PvNo == pvNo).ToList();
+                    var customer = masterRecords.GetCustomerViews(pvRecords.First().CustomerCode).FirstOrDefault();
+                    if (customer == null)
+                        customer = new DbUtils.Models.MasterRecords.CustomerView();
+
+                    var pvModel = new Pv();
+                    pvModel.PV_TYPE = "P";
+                    pvModel.PV_NO = pvNo;
+                    pvModel.PV_DATE = pvRecords.First().PvDate;
+                    pvModel.VENDOR_INV_NO = pvRecords.First().VendorInvNo;
+                    pvModel.CUSTOMER_CODE = customer.CUSTOMER_CODE;
+                    pvModel.CUSTOMER_DESC = customer.CUSTOMER_DESC;
+                    pvModel.CUSTOMER_BRANCH = customer.BRANCH_CODE;
+                    pvModel.CUSTOMER_SHORT_DESC = customer.SHORT_DESC;
+                    pvModel.CURR_CODE = pvRecords.First().CurrCode;
+                    pvModel.COMPANY_ID = companyId;
+                    pvModel.FRT_MODE = frtMode;
+                    pvModel.EX_RATE = masterRecords.GetCurrencies(companyId).First(a => a.CURR_CODE == pvRecords.First().CurrCode).EX_RATE;
+                    pvModel.IS_POSTED = "N";
+                    pvModel.IS_PRINTED = "N";
+                    pvModel.IS_VOIDED = "N";
+
+                    var mawb = air.GetMawb(pvRecords.First().LinkupField, companyId, frtMode);
+                    if (string.IsNullOrEmpty(mawb.MAWB_NO) && companyId == "RCSCFSLAX")
+                        mawb = air.GetMawb(pvRecords.First().LinkupField, "RCSJFK", frtMode);
+
+                    pvModel.PV_CATEGORY = "M";
+                    pvModel.JOB_NO = mawb.JOB_NO;
+                    pvModel.MAWB_NO = mawb.MAWB;
+                    pvModel.FLIGHT_DATE = mawb.FLIGHT_DATE;
+                    pvModel.FLIGHT_NO = mawb.FLIGHT_NO;
+                    pvModel.ORIGIN = mawb.ORIGIN_CODE;
+                    pvModel.DEST = mawb.DEST_CODE;
+                    pvModel.FRT_PAYMENT_PC = pvRecords.First().FrtChargePC;
+                    pvModel.PACKAGE = mawb.CTNS;
+                    pvModel.PACKAGE_UNIT = string.IsNullOrEmpty(mawb.PACKAGE_UNIT) ? "CTNS" : mawb.PACKAGE_UNIT;
+                    pvModel.GWTS = mawb.GWTS;
+                    pvModel.VWTS = mawb.VWTS;
+                    pvModel.CWTS = mawb.GWTS > mawb.VWTS ? mawb.GWTS : mawb.VWTS;
+
+                    pvModel.PvItems = new List<PvItem>();
+                    foreach (var chargeItem in pvRecords)
+                    {
+                        var charge = masterRecords.GetCharge(chargeItem.ChargeCode);
+                        pvModel.PvItems.Add(new PvItem
+                        {
+                            PV_NO = pvNo,
+                            COMPANY_ID = companyId,
+                            FRT_MODE = frtMode,
+                            LINE_NO = pvRecords.IndexOf(chargeItem) + 1,
+                            CHARGE_CODE = charge.CHARGE_CODE,
+                            CHARGE_DESC = charge.CHARGE_DESC,
+                            CURR_CODE = pvModel.CURR_CODE,
+                            EX_RATE = pvModel.EX_RATE,
+                            PRICE = chargeItem.Price,
+                            QTY = chargeItem.Qty,
+                            QTY_UNIT = chargeItem.QtyUnit,
+                            AMOUNT = Math.Round(chargeItem.Qty * chargeItem.Price, 2),
+                            AMOUNT_HOME = Math.Round(chargeItem.Qty * chargeItem.Price, 2),
+                        });
+                    }
+                    pvModel.AMOUNT = pvModel.PvItems.Sum(a => a.AMOUNT);
+                    pvModel.AMOUNT_HOME = Math.Round(pvModel.AMOUNT * pvModel.EX_RATE);
+                    pvModels.Add(pvModel);
+                }
+
+                return Json(pvModels, JsonRequestBehavior.AllowGet);
+            }
+            else
+                return Content($"Failed to get file content from request ID: {requestId}");
         }
 
         [Route("GetImportExcelResult")]

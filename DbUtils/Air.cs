@@ -1316,6 +1316,17 @@ namespace DbUtils
 
         #region Power Search
 
+        //public List<PowerSearchResult> PowerSearch(string searchValue, string companyId, int days, int take)
+        //{
+        //    var results = new List<PowerSearchResult>();
+        //    var sqlCmd = $"select distinct * from (select result.* from (select * from power_search_cache where company_id = '{companyId}' and result_date > sysdate - {days}) result order by result_date desc) where rownum <= {take}";
+        //    var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
+        //    if (result.Count > 0)
+        //        results.AddRange(result);
+
+        //    return results.OrderByDescending(a => a.RESULT_DATE).ToList();
+        //}
+
         public List<PowerSearchResult> PowerSearch(string searchValue, string companyId, int days, int take)
         {
             var results = new List<PowerSearchResult>();
@@ -1364,7 +1375,7 @@ namespace DbUtils
                 sqlCmd = sqlCmd.Substring(0, sqlCmd.LastIndexOf("union"));
                 sqlCmd += $") result order by result_date desc) where rownum <= {take}";
 
-                log.Debug(sqlCmd);
+                //log.Debug(sqlCmd);
                 var result = db.Database.SqlQuery<PowerSearchResult>(sqlCmd).ToList();
                 if (result.Count > 0)
                     results.AddRange(result);

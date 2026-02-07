@@ -319,7 +319,7 @@ namespace RcsCargoWeb.Controllers
             return File(fileByte, $"application/{name.Substring(name.LastIndexOf(".") + 1)}");
         }
 
-        [CheckToken]
+        //[CheckToken]
         public ActionResult GetRecentCamRecords()
         {
             var camRecordsPath = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords");
@@ -338,7 +338,7 @@ namespace RcsCargoWeb.Controllers
             return Content(camRecords.Length > 0 ? camRecords.Substring(0, camRecords.Length - 1) : string.Empty, "text/plain");
         }
 
-        [CheckToken]
+        //[CheckToken]
         public ActionResult GetCamRecordDateFolders(string camId)
         {
             var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId);
@@ -350,7 +350,7 @@ namespace RcsCargoWeb.Controllers
             return Json(folderName.OrderByDescending(a => a), JsonRequestBehavior.AllowGet);
         }
 
-        [CheckToken]
+        //[CheckToken]
         public ActionResult GetCamRecordFiles(string camId, string dateFolder)
         {
             var path = Path.Combine(new System.Configuration.AppSettingsReader().GetValue("FilePath", typeof(string)).ToString(), "CamRecords", camId, dateFolder);

@@ -17,7 +17,7 @@ namespace RcsCargoWeb
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static string[] bypassUrls = { "/", "/Home/Test", "/Home/Index", "/Home/Dashboard", "/Home/Login", "/Home/GetScriptVersion",
             "/FileStation/TestUpload", "/FileStation/GetShaFileTransferList", "/FileStation/UploadShaFile",
-            "/FileStation/UploadShaFileFailed", "/FileStationAddShaFileTransfer", "/FileStation/Test" };
+            "/FileStation/UploadShaFileFailed", "/FileStationAddShaFileTransfer", "/FileStation/Test", "/Air/Pv/ImportExcel" };
         private static DbUtils.Admin admin = new Admin();
 
         protected override bool AuthorizeCore(HttpContextBase context)

@@ -153,7 +153,7 @@
         let frtMode = utils.getFrtMode();
         let requestId = kendo.guid();
         let controlHtml = `<div style="overflow: auto" class="content"><input type="file" name="uploadExcel" /><div name="processedResult"></div></div>`;
-        utils.alertMessage(controlHtml, "Import From Excel", "", "medium", true, "controllers.airPv.importFromExcelSave");
+        utils.alertMessage(controlHtml, "Import From Excel (JOAUG TRUCKING)", "", "medium", true, "controllers.airPv.importFromExcelSave");
 
         $(`.kendo-window-alertMessage [name="uploadExcel"]`).kendoUpload({
             async: {
@@ -168,10 +168,10 @@
             complete: function (e) {
                 kendo.ui.progress($(".wrapper"), true);
                 $.ajax({
-                    url: "../Air/Pv/GetImportExcelResult",
+                    url: "../Air/Pv/GetImportExcelResultJoaug",
                     data: {
                         "requestId": requestId,
-                        "pvCategory": $(`.kendo-window-alertMessage [name="pvCategory"]`).data("kendoDropDownList").value(),
+                        //"pvCategory": $(`.kendo-window-alertMessage [name="pvCategory"]`).data("kendoDropDownList").value(),
                         "companyId": companyId,
                         "frtMode": frtMode
                     },
@@ -208,17 +208,17 @@
             }
         });
 
-        $(".kendo-window-alertMessage .k-button [name=uploadExcel]").parent().before("<label class='col-form-label'>Import by:&nbsp;&nbsp;</label><span name='pvCategory' style='width: 100px'></span>&nbsp;");
-        $(".kendo-window-alertMessage [name=pvCategory]").kendoDropDownList({
-            dataTextField: "text",
-            dataValueField: "value",
-            dataSource: [{ text: "Container #", value: "containerNo" }, { text: "MAWB #", value: "mawbNo" }],
-        });
+        $(".kendo-window-alertMessage .k-button [name=uploadExcel]").parent().before("<label class='col-form-label'>JOAUG TRUCKING:&nbsp;&nbsp;</label><span name='pvCategory' style='width: 100px'></span>&nbsp;");
+        //$(".kendo-window-alertMessage [name=pvCategory]").kendoDropDownList({
+        //    dataTextField: "text",
+        //    dataValueField: "value",
+        //    dataSource: [{ text: "Container #", value: "containerNo" }, { text: "MAWB #", value: "mawbNo" }],
+        //});
 
-        $("em.k-dropzone-hint").append(`&nbsp;&nbsp;<span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">Download Template</span>`);
-        $("span.k-button:contains('Download Template')").click(function () {
-            window.open("../Content/files/Import PV template (by container).xlsx");
-        });
+        //$("em.k-dropzone-hint").append(`&nbsp;&nbsp;<span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base">Download Template</span>`);
+        //$("span.k-button:contains('Download Template')").click(function () {
+        //    window.open("../Content/files/Import PV template (by container).xlsx");
+        //});
     }
 
     importFromExcelSave = function (sender) {

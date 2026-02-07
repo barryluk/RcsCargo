@@ -177,8 +177,13 @@ li.k-list-item {
         }
 
 .link-text {
+    color: white;
     font-weight: 700;
     margin: 4px 10px 4px 0px;
+    border-radius: .375rem;
+    background-color: #2B7FFF;
+    margin-inline: 2px;
+    padding-inline: 2px;
 }
 
 #powerSearch_result p:hover {
@@ -365,13 +370,15 @@ td.k-edit-cell {
 }
 
 .toolbar.k-toolbar .toolbar-status {
-    position: absolute;
-    right: 10px;
+    /*position: absolute;
+    right: 10px;*/
+    margin-left: auto;
     font-size: 0.7rem;
 }
 
 .toolbar.k-toolbar .toolbar-frtMode, .toolbar.k-toolbar .toolbar-seaFrtMode {
-    margin-left: 100px;
+    margin-left: 20px;
+    /*flex-grow: 1;*/
 }
 
 [name="logContent"] {
@@ -452,7 +459,10 @@ span.menuButton {
 }
 
 .highlight {
-    background-color: yellow;
+    border-radius: .375rem;
+    background-color: #fdc700;
+    margin-inline: 1px;
+    padding-inline: 1px;
 }
 
 table.dataTable {
