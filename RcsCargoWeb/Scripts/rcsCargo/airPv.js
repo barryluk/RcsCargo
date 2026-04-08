@@ -231,40 +231,44 @@
             return;
         }
 
-        let models = JSON.parse($(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data"));
-        let pvNos = "";
         kendo.ui.progress($(".wrapper"), true);
 
-        for (let i in models) {
-            let model = models[i];
-            model["PV_NO"] = "";
-            model["PV_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["PV_DATE"]));
-            model["FLIGHT_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["FLIGHT_DATE"]));
-            model["COMPANY_ID"] = data.companyId;
-            model["FRT_MODE"] = utils.getFrtMode();
-            model["CREATE_USER"] = data.user.USER_ID;
-            model["CREATE_DATE"] = utils.convertDateToISOString(new Date());
-            model["MODIFY_USER"] = data.user.USER_ID;
-            model["MODIFY_DATE"] = utils.convertDateToISOString(new Date());
+        setTimeout(function () {
+            let models = JSON.parse($(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data"));
+            let pvNos = "";
 
-            $.ajax({
-                url: "../Air/Pv/UpdatePv",
-                type: "POST",
-                async: false,
-                data: { "model": model, "mode": "create" },
-                success: function (result) {
-                    console.log(result);
-                    pvNos += result.PV_NO + ", ";
-                }
-            });
-        }
+            for (let i in models) {
+                let model = models[i];
+                model["PV_NO"] = "";
+                model["PV_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["PV_DATE"]));
+                model["FLIGHT_DATE"] = utils.convertDateToISOString(kendo.parseDate(model["FLIGHT_DATE"]));
+                model["COMPANY_ID"] = data.companyId;
+                model["FRT_MODE"] = utils.getFrtMode();
+                model["CREATE_USER"] = data.user.USER_ID;
+                model["CREATE_DATE"] = utils.convertDateToISOString(new Date());
+                model["MODIFY_USER"] = data.user.USER_ID;
+                model["MODIFY_DATE"] = utils.convertDateToISOString(new Date());
 
-        kendo.ui.progress($(".wrapper"), false);
-        $(`#${utils.getFormId()} div.search-control .k-icon.k-i-search`).trigger("click");
-        if (pvNos.length > 2) {
-            utils.showNotification(`PV created: ${pvNos.substr(0, pvNos.length - 2)}`, "success", ".k-button-text:contains('Import From Excel')")
-        }
-        sender.destroy();
+                $.ajax({
+                    url: "../Air/Pv/UpdatePv",
+                    type: "POST",
+                    async: false,
+                    data: { "model": model, "mode": "create" },
+                    success: function (result) {
+                        //console.log(result);
+                        pvNos += result.PV_NO + ", ";
+                    }
+                });
+            }
+
+            $(`#${utils.getFormId()} div.search-control .k-icon.k-i-search`).trigger("click");
+            if (pvNos.length > 2) {
+                console.log(pvNos);
+                kendo.ui.progress($(".wrapper"), false);
+                utils.showNotification(`Total: ${models.length} PV created.`, "success", ".k-button-text:contains('Import For JOAUG')")
+            }
+            sender.destroy();
+        }, 100);
     }
 
     batchPv = function () {

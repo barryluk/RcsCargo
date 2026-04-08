@@ -1038,7 +1038,7 @@ var indexPages = [
                 { name: "excel", text: "Export Excel" },
                 { name: "autoFitColumns", text: "Auto Width", iconClass: "k-icon k-i-max-width" },
                 { name: "batchPv", text: "Batch PV", iconClass: "k-icon k-i-copy", callbackFunction: "controllers.airPv.batchPv" },
-                { name: "importFromExcel", text: "Import From Excel", iconClass: "k-icon k-i-excel", callbackFunction: "controllers.airPv.importFromExcel" },
+                { name: "importFromExcel", text: "Import For JOAUG", iconClass: "k-icon k-i-excel", callbackFunction: "controllers.airPv.importFromExcel" },
             ],
             columns: [
                 { field: "PV_NO", title: "PV#", attributes: { "class": "link-cell" } },

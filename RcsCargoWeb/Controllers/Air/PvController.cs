@@ -200,9 +200,12 @@ namespace RcsCargoWeb.Air.Controllers
                         {
                             var lastCellIndex = row.Cells.Count - 1;
 
-                            //log.Debug($"{row.Cells.Count.ToString()} {row.Cells[lastCellIndex - 1].ToString()} {row.Cells[lastCellIndex].ToString()}");
-                            //if (row.Cells[lastCellIndex - 1].ToString().FormatText() == "DATE" && !string.IsNullOrEmpty(row.Cells[lastCellIndex].ToString()))
-                            //    pvDate = Utils.ParseDateTime(row.Cells[lastCellIndex].ToString().Trim(), "M/d/yyyy") ?? DateTime.Now;
+                            if (row.Cells[lastCellIndex - 1].ToString().FormatText() == "DATE" && !string.IsNullOrEmpty(row.Cells[lastCellIndex].ToString()))
+                            {
+                                //log.Debug("PV Date: " + row.Cells[lastCellIndex].ToString().Trim());
+                                //log.Debug("PV Date: " + Utils.ParseDateTime(row.Cells[lastCellIndex].ToString().Trim(), "dd-MMM-yyyy"));
+                                pvDate = Utils.ParseDateTime(row.Cells[lastCellIndex].ToString().Trim(), "dd-MMM-yyyy") ?? DateTime.Now;
+                            }
 
                             if (row.Cells[lastCellIndex - 1].ToString().FormatText() == "INVOICE #" && !string.IsNullOrEmpty(row.Cells[lastCellIndex].ToString()))
                                 vendorInvNo = row.Cells[lastCellIndex].ToString().FormatText();

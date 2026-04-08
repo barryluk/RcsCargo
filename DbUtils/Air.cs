@@ -494,15 +494,16 @@ namespace DbUtils
             }
 
             //step 2: Check when MAWB#, Job# is already exist in invoice / PV, the input Job# must use the original value
-            if (valid)
-            {
-                if (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0 || 
-                    db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0)
-                {
-                    valid = (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0 ||
-                        db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0) ? true : false;
-                }
-            }
+            //disabled on 04.08.2026 as per request from business since some mawb# will be reused, flight info will be different, new job# will be generated, so skip this validation to avoid confusion
+            //if (valid)
+            //{
+            //    if (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0 || 
+            //        db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.COMPANY_ID == companyId) > 0)
+            //    {
+            //        valid = (db.Invoices.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0 ||
+            //            db.Pvs.Count(a => a.MAWB_NO == mawbNo && a.JOB_NO == jobNo && a.COMPANY_ID == companyId) > 0) ? true : false;
+            //    }
+            //}
 
             return valid;
         }

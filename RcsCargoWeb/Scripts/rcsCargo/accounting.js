@@ -67,7 +67,7 @@
             }
         });
         $(`#${utils.getFormId()} .spreadSheetReport [name="accountingYear"]`).kendoDropDownList({
-            dataSource: ["2025", "2024"],
+            dataSource: ["2026", "2025", "2024"],
             value: new Date().getFullYear(),
             cascade: function (e) {
                 controllers.accounting.getAccountingReport(spreadsheet);
