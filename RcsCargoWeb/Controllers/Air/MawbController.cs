@@ -79,7 +79,7 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-12) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
@@ -283,7 +283,7 @@ namespace RcsCargoWeb.Air.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!startDate.HasValue)
-                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-12) : DateTime.Now.AddDays(-90);
             if (!endDate.HasValue)
                 endDate = DateTime.Now.AddMonths(3);
 
