@@ -348,6 +348,7 @@ namespace RcsCargoWeb.Controllers
                 case "AirPVReport": reportName = ReportName.AirPVReport; break;
                 case "AirPvTypeReport": reportName = ReportName.AirPvTypeReport; break;
                 case "AirUsSummaryInvoiceReport": reportName = ReportName.AirUsSummaryInvoiceReport; break;
+                case "RCSCFSLAX_InvoiceReportNew": reportName = ReportName.RCSCFSLAX_InvoiceReportNew; break;
                 case "RCSCFSLAX_InvoiceReport": reportName = ReportName.RCSCFSLAX_InvoiceReport; break;
                 case "RCSCFSLAX_SummaryInvoiceReport": reportName = ReportName.RCSCFSLAX_SummaryInvoiceReport; break;
                 case "RCSCFSLAX_InvoiceReport_Charges": reportName = ReportName.RCSCFSLAX_InvoiceReport_Charges; break;

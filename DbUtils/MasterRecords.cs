@@ -516,10 +516,18 @@ namespace DbUtils
 
         #region Charges
 
+        public List<ChargeView> GetChargesViewRCSCFSLAX()
+        {
+            var sqlCmd = @"select charge_code, charge_desc, charge_base from charge
+                where charge_code in (select charge_code from charge_rcscfslax)";
+            return db.Database.SqlQuery<ChargeView>(sqlCmd).ToList();
+        }
+
         public List<ChargeView> GetChargesView()
         {
             var sqlCmd = @"select a.charge_code, b.charge_desc, b.charge_base from 
                 (select charge_code from a_invoice_item where inv_no in (select inv_no from a_invoice where create_date > sysdate - 730)
+                union select charge_code from s_invoice_item where inv_no in (select inv_no from s_invoice where create_date > sysdate - 730)
                 union select charge_code from charge where modify_date > sysdate - 30)a, charge b
                 where a.charge_code = b.charge_code";
             return db.Database.SqlQuery<ChargeView>(sqlCmd).ToList();

@@ -53,7 +53,7 @@ namespace RcsCargoWeb.Sea.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!startDate.HasValue)
-                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                startDate = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-24) : DateTime.Now.AddDays(-90);
             if (!endDate.HasValue)
                 endDate = DateTime.Now.AddMonths(3);
 

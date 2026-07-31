@@ -864,6 +864,9 @@
                     <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_summaryReport"><span class="k-icon k-i-excel"></span>Summary Report</span>
                 </div>
                 <div class="col-sm-12 dialogFooter">
+                    <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_InvoiceReportNew"><span class="k-icon k-i-excel"></span>Invoice Report (New)</span>
+                </div>
+                <div class="col-sm-12 dialogFooter">
                     <span class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base" style="width: 220px" name="RCSCFSLAX_dailyReport_RCS"><span class="k-icon k-i-excel"></span>Daily Report (RCSCFS)</span>
                 </div>
                 <div class="col-sm-12 dialogFooter">
@@ -893,6 +896,11 @@
         $(`#${utils.getFormId()} [name="RCSCFSLAX_summaryReport"]`).click(function () {
             let paras = controllers.airReport.getCommonParas();
             utils.getExcelReport("AirUsSummaryInvoiceReport", paras, `USLAX Invoice Summary Report`);
+        });
+
+        $(`#${utils.getFormId()} [name="RCSCFSLAX_InvoiceReportNew"]`).click(function () {
+            let paras = controllers.airReport.getCommonParas();
+            utils.getExcelReport("RCSCFSLAX_InvoiceReportNew", paras, `InvoiceReport`);
         });
 
         $(`#${utils.getFormId()} [name="RCSCFSLAX_dailyReport_RCS"]`).click(function () {

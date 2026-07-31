@@ -3390,7 +3390,7 @@
             optionLabel: `Select charges ...`,
             dataSource: {
                 type: "json",
-                data: data.masterRecords.charges,
+                data: data.companyId == "RCSCFSLAX" ? data.masterRecords.chargesRCSCFSLAX : data.masterRecords.charges,
             },
             open: function (e) {
                 $(e.sender.filterInput).val(filterValue);

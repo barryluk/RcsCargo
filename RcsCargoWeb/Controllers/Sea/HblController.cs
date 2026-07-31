@@ -55,7 +55,7 @@ namespace RcsCargoWeb.Sea.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-24) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
@@ -76,7 +76,7 @@ namespace RcsCargoWeb.Sea.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-24) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 
@@ -98,7 +98,7 @@ namespace RcsCargoWeb.Sea.Controllers
         {
             searchValue = searchValue.Trim().ToUpper() + "%";
             if (!dateFrom.HasValue)
-                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-9) : DateTime.Now.AddDays(-90);
+                dateFrom = searchValue.Trim().Length > 1 ? DateTime.Now.AddMonths(-24) : DateTime.Now.AddDays(-90);
             if (!dateTo.HasValue)
                 dateTo = DateTime.Now.AddMonths(3);
 

@@ -131,6 +131,12 @@ namespace RcsCargoWeb.Controllers
             return Json(masterRecords.GetAirlines(searchValue).Take(take), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult GetChargesViewRCSCFSLAX()
+        {
+            var masterRecords = new MasterRecords();
+            return Json(masterRecords.GetChargesViewRCSCFSLAX(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult GetChargesView()
         {
             var masterRecords = new MasterRecords();

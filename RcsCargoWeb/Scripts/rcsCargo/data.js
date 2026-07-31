@@ -38,7 +38,7 @@ var masterRecords = {
     toOrder: ["TO ORDER", "TO THE ORDER", "TO THIS ORDER"],
     printOnHbl: ["THIS SHIPMENT CONTAINS NO SOLID WOOD PACKING MATERIALS", "THIS SHIPMENT CONTAINS HEAT TREATED WOODEN PALLETS WHICH ARE COMPLIED THE STANDARD OF ISPM 15", "SHIPMENT CONTAINS REGULATED WOOD PACKAGING MATERIALS WITH IPPC LOGO MARKED", "PALLETS THAT HAVE TREATED AND MARKED IN COMPLIANCE WITH IPPC 15 STANDARD (WITH IPPC LOGO)"],
     asCarrier: ["RCS LOGISTICS INC. AS CARRIER"],
-    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
+    equipCodes: {}, currencies: {}, sysCompanies: {}, airlines: {}, charges: {}, chargesRCSCFSLAX: {}, chargeTemplates: {}, countries: {}, ports: {}, customers: {}, groupCodes: {}, commodities: {},
     powerSearchSettings: {}, powerSearchTemplates: {}, menuItems: {}, seqTypes: {}, seaPorts: {}, carriers: {}, carrierContracts: {},
     vessels: {}, cargoUnits: {}, containerSize: {}, seaChargeQtyUnit: {},
     acDepartment: [{ text: "", value: "" }, { text: "空运", value: "01" }, { text: "海运", value: "02" }, { text: "香港代开", value: "03" }],
@@ -5612,6 +5612,16 @@ export default class {
             data: { companyId: this.companyId },
             success: function (result) {
                 masterRecords.chargeTemplates = result;
+            }
+        });
+
+        $.ajax({
+            url: "../Home/GetChargesViewRCSCFSLAX",
+            success: function (result) {
+                for (var i in result) {
+                    result[i].CHARGE_DESC_DISPLAY = result[i].CHARGE_CODE + " - " + result[i].CHARGE_DESC;
+                }
+                masterRecords.chargesRCSCFSLAX = result;
             }
         });
 
