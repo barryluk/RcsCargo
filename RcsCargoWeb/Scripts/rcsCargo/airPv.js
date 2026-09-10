@@ -175,14 +175,27 @@
                         "companyId": companyId,
                         "frtMode": frtMode
                     },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        kendo.ui.progress($(".wrapper"), false);
+                        utils.alertMessage("Request failed: " + textStatus + " - " + errorThrown, "Error", "error");
+                        console.log(jqXHR, textStatus, errorThrown);
+                    },
                     success: function (result) {
                         kendo.ui.progress($(".wrapper"), false);
-                        //console.log(result);
+                        if (result.toString().startsWith("Error")) {
+                            $(`.kendo-window-alertMessage [name="processedResult"]`).html(`<br><div style="border: 1px solid red; padding: 2px; background-color: pink"><span class="k-icon k-i-warning"></span> ${result.toString()}</div>`);
+                            $(".customButton.button-icon-check-outline").data("kendoButton").enable(false);
+                            return;
+                        }
+                        // console.log(result);
                         let resultHtml = "";
+                        let missingMawbNos = "";
                         for (let i in result) {
                             let invalidClass = "class='invalid-data'";
                             if (!utils.isEmptyString(result[i].JOB_NO) && !utils.isEmptyString(result[i].CUSTOMER_DESC))
                                 invalidClass = "";
+                            else
+                                missingMawbNos += `${result[i].MAWB_NO}, `;
 
                             resultHtml += `<div ${invalidClass}><b>PV# ${result[i].PV_NO}</b><br />
                             PV Date: ${kendo.toString(kendo.parseDate(result[i].PV_DATE), "M/d/yyyy")}<br />
@@ -197,6 +210,12 @@
 
                             resultHtml += `<div>Total: ${result[i].CURR_CODE} ${result[i].AMOUNT_HOME}</div></div><br />`;
                         }
+
+                        if (missingMawbNos.length > 2) {
+                            missingMawbNos = missingMawbNos.slice(0, -2);
+                            resultHtml = `<br><div class="invalid-data"><span class="k-icon k-i-warning"></span> Missing MAWB Record(s): ${ missingMawbNos }</div ><br>` + resultHtml;
+                        }
+
                         $(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data", JSON.stringify(result));
                         $(`.kendo-window-alertMessage [name="processedResult"]`).html(resultHtml);
 

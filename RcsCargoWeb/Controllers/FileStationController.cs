@@ -483,7 +483,10 @@ namespace RcsCargoWeb.Controllers
 
                 //Create directory if not exist
                 if (!Pri.LongPath.Directory.Exists(Path.Combine(fileServerPath, path)))
-                    Pri.LongPath.Directory.CreateDirectory(Path.Combine(fileServerPath, path));
+                {
+                    NetworkFolderManager.CreateDirectory(Path.Combine(fileServerPath, path));
+                    //Pri.LongPath.Directory.CreateDirectory(Path.Combine(fileServerPath, path));
+                }
                 
                 //Handle long path exception
                 if (Path.Combine(fileServerPath, path, fileName).Length > 220)
@@ -558,7 +561,10 @@ namespace RcsCargoWeb.Controllers
                     //Create directory if not exist
                     var newPath = Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3, fileTransfer.FILE_PATH.LastIndexOf("\\") - 3));
                     if (!Pri.LongPath.Directory.Exists(newPath))
-                        Pri.LongPath.Directory.CreateDirectory(newPath);
+                    {
+                        NetworkFolderManager.CreateDirectory(newPath);
+                        //Pri.LongPath.Directory.CreateDirectory(newPath);
+                    }
 
                     //Convert newFileBytes to File
                     var newFs = new FileStream(Path.Combine(serverPath, fileTransfer.FILE_PATH.Substring(3)), FileMode.Create, FileAccess.Write);
