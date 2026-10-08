@@ -180,43 +180,64 @@
                         utils.alertMessage("Request failed: " + textStatus + " - " + errorThrown, "Error", "error");
                         console.log(jqXHR, textStatus, errorThrown);
                     },
+                    // airPv.js (inside importFromExcel -> success callback)
+
                     success: function (result) {
                         kendo.ui.progress($(".wrapper"), false);
-                        if (result.toString().startsWith("Error")) {
-                            $(`.kendo-window-alertMessage [name="processedResult"]`).html(`<br><div style="border: 1px solid red; padding: 2px; background-color: pink"><span class="k-icon k-i-warning"></span> ${result.toString()}</div>`);
+
+                        // Handle error returned as string or object with success = false
+                        if (typeof result === "string" && result.startsWith("Error")) {
+                            $(`.kendo-window-alertMessage [name="processedResult"]`).html(`<br><div style="border: 1px solid red; padding: 2px; background-color: pink"><span class="k-icon k-i-warning"></span> ${result}</div>`);
                             $(".customButton.button-icon-check-outline").data("kendoButton").enable(false);
                             return;
                         }
-                        // console.log(result);
+
+                        if (result && result.success === false) {
+                            $(`.kendo-window-alertMessage [name="processedResult"]`).html(`<br><div style="border: 1px solid red; padding: 2px; background-color: pink"><span class="k-icon k-i-warning"></span> ${result.message}</div>`);
+                            $(".customButton.button-icon-check-outline").data("kendoButton").enable(false);
+                            return;
+                        }
+
+                        // Extract models array regardless of backend response wrapper
+                        let pvModels = Array.isArray(result) ? result : (result.data || []);
+
                         let resultHtml = "";
-                        let missingMawbNos = "";
-                        for (let i in result) {
+                        let missingMawbNos = [];
+
+                        for (let i = 0; i < pvModels.length; i++) {
+                            let pvItem = pvModels[i];
                             let invalidClass = "class='invalid-data'";
-                            if (!utils.isEmptyString(result[i].JOB_NO) && !utils.isEmptyString(result[i].CUSTOMER_DESC))
+
+                            if (!utils.isEmptyString(pvItem.JOB_NO) && !utils.isEmptyString(pvItem.CUSTOMER_DESC)) {
                                 invalidClass = "";
-                            else
-                                missingMawbNos += `${result[i].MAWB_NO}, `;
-
-                            resultHtml += `<div ${invalidClass}><b>PV# ${result[i].PV_NO}</b><br />
-                            PV Date: ${kendo.toString(kendo.parseDate(result[i].PV_DATE), "M/d/yyyy")}<br />
-                            Vendor Inv.#: ${result[i].VENDOR_INV_NO}<br />
-                            Job#: ${result[i].JOB_NO}<br />
-                            Vendor: ${result[i].CUSTOMER_DESC}`;
-
-                            for (let x in result[i].PvItems) {
-                                resultHtml += `<div style="border: 1px solid #80BDFF; padding: 2px;">${result[i].PvItems[x].CHARGE_DESC} - ${result[i].PvItems[x].CURR_CODE} ${result[i].PvItems[x].PRICE} / 
-                                ${result[i].PvItems[x].QTY} ${result[i].PvItems[x].QTY_UNIT} ${result[i].PvItems[x].AMOUNT} </div>`;
+                            } else {
+                                if (pvItem.MAWB_NO) {
+                                    missingMawbNos.push(pvItem.MAWB_NO);
+                                }
                             }
 
-                            resultHtml += `<div>Total: ${result[i].CURR_CODE} ${result[i].AMOUNT_HOME}</div></div><br />`;
+                            resultHtml += `<div ${invalidClass}><b>PV# ${pvItem.PV_NO}</b><br />
+                                PV Date: ${kendo.toString(kendo.parseDate(pvItem.PV_DATE), "M/d/yyyy")}<br />
+                                Vendor Inv.#: ${pvItem.VENDOR_INV_NO}<br />
+                                Job#: ${pvItem.JOB_NO || "N/A"}<br />
+                                Vendor: ${pvItem.CUSTOMER_DESC || "N/A"}`;
+
+                            for (let x in pvItem.PvItems) {
+                                let charge = pvItem.PvItems[x];
+                                resultHtml += `<div style="border: 1px solid #80BDFF; padding: 2px;">${charge.CHARGE_DESC} - ${charge.CURR_CODE} ${charge.PRICE} / 
+                                    ${charge.QTY} ${charge.QTY_UNIT} ${charge.AMOUNT} </div>`;
+                            }
+
+                            resultHtml += `<div>Total: ${pvItem.CURR_CODE} ${pvItem.AMOUNT_HOME}</div></div><br />`;
                         }
 
-                        if (missingMawbNos.length > 2) {
-                            missingMawbNos = missingMawbNos.slice(0, -2);
-                            resultHtml = `<br><div class="invalid-data"><span class="k-icon k-i-warning"></span> Missing MAWB Record(s): ${ missingMawbNos }</div ><br>` + resultHtml;
+                        if (missingMawbNos.length > 0) {
+                            // Remove duplicate MAWB numbers if any
+                            let uniqueMissing = [...new Set(missingMawbNos)].join(", ");
+                            resultHtml = `<br><div class="invalid-data"><span class="k-icon k-i-warning"></span> Missing MAWB Record(s): ${uniqueMissing}</div><br>` + resultHtml;
                         }
 
-                        $(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data", JSON.stringify(result));
+                        $(`.kendo-window-alertMessage [name="processedResult"]`).attr("model-data", JSON.stringify(pvModels));
                         $(`.kendo-window-alertMessage [name="processedResult"]`).html(resultHtml);
 
                         let contentHeight = $(".kendo-window-alertMessage.k-window-content").height();
